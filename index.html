@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Playground</title>
+  <meta name="description" content="Dependency-freier QR Playground mit eigener QR-Core-Lib und SVG-Styling-Lib in reinem JavaScript.">
+  
+  <!-- Das ausgelagerte CSS einbinden -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero">
+      <article class="hero-copy">
+        <span class="eyebrow">Dependency-free QR Atelier</span>
+        <p class="hero-kicker">Core matrix on the left brain. Styled SVG output on the right hand.</p>
+        <h1>Generate sharp QR codes with a browser-native studio, not a bloated toolchain.</h1>
+        <p class="hero-text">
+          Dieses Playground-Projekt trennt die QR-Logik sauber von der Darstellung. Reines JavaScript, direkte SVG-Ausgabe und eine Oberflaeche, die sich mehr nach Werkzeug als nach Formular anfuehlt.
+        </p>
+        <div class="feature-list">
+          <span class="feature-pill">qr-core erzeugt die Matrix</span>
+          <span class="feature-pill">qr-svg rendert Stil, Farbe und Finder</span>
+          <span class="feature-pill">Export als SVG oder PNG direkt im Browser</span>
+        </div>
+      </article>
+
+      <aside class="hero-stage">
+        <div class="stage-meta">
+          <span class="stage-label">Live Preview</span>
+          <p class="stage-note">Byte-Mode, Version 1 bis 10, optimiert fuer kurze URLs und kompakte Texte.</p>
+        </div>
+
+        <div class="preview-shell">
+          <div class="preview-aura"></div>
+          <div id="qr-preview" class="preview-card" aria-live="polite">
+            <p id="qr-placeholder" class="placeholder" role="status">Gib unten eine URL oder Text ein, um deinen QR-Code sofort zu bauen.</p>
+          </div>
+        </div>
+
+        <div id="download-buttons" class="download-bar hidden">
+          <button id="btn-download-svg" class="action-button" aria-label="QR code als SVG herunterladen">SVG exportieren</button>
+          <button id="btn-download-png" class="action-button secondary" aria-label="QR code als PNG herunterladen">PNG exportieren</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="workspace">
+      <section class="editor">
+        <div class="editor-heading">
+          <span class="section-tag">Generator</span>
+          <h2 class="section-title">Arbeitsflaeche</h2>
+          <p class="section-copy">Text eingeben, Stil justieren, Logo setzen und direkt exportieren.</p>
+        </div>
+
+        <div class="editor-grid">
+          <div class="field field-wide">
+            <label class="field-label" for="url-input">URL oder Text</label>
+            <input type="text" id="url-input" class="text-input" placeholder="https://example.com" autocomplete="off">
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="dot-shape">Dot Style</label>
+            <select id="dot-shape" class="select-input">
+              <option value="rounded" selected>Rounded</option>
+              <option value="dots">Dots</option>
+              <option value="square">Square</option>
+              <option value="classy">Classy</option>
+              <option value="extra-rounded">Extra Rounded</option>
+              <option value="classy-rounded">Classy Rounded</option>
+              <option value="diamond">Diamond</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="corner-shape">Finder Style</label>
+            <select id="corner-shape" class="select-input">
+              <option value="extra-rounded" selected>Extra Rounded</option>
+              <option value="dot">Dot</option>
+              <option value="square">Square</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="download-size">Export Size</label>
+            <select id="download-size" class="select-input size-select">
+              <option value="256">256 x 256</option>
+              <option value="512">512 x 512</option>
+              <option value="1024" selected>1024 x 1024</option>
+              <option value="2048">2048 x 2048</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="logo-upload">Center Logo</label>
+            <input type="file" id="logo-upload" class="upload-input" accept="image/png,image/svg+xml,image/jpeg">
+            <div class="logo-actions">
+              <button type="button" id="btn-clear-logo" class="small-button">Logo entfernen</button>
+              <span id="logo-status" class="logo-status">Kein Logo geladen.</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="color-start">Farbe Start</label>
+            <div class="color-stack">
+              <input type="color" id="color-start" class="color-input" value="#0f172a">
+              <span class="color-code" id="color-start-hex">#0f172a</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="color-end">Farbe Ende</label>
+            <div class="color-stack">
+              <input type="color" id="color-end" class="color-input" value="#0ea5e9">
+              <span class="color-code" id="color-end-hex">#0ea5e9</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="notes">
+        <span class="section-tag">Library Scope</span>
+        <h2 class="section-title">Warum die Oberflaeche so reduziert bleibt</h2>
+        <p class="section-copy">
+          Die Demo soll zeigen, wie weit ihr mit zwei kleinen Plain-JS-Libs kommt, ohne dass die UI die eigentliche Library-Idee ueberlagert.
+        </p>
+        <ul class="notes-list">
+          <li>Kein Framework, keine Bundler-Magie, keine Styling-Dependency.</li>
+          <li>Die QR-Matrix bleibt von der SVG-Aesthetik komplett getrennt.</li>
+          <li>Die Buehne rechts zeigt bewusst sofort das Resultat statt erst eine Tool-Karte.</li>
+        </ul>
+      </aside>
+    </section>
+  </main>
+
+  <!-- Den App-Controller als Modul einbinden (wichtig für ES6 Imports) -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
