@@ -36,6 +36,7 @@ export class QrSvgRenderer {
     const modules = this.qrCode.modules
     const count = this.qrCode.size
     const viewBoxSize = count + this.style.margin * 2
+    const finderColor = getDarkerColor(this.style.colorStart, this.style.colorEnd)
     
     // Generiere eine zufällige ID für den Gradienten, um Konflikte 
     // bei mehreren QR-Codes auf derselben Seite zu vermeiden.
@@ -84,7 +85,8 @@ export class QrSvgRenderer {
       `</linearGradient>`,
       `</defs>`,
       `<rect width="${viewBoxSize}" height="${viewBoxSize}" fill="${this.style.background}" rx="2.4"/>`,
-      `<g fill="url(#${gradientId})">${bodyMarkup}${cornerMarkup}</g>`,
+      `<g fill="url(#${gradientId})">${bodyMarkup}</g>`,
+      `<g fill="${finderColor}">${cornerMarkup}</g>`,
       logoMarkup,
       '</svg>',
     ].join('')
@@ -218,4 +220,51 @@ function roundedRectPath(x, y, width, height, tl, tr, br, bl) {
 
 function escapeAttribute(value) {
   return String(value).replace(/"/g, '&quot;')
+}
+
+function getDarkerColor(firstColor, secondColor) {
+  const firstLuminance = getRelativeLuminance(firstColor)
+  const secondLuminance = getRelativeLuminance(secondColor)
+
+  if (firstLuminance == null) {
+    return secondColor
+  }
+  if (secondLuminance == null) {
+    return firstColor
+  }
+  return firstLuminance <= secondLuminance ? firstColor : secondColor
+}
+
+function getRelativeLuminance(color) {
+  const channels = parseHexColor(color)
+  if (!channels) {
+    return null
+  }
+
+  const [red, green, blue] = channels.map((channel) => {
+    const normalized = channel / 255
+    return normalized <= 0.04045
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4
+  })
+
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+}
+
+function parseHexColor(color) {
+  const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(color).trim())
+  if (!match) {
+    return null
+  }
+
+  const raw = match[1]
+  const hex = raw.length === 3
+    ? raw.split('').map((character) => character + character).join('')
+    : raw
+
+  return [
+    Number.parseInt(hex.slice(0, 2), 16),
+    Number.parseInt(hex.slice(2, 4), 16),
+    Number.parseInt(hex.slice(4, 6), 16),
+  ]
 }

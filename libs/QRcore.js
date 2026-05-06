@@ -325,7 +325,7 @@ function getAlignmentPatternPositions(version) {
   }
 
   const numAlign = Math.floor(version / 7) + 2
-  const step = Math.ceil((version * 4 + numAlign * 2 + 1) / (numAlign * 2 - 2)) * 2
+  const step = Math.floor((version * 8 + numAlign * 3 + 5) / (numAlign * 4 - 4)) * 2
   const positions = [6]
   for (let pos = version * 4 + 10; positions.length < numAlign; pos -= step) {
     positions.splice(1, 0, pos)
