@@ -181,11 +181,10 @@ class QRPlaygroundApp {
       const dmMatrix = dmGenerator.generate()
       const dmRenderer = new DmSvgRenderer(dmMatrix, {
         size,
-        colorStart: '#000000',
-        colorEnd: '#000000',
-        dotStyle: 'square',
-        margin: 12,
-        background: '#ffffff',
+        colorStart: this.state.options.colorStart,
+        colorEnd: this.state.options.colorEnd,
+        dotStyle: this.state.options.dotStyle,
+        margin: 8,
       })
       return dmRenderer.render()
     }
