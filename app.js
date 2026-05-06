@@ -1,12 +1,14 @@
 import { QrCore } from './libs/QRcore.js'
 import { QrSvgRenderer } from './libs/QRsvg.js'
+import { DmCore } from './libs/DMcore.js'
+import { DmSvgRenderer } from './libs/DMsvg.js'
 
 class QRPlaygroundApp {
   constructor() {
-    // 1. App State
     this.state = {
       data: '',
       options: {
+        codeType: 'qr',
         errorCorrectionLevel: 'Q',
         colorStart: '#0f172a',
         colorEnd: '#0ea5e9',
@@ -20,12 +22,12 @@ class QRPlaygroundApp {
     this.isDownloading = false
     this.debounceTimer = null
 
-    // 2. DOM Elemente referenzieren
     this.ui = {
       container: document.getElementById('qr-preview'),
       placeholder: document.getElementById('qr-placeholder'),
       downloadButtons: document.getElementById('download-buttons'),
       urlInput: document.getElementById('url-input'),
+      codeType: document.getElementById('code-type'),
       dotShape: document.getElementById('dot-shape'),
       cornerShape: document.getElementById('corner-shape'),
       downloadSize: document.getElementById('download-size'),
@@ -43,15 +45,12 @@ class QRPlaygroundApp {
     this.#init()
   }
 
-  // --- Initialisierung ---
-
   #init() {
     this.#bindEvents()
     this.#parseUrlParams()
   }
 
   #bindEvents() {
-    // Text Input (mit Debounce, damit er nicht bei jedem Tastenanschlag rendert)
     this.ui.urlInput.addEventListener('input', () => {
       clearTimeout(this.debounceTimer)
       this.debounceTimer = setTimeout(() => {
@@ -59,11 +58,10 @@ class QRPlaygroundApp {
       }, 180)
     })
 
-    // Dropdowns
+    this.ui.codeType.addEventListener('change', (e) => this.update({ codeType: e.target.value }))
     this.ui.dotShape.addEventListener('change', (e) => this.update({ dotStyle: e.target.value }))
     this.ui.cornerShape.addEventListener('change', (e) => this.update({ cornerStyle: e.target.value }))
 
-    // Farbauswahl
     const onColorChange = () => {
       this.ui.colorStartHex.textContent = this.ui.colorStart.value
       this.ui.colorEndHex.textContent = this.ui.colorEnd.value
@@ -75,7 +73,6 @@ class QRPlaygroundApp {
     this.ui.colorStart.addEventListener('input', onColorChange)
     this.ui.colorEnd.addEventListener('input', onColorChange)
 
-    // Logo Upload
     this.ui.logoUpload.addEventListener('change', () => {
       const file = this.ui.logoUpload.files[0]
       if (!file) return
@@ -92,14 +89,12 @@ class QRPlaygroundApp {
       reader.readAsDataURL(file)
     })
 
-    // Logo Entfernen
     this.ui.clearLogoBtn.addEventListener('click', () => {
       this.ui.logoUpload.value = ''
       this.ui.logoStatus.textContent = 'Kein Logo geladen.'
       this.update({ logo: null })
     })
 
-    // Download Buttons
     this.ui.btnSVG.addEventListener('click', () => this.#downloadSVG())
     this.ui.btnPNG.addEventListener('click', () => this.#downloadPNG())
   }
@@ -109,21 +104,16 @@ class QRPlaygroundApp {
     const paramUrl = params.get('url')
     if (paramUrl) {
       this.ui.urlInput.value = paramUrl
-      // Event manuell triggern, damit die Vorschau generiert wird
       this.ui.urlInput.dispatchEvent(new Event('input'))
     }
   }
 
-  // --- Haupt-Render-Zyklus ---
-
   update(newOptions = {}) {
-    // State aktualisieren
     this.state.options = { ...this.state.options, ...newOptions }
     if (newOptions.data !== undefined) {
       this.state.data = newOptions.data
     }
 
-    // Wenn kein Text da ist, Platzhalter anzeigen und abbrechen
     if (!this.state.data) {
       this.ui.container.innerHTML = ''
       this.ui.container.appendChild(this.ui.placeholder)
@@ -133,33 +123,18 @@ class QRPlaygroundApp {
       return
     }
 
-    // Platzhalter verstecken, Buttons zeigen
     this.ui.placeholder.classList.add('hidden')
     this.ui.downloadButtons.classList.remove('hidden')
 
     try {
-      // 1. Matrix mit QrCore generieren
-      // Fehlerkorrekturlevel auf 'H' (High) setzen, wenn ein Logo verwendet wird
-      const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
-      const qrGenerator = new QrCore(this.state.data, { errorCorrectionLevel: ecl })
-      const qrMatrix = qrGenerator.generate()
-
-      // 2. SVG mit QrSvgRenderer generieren
-      const renderer = new QrSvgRenderer(qrMatrix, {
-        size: 300, // Vorschaugröße bleibt auf 300px fixiert
-        ...this.state.options,
-      })
-      
-      this.state.currentSvg = renderer.render()
+      this.state.currentSvg = this.#buildSvg(300)
       this.ui.container.innerHTML = this.state.currentSvg
-
+      this.#syncControlStates()
     } catch (error) {
-      console.error('Fehler beim Generieren des QR Codes:', error)
+      console.error('Fehler beim Generieren des Codes:', error)
       this.ui.container.innerHTML = `<p style="color: var(--rose); text-align: center;">Ein Fehler ist aufgetreten:<br>${error.message}</p>`
     }
   }
-
-  // --- Download Logik ---
 
   getDownloadSize() {
     return parseInt(this.ui.downloadSize.value, 10)
@@ -175,16 +150,9 @@ class QRPlaygroundApp {
     this.isDownloading = true
     try {
       const size = this.getDownloadSize()
-      
-      // Um das SVG in der richtigen Größe herunterzuladen, rendern wir es kurz neu
-      const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
-      const qrGenerator = new QrCore(this.state.data, { errorCorrectionLevel: ecl })
-      const qrMatrix = qrGenerator.generate()
-      const renderer = new QrSvgRenderer(qrMatrix, { size, ...this.state.options })
-      const downloadSvgString = renderer.render()
-
+      const downloadSvgString = this.#buildSvg(size)
       const blob = new Blob([downloadSvgString], { type: 'image/svg+xml;charset=utf-8' })
-      this.#triggerBlobDownload(blob, `qr-code-${size}.svg`)
+      this.#triggerBlobDownload(blob, `${this.#getFilePrefix()}-${size}.svg`)
     } finally {
       this.isDownloading = false
     }
@@ -196,22 +164,56 @@ class QRPlaygroundApp {
     this.isDownloading = true
     try {
       const size = this.getDownloadSize()
-      
-      // Auch hier: in der Exportgröße neu rendern
-      const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
-      const qrGenerator = new QrCore(this.state.data, { errorCorrectionLevel: ecl })
-      const qrMatrix = qrGenerator.generate()
-      const renderer = new QrSvgRenderer(qrMatrix, { size, ...this.state.options })
-      const downloadSvgString = renderer.render()
-
+      const downloadSvgString = this.#buildSvg(size)
       const blob = await this.#svgToPngBlob(downloadSvgString, size)
-      this.#triggerBlobDownload(blob, `qr-code-${size}.png`)
+      this.#triggerBlobDownload(blob, `${this.#getFilePrefix()}-${size}.png`)
     } catch (error) {
       console.error('PNG Download fehlgeschlagen:', error)
       alert('Der PNG-Export ist fehlgeschlagen.')
     } finally {
       this.isDownloading = false
     }
+  }
+
+  #buildSvg(size) {
+    if (this.state.options.codeType === 'dm') {
+      const dmGenerator = new DmCore(this.state.data)
+      const dmMatrix = dmGenerator.generate()
+      const dmRenderer = new DmSvgRenderer(dmMatrix, {
+        size,
+        colorStart: '#000000',
+        colorEnd: '#000000',
+        dotStyle: 'square',
+        margin: 12,
+        background: '#ffffff',
+      })
+      return dmRenderer.render()
+    }
+
+    const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
+    const qrGenerator = new QrCore(this.state.data, { errorCorrectionLevel: ecl })
+    const qrMatrix = qrGenerator.generate()
+    const qrRenderer = new QrSvgRenderer(qrMatrix, { size, ...this.state.options })
+    return qrRenderer.render()
+  }
+
+  #syncControlStates() {
+    const isDm = this.state.options.codeType === 'dm'
+    this.ui.cornerShape.disabled = isDm
+    this.ui.logoUpload.disabled = isDm
+    this.ui.clearLogoBtn.disabled = isDm
+
+    if (isDm && this.state.options.logo) {
+      this.state.options.logo = null
+      this.ui.logoUpload.value = ''
+      this.ui.logoStatus.textContent = 'Logo deaktiviert fuer Data Matrix.'
+    } else if (!isDm && this.ui.logoStatus.textContent === 'Logo deaktiviert fuer Data Matrix.') {
+      this.ui.logoStatus.textContent = 'Kein Logo geladen.'
+    }
+  }
+
+  #getFilePrefix() {
+    return this.state.options.codeType === 'dm' ? 'data-matrix' : 'qr-code'
   }
 
   #triggerBlobDownload(blob, filename) {
@@ -233,10 +235,8 @@ class QRPlaygroundApp {
         canvas.width = size
         canvas.height = size
         const context = canvas.getContext('2d')
-        
-        // Hintergrund transparent halten oder weiß füllen (hier transparent gelassen)
         context.drawImage(image, 0, 0, size, size)
-        
+
         canvas.toBlob((blob) => {
           URL.revokeObjectURL(url)
           if (blob) resolve(blob)
@@ -254,7 +254,6 @@ class QRPlaygroundApp {
   }
 }
 
-// App starten, sobald das DOM vollständig geladen ist
 document.addEventListener('DOMContentLoaded', () => {
   new QRPlaygroundApp()
 })
