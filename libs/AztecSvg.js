@@ -9,6 +9,7 @@ export class AztecSvgRenderer {
     background: '#ffffff',
     colorStart: '#111827',
     colorEnd: '#2563eb',
+    moduleStyle: 'square',
   }
 
   constructor(aztecDataResult, options = {}) {
@@ -29,7 +30,14 @@ export class AztecSvgRenderer {
     for (let y = 0; y < count; y += 1) {
       for (let x = 0; x < count; x += 1) {
         if (!modules[y][x]) continue
-        moduleMarkup += `<rect x="${x + this.style.margin}" y="${y + this.style.margin}" width="1" height="1"/>`
+        moduleMarkup += renderModule(
+          x + this.style.margin,
+          y + this.style.margin,
+          modules,
+          x,
+          y,
+          this.style.moduleStyle
+        )
       }
     }
 
@@ -48,3 +56,32 @@ export class AztecSvgRenderer {
   }
 }
 
+function renderModule(x, y, modules, moduleX, moduleY, moduleStyle) {
+  const top = moduleY > 0 && modules[moduleY - 1][moduleX]
+  const right = moduleX < modules.length - 1 && modules[moduleY][moduleX + 1]
+  const bottom = moduleY < modules.length - 1 && modules[moduleY + 1][moduleX]
+  const left = moduleX > 0 && modules[moduleY][moduleX - 1]
+
+  if (moduleStyle === 'dots') {
+    const parts = [`<circle cx="${x + 0.5}" cy="${y + 0.5}" r="0.36"/>`]
+    if (top) parts.push(`<rect x="${x + 0.2}" y="${y}" width="0.6" height="0.5"/>`)
+    if (right) parts.push(`<rect x="${x + 0.5}" y="${y + 0.2}" width="0.5" height="0.6"/>`)
+    if (bottom) parts.push(`<rect x="${x + 0.2}" y="${y + 0.5}" width="0.6" height="0.5"/>`)
+    if (left) parts.push(`<rect x="${x}" y="${y + 0.2}" width="0.5" height="0.6"/>`)
+    return parts.join('')
+  }
+  if (moduleStyle === 'rounded') {
+    return `<rect x="${x}" y="${y}" width="1" height="1" rx="0.26"/>`
+  }
+  if (moduleStyle === 'classy') {
+    const parts = [
+      `<path d="M ${x + 0.42} ${y} H ${x + 1} V ${y + 0.58} Q ${x + 1} ${y + 1} ${x + 0.58} ${y + 1} H ${x} V ${y + 0.42} Q ${x} ${y} ${x + 0.42} ${y} Z"/>`,
+    ]
+    if (top) parts.push(`<rect x="${x}" y="${y}" width="1" height="0.5"/>`)
+    if (right) parts.push(`<rect x="${x + 0.5}" y="${y}" width="0.5" height="1"/>`)
+    if (bottom) parts.push(`<rect x="${x}" y="${y + 0.5}" width="1" height="0.5"/>`)
+    if (left) parts.push(`<rect x="${x}" y="${y}" width="0.5" height="1"/>`)
+    return parts.join('')
+  }
+  return `<rect x="${x}" y="${y}" width="1" height="1"/>`
+}

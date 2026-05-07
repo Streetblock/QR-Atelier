@@ -12,6 +12,7 @@ class QRPlaygroundApp {
         errorCorrectionLevel: 'Q',
         colorStart: '#0f172a',
         colorEnd: '#0ea5e9',
+        aztecStyle: 'square',
         dotStyle: 'rounded',
         cornerStyle: 'extra-rounded',
         logo: null,
@@ -29,8 +30,10 @@ class QRPlaygroundApp {
       format: document.getElementById('code-format'),
       urlInput: document.getElementById('url-input'),
       dotShape: document.getElementById('dot-shape'),
+      aztecStyle: document.getElementById('aztec-style'),
       cornerShape: document.getElementById('corner-shape'),
       dotShapeField: document.getElementById('field-dot-shape'),
+      aztecStyleField: document.getElementById('field-aztec-style'),
       cornerShapeField: document.getElementById('field-corner-shape'),
       downloadSize: document.getElementById('download-size'),
       logoUpload: document.getElementById('logo-upload'),
@@ -63,6 +66,7 @@ class QRPlaygroundApp {
     })
 
     this.ui.format.addEventListener('change', (e) => this.update({ format: e.target.value }))
+    this.ui.aztecStyle.addEventListener('change', (e) => this.update({ aztecStyle: e.target.value }))
     this.ui.dotShape.addEventListener('change', (e) => this.update({ dotStyle: e.target.value }))
     this.ui.cornerShape.addEventListener('change', (e) => this.update({ cornerStyle: e.target.value }))
 
@@ -183,6 +187,7 @@ class QRPlaygroundApp {
         size,
         colorStart: this.state.options.colorStart,
         colorEnd: this.state.options.colorEnd,
+        moduleStyle: this.state.options.aztecStyle,
       })
     }
 
@@ -199,6 +204,7 @@ class QRPlaygroundApp {
     this.ui.clearLogoBtn.disabled = isAztec
 
     this.ui.dotShapeField.classList.toggle('hidden', isAztec)
+    this.ui.aztecStyleField.classList.toggle('hidden', !isAztec)
     this.ui.cornerShapeField.classList.toggle('hidden', isAztec)
     this.ui.logoUploadField.classList.toggle('hidden', isAztec)
 
