@@ -23,11 +23,13 @@ export class AztecCore {
   generate() {
     const normalized = normalizeOptions(this.options)
     const payloadBytes = encodeUtf8Bytes(this.data)
+    const payloadBits = payloadBytes.length * 8
+    const layerPlan = chooseLayerPlan(payloadBits, normalized)
 
-    // Foundation return shape for progressive implementation.
+    // Current scope:
+    // 1) simple binary payload sizing
+    // 2) layer selection + compact/full decision
     // Next steps:
-    // 1) high-level text compaction / binary shift
-    // 2) layer selection + capacity fit
     // 3) RS error correction word generation
     // 4) mode message + bullseye + data ring placement
     return {
@@ -38,11 +40,16 @@ export class AztecCore {
       maxLayers: normalized.maxLayers,
       errorCorrectionPercent: normalized.errorCorrectionPercent,
       payloadBytes,
+      payloadBits,
+      eccBits: layerPlan.eccBits,
+      codewordSize: layerPlan.wordSize,
+      capacityBits: layerPlan.capacityBits,
+      usableBits: layerPlan.usableBits,
       readyForScan: false,
       modules: [],
-      size: 0,
-      layers: 0,
-      compact: false,
+      size: layerPlan.size,
+      layers: layerPlan.layers,
+      compact: layerPlan.compact,
     }
   }
 }
@@ -80,4 +87,56 @@ function normalizeOptions(options) {
 
 function encodeUtf8Bytes(data) {
   return Array.from(new TextEncoder().encode(data))
+}
+
+function chooseLayerPlan(payloadBits, options) {
+  const eccBits = Math.max(11, Math.ceil((payloadBits * options.errorCorrectionPercent) / 100))
+  const requiredBits = payloadBits + eccBits
+  const compactModeForced = options.mode === 'compact'
+  const fullModeForced = options.mode === 'full'
+
+  const tryCompactFirst = []
+  const tryFullAfter = []
+
+  for (let layers = options.minLayers; layers <= options.maxLayers; layers += 1) {
+    if (layers <= 4 && !fullModeForced) {
+      tryCompactFirst.push({ layers, compact: true })
+    }
+    if (!compactModeForced) {
+      tryFullAfter.push({ layers, compact: false })
+    }
+  }
+
+  const candidates = options.mode === 'auto' ? [...tryCompactFirst, ...tryFullAfter] : options.mode === 'compact' ? tryCompactFirst : tryFullAfter
+
+  for (const candidate of candidates) {
+    const wordSize = getAztecWordSize(candidate.layers)
+    const capacityBits = totalBitsInLayer(candidate.layers, candidate.compact)
+    const usableBits = capacityBits - (capacityBits % wordSize)
+    if (requiredBits <= usableBits) {
+      return {
+        layers: candidate.layers,
+        compact: candidate.compact,
+        wordSize,
+        capacityBits,
+        usableBits,
+        eccBits,
+        size: candidate.compact ? 11 + 4 * candidate.layers : 15 + 4 * candidate.layers,
+      }
+    }
+  }
+
+  throw new Error(`Input does not fit Aztec constraints in selected layer range (${options.minLayers}-${options.maxLayers}, mode=${options.mode}).`)
+}
+
+function getAztecWordSize(layers) {
+  if (layers <= 2) return 6
+  if (layers <= 8) return 8
+  if (layers <= 22) return 10
+  return 12
+}
+
+function totalBitsInLayer(layers, compact) {
+  // Matches ZXing formula.
+  return ((compact ? 88 : 112) + 16 * layers) * layers
 }
