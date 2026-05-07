@@ -23,9 +23,10 @@ export class AztecCore {
   generate() {
     const normalized = normalizeOptions(this.options)
     const payloadBytes = encodeUtf8Bytes(this.data)
-    const payloadBits = payloadBytes.length * 8
+    const payloadBitsArray = encodeBinaryShiftBits(payloadBytes)
+    const payloadBits = payloadBitsArray.length
     const layerPlan = chooseLayerPlan(payloadBits, normalized)
-    const stuffedBits = bitStuff(payloadBytes, layerPlan.wordSize)
+    const stuffedBits = bitStuff(payloadBitsArray, layerPlan.wordSize)
     const messageWords = bitsToWords(stuffedBits, layerPlan.wordSize)
     const totalWords = Math.floor(layerPlan.usableBits / layerPlan.wordSize)
     const eccWords = totalWords - messageWords.length
@@ -105,6 +106,27 @@ function encodeUtf8Bytes(data) {
   return Array.from(new TextEncoder().encode(data))
 }
 
+function encodeBinaryShiftBits(bytes) {
+  const bits = []
+  let offset = 0
+  while (offset < bytes.length) {
+    const remaining = bytes.length - offset
+    const run = Math.min(remaining, 2047 + 31)
+    bits.push(...toBits(31, 5)) // B/S in UPPER mode
+    if (run <= 31) {
+      bits.push(...toBits(run, 5))
+    } else {
+      bits.push(...toBits(0, 5))
+      bits.push(...toBits(run - 31, 11))
+    }
+    for (let i = 0; i < run; i += 1) {
+      bits.push(...toBits(bytes[offset + i], 8))
+    }
+    offset += run
+  }
+  return bits
+}
+
 function chooseLayerPlan(payloadBits, options) {
   const eccBits = Math.max(11, Math.ceil((payloadBits * options.errorCorrectionPercent) / 100))
   const requiredBits = payloadBits + eccBits
@@ -175,38 +197,28 @@ function drawBullsEye(modules, isFunction, center, size) {
   setFunction(modules, isFunction, center + size, center + size - 1, true)
 }
 
-function bitStuff(bytes, wordSize) {
-  const bits = []
-  for (const byte of bytes) {
-    for (let i = 7; i >= 0; i -= 1) bits.push((byte >>> i) & 1)
-  }
-
+function bitStuff(bits, wordSize) {
   const out = []
-  const allOnes = (1 << wordSize) - 1
-  const allZeros = 0
-  let value = 0
-  let n = 0
+  const n = bits.length
+  const mask = (1 << wordSize) - 2
 
-  for (const bit of bits) {
-    value = (value << 1) | bit
-    n += 1
-    if (n === wordSize) {
-      if (value === allOnes) {
-        out.push(...toBits(value ^ 1, wordSize))
-      } else if (value === allZeros) {
-        out.push(...toBits(1, wordSize))
-      } else {
-        out.push(...toBits(value, wordSize))
+  for (let i = 0; i < n; i += wordSize) {
+    let word = 0
+    for (let j = 0; j < wordSize; j += 1) {
+      if (i + j >= n || bits[i + j] === 1) {
+        word |= 1 << (wordSize - 1 - j)
       }
-      value = 0
-      n = 0
+    }
+    if ((word & mask) === mask) {
+      out.push(...toBits(word & mask, wordSize))
+      i -= 1
+    } else if ((word & mask) === 0) {
+      out.push(...toBits(word | 1, wordSize))
+      i -= 1
+    } else {
+      out.push(...toBits(word, wordSize))
     }
   }
-  if (n > 0) {
-    value <<= (wordSize - n)
-    out.push(...toBits(value, wordSize))
-  }
-
   return out
 }
 
@@ -246,7 +258,7 @@ function reedSolomonCheckWords(dataWords, checkWordCount, wordSize) {
 function rsGeneratorPoly(degree, gf) {
   let poly = [1]
   for (let d = 0; d < degree; d += 1) {
-    const term = [1, gf.expTable[d]]
+    const term = [1, gf.expTable[(d + gf.generatorBase) % (gf.size - 1)]]
     poly = polyMultiply(poly, term, gf)
   }
   return poly
@@ -266,11 +278,11 @@ function polyMultiply(a, b, gf) {
 
 function createGenericGF(wordSize) {
   const config = {
-    4: { primitive: 0x13, size: 16 },
-    6: { primitive: 0x43, size: 64 },
-    8: { primitive: 0x12d, size: 256 },
-    10: { primitive: 0x409, size: 1024 },
-    12: { primitive: 0x1069, size: 4096 },
+    4: { primitive: 0x13, size: 16, generatorBase: 1 },
+    6: { primitive: 0x43, size: 64, generatorBase: 1 },
+    8: { primitive: 0x12d, size: 256, generatorBase: 1 },
+    10: { primitive: 0x409, size: 1024, generatorBase: 1 },
+    12: { primitive: 0x1069, size: 4096, generatorBase: 1 },
   }[wordSize]
   if (!config) throw new Error(`Unsupported Aztec word size: ${wordSize}`)
 

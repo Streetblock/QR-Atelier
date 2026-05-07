@@ -2,26 +2,21 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { AztecCore } from '../libs/AztecCore.js'
 
-function matrixToRgbPixels(modules, quietZone = 8, moduleSize = 6) {
+function matrixToLuminance(modules, quietZone = 8, moduleSize = 6) {
   const inner = modules.length
   const side = (inner + quietZone * 2) * moduleSize
-  const pixels = new Uint8ClampedArray(side * side * 4)
+  const luminance = new Uint8ClampedArray(side * side)
 
   for (let y = 0; y < side; y += 1) {
     for (let x = 0; x < side; x += 1) {
       const moduleX = Math.floor(x / moduleSize) - quietZone
       const moduleY = Math.floor(y / moduleSize) - quietZone
       const dark = moduleX >= 0 && moduleX < inner && moduleY >= 0 && moduleY < inner && modules[moduleY][moduleX]
-      const v = dark ? 0 : 255
-      const idx = (y * side + x) * 4
-      pixels[idx] = v
-      pixels[idx + 1] = v
-      pixels[idx + 2] = v
-      pixels[idx + 3] = 255
+      luminance[y * side + x] = dark ? 0 : 255
     }
   }
 
-  return { pixels, width: side, height: side }
+  return { luminance, width: side, height: side }
 }
 
 test('zxing library is installed for aztec integration checks', async (t) => {
@@ -35,7 +30,7 @@ test('zxing library is installed for aztec integration checks', async (t) => {
   assert.ok(zxing)
 })
 
-test('aztec roundtrip decodes with zxing', { todo: 'Aztec matrix is not yet scanner-stable; keep this as integration target.' }, async (t) => {
+test('aztec roundtrip decodes with zxing', async (t) => {
   let zxing
   try {
     zxing = await import('@zxing/library')
@@ -45,7 +40,7 @@ test('aztec roundtrip decodes with zxing', { todo: 'Aztec matrix is not yet scan
   }
   const payload = 'AZTEC ROUNDTRIP 123'
   const aztec = new AztecCore(payload, { mode: 'auto' }).generate()
-  const { pixels, width, height } = matrixToRgbPixels(aztec.modules)
+  const { luminance, width, height } = matrixToLuminance(aztec.modules)
 
   const {
     MultiFormatReader,
@@ -59,8 +54,8 @@ test('aztec roundtrip decodes with zxing', { todo: 'Aztec matrix is not yet scan
   const hints = new Map()
   hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.AZTEC])
 
-  const luminance = new RGBLuminanceSource(pixels, width, height)
-  const bitmap = new BinaryBitmap(new HybridBinarizer(luminance))
+  const source = new RGBLuminanceSource(luminance, width, height)
+  const bitmap = new BinaryBitmap(new HybridBinarizer(source))
   const reader = new MultiFormatReader()
   const result = reader.decode(bitmap, hints)
 
