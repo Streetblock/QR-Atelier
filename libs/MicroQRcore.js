@@ -96,7 +96,7 @@ export class MicroQrCore {
       minVersion: 'M1',
       maxVersion: 'M4',
       mask: -1, // -1 => auto
-      byteEncoding: 'latin1', // latin1|utf8
+      byteEncoding: 'latin1', // latin1|utf8|windows1252|shift_jis
       ...options,
     }
   }
@@ -512,20 +512,97 @@ function encodeUtf8Bytes(data) {
   return Array.from(new TextEncoder().encode(data))
 }
 
+const WINDOWS_1252_EXTENDED = new Map([
+  [0x20AC, 0x80], [0x201A, 0x82], [0x0192, 0x83], [0x201E, 0x84],
+  [0x2026, 0x85], [0x2020, 0x86], [0x2021, 0x87], [0x02C6, 0x88],
+  [0x2030, 0x89], [0x0160, 0x8A], [0x2039, 0x8B], [0x0152, 0x8C],
+  [0x017D, 0x8E], [0x2018, 0x91], [0x2019, 0x92], [0x201C, 0x93],
+  [0x201D, 0x94], [0x2022, 0x95], [0x2013, 0x96], [0x2014, 0x97],
+  [0x02DC, 0x98], [0x2122, 0x99], [0x0161, 0x9A], [0x203A, 0x9B],
+  [0x0153, 0x9C], [0x017E, 0x9E], [0x0178, 0x9F],
+])
+
+function encodeWindows1252Bytes(data) {
+  const bytes = []
+  for (let i = 0; i < data.length; i += 1) {
+    const cp = data.codePointAt(i)
+    if (cp > 0xffff) {
+      i += 1
+    }
+
+    if (cp <= 0x7f || (cp >= 0xa0 && cp <= 0xff)) {
+      bytes.push(cp & 0xff)
+      continue
+    }
+    const mapped = WINDOWS_1252_EXTENDED.get(cp)
+    if (mapped != null) {
+      bytes.push(mapped)
+      continue
+    }
+    throw new Error(`Character U+${cp.toString(16).toUpperCase()} is not encodable in Windows-1252.`)
+  }
+  return bytes
+}
+
+function encodeShiftJisBytes(data) {
+  const bytes = []
+  for (let i = 0; i < data.length; i += 1) {
+    const cp = data.codePointAt(i)
+    if (cp > 0xffff) {
+      i += 1
+      throw new Error(`Character U+${cp.toString(16).toUpperCase()} is not encodable in supported Shift_JIS subset.`)
+    }
+
+    // ASCII
+    if (cp <= 0x7f) {
+      bytes.push(cp)
+      continue
+    }
+    // Halfwidth katakana (JIS X 0201)
+    if (cp >= 0xff61 && cp <= 0xff9f) {
+      bytes.push(cp - 0xff61 + 0xa1)
+      continue
+    }
+    // Common JIS X 0201 single-byte mappings
+    if (cp === 0x00a5) { // YEN SIGN
+      bytes.push(0x5c)
+      continue
+    }
+    if (cp === 0x203e) { // OVERLINE
+      bytes.push(0x7e)
+      continue
+    }
+
+    throw new Error(`Character U+${cp.toString(16).toUpperCase()} is not encodable in supported Shift_JIS subset.`)
+  }
+  return bytes
+}
+
 function encodeByteArray(data, byteEncoding) {
-  return byteEncoding === 'latin1' ? encodeLatin1Bytes(data) : encodeUtf8Bytes(data)
+  if (byteEncoding === 'latin1') return encodeLatin1Bytes(data)
+  if (byteEncoding === 'utf8') return encodeUtf8Bytes(data)
+  if (byteEncoding === 'windows1252') return encodeWindows1252Bytes(data)
+  return encodeShiftJisBytes(data)
 }
 
 function ensureByteEncodable(data, byteEncoding) {
   if (byteEncoding === 'latin1') {
     ensureLatin1(data)
+    return
   }
+  if (byteEncoding === 'utf8') {
+    return
+  }
+  // Re-use concrete encoders to guarantee identical validation semantics.
+  encodeByteArray(data, byteEncoding)
 }
 
 function normalizeByteEncoding(value) {
-  const normalized = String(value ?? 'utf8').toLowerCase()
+  const normalized = String(value ?? 'latin1').toLowerCase()
   if (normalized === 'utf8' || normalized === 'utf-8') return 'utf8'
   if (normalized === 'latin1' || normalized === 'latin-1' || normalized === 'iso-8859-1') return 'latin1'
+  if (normalized === 'windows1252' || normalized === 'windows-1252' || normalized === 'cp1252') return 'windows1252'
+  if (normalized === 'shift_jis' || normalized === 'shift-jis' || normalized === 'sjis') return 'shift_jis'
   throw new Error(`Unsupported byteEncoding: ${value}`)
 }
 
