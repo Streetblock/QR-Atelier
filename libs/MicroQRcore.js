@@ -1,16 +1,88 @@
 // ==========================================
-// MicroQRcore.js - Foundation for Micro QR (ISO/IEC 18004 Annex M)
-// Dependency-free, plain JavaScript
+// MicroQRcore.js - Dependency-free Micro QR generator
+// Compact build for M1-M4 with ECC + mask + format info
 // ==========================================
 
+const MODE = {
+  NUMERIC: 'numeric',
+  ALPHANUMERIC: 'alphanumeric',
+  BYTE: 'byte',
+}
+
+const ECL = {
+  NONE: 'NONE',
+  L: 'L',
+  M: 'M',
+  Q: 'Q',
+}
+
+// Internal version constants aligned to ISO-style Micro ordering.
+// M1=-3, M2=-2, M3=-1, M4=0
 const MICRO_SYMBOLS = [
-  { version: 'M1', size: 11, ecl: ['NONE'], capacity: { numeric: 5, alphanumeric: 0, byte: 0 } },
-  { version: 'M2', size: 13, ecl: ['L', 'M'], capacity: { numeric: 10, alphanumeric: 6, byte: 0 } },
-  { version: 'M3', size: 15, ecl: ['L', 'M'], capacity: { numeric: 23, alphanumeric: 14, byte: 9 } },
-  { version: 'M4', size: 17, ecl: ['L', 'M', 'Q'], capacity: { numeric: 35, alphanumeric: 21, byte: 15 } },
+  { name: 'M1', v: -3, size: 11, ecl: [ECL.NONE], cap: { numeric: 5, alphanumeric: 0, byte: 0 } },
+  { name: 'M2', v: -2, size: 13, ecl: [ECL.L, ECL.M], cap: { numeric: 10, alphanumeric: 6, byte: 0 } },
+  { name: 'M3', v: -1, size: 15, ecl: [ECL.L, ECL.M], cap: { numeric: 23, alphanumeric: 14, byte: 9 } },
+  { name: 'M4', v: 0, size: 17, ecl: [ECL.L, ECL.M, ECL.Q], cap: { numeric: 35, alphanumeric: 21, byte: 15 } },
 ]
 
+const MODE_BITS_MICRO = {
+  [MODE.NUMERIC]: 0,
+  [MODE.ALPHANUMERIC]: 1,
+  [MODE.BYTE]: 2,
+}
+
+const CHAR_COUNT_BITS = {
+  [MODE.NUMERIC]: { [-3]: 3, [-2]: 4, [-1]: 5, [0]: 6 },
+  [MODE.ALPHANUMERIC]: { [-2]: 3, [-1]: 4, [0]: 5 },
+  [MODE.BYTE]: { [-1]: 4, [0]: 5 },
+}
+
+const TERMINATOR_LENGTH = { [-3]: 3, [-2]: 5, [-1]: 7, [0]: 9 }
+
+const SYMBOL_CAPACITY_BITS = {
+  [-3]: { [ECL.NONE]: 20 },
+  [-2]: { [ECL.L]: 40, [ECL.M]: 32 },
+  [-1]: { [ECL.L]: 84, [ECL.M]: 68 },
+  [0]: { [ECL.L]: 128, [ECL.M]: 112, [ECL.Q]: 80 },
+}
+
+const ECC_LAYOUT = {
+  [-3]: { [ECL.NONE]: { total: 5, data: 3 } },
+  [-2]: { [ECL.L]: { total: 10, data: 5 }, [ECL.M]: { total: 10, data: 4 } },
+  [-1]: { [ECL.L]: { total: 17, data: 11 }, [ECL.M]: { total: 17, data: 9 } },
+  [0]: { [ECL.L]: { total: 24, data: 16 }, [ECL.M]: { total: 24, data: 14 }, [ECL.Q]: { total: 24, data: 10 } },
+}
+
+// 32 valid Micro QR format words (15 bits each)
+const FORMAT_INFO_MICRO = [
+  17477, 16754, 20011, 19228, 21934, 20633, 24512, 23287,
+  26515, 25252, 28157, 26826, 30328, 29519, 31766, 31009,
+  1758, 1001, 3248, 2439, 5941, 4610, 7515, 6252,
+  9480, 8255, 12134, 10833, 13539, 12756, 16013, 15290,
+]
+
+// Micro format mapping index prefix
+const ECL_TO_MICRO_PREFIX = {
+  [-3]: { [ECL.NONE]: 0 },
+  [-2]: { [ECL.L]: 1, [ECL.M]: 2 },
+  [-1]: { [ECL.L]: 3, [ECL.M]: 4 },
+  [0]: { [ECL.L]: 5, [ECL.M]: 6, [ECL.Q]: 7 },
+}
+
 const ALPHANUMERIC_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
+const PAD_CODEWORDS = [0xec, 0x11]
+
+const FINDER_PATTERN = [
+  [1, 1, 1, 1, 1, 1, 1, 0],
+  [1, 0, 0, 0, 0, 0, 1, 0],
+  [1, 0, 1, 1, 1, 0, 1, 0],
+  [1, 0, 1, 1, 1, 0, 1, 0],
+  [1, 0, 1, 1, 1, 0, 1, 0],
+  [1, 0, 0, 0, 0, 0, 1, 0],
+  [1, 1, 1, 1, 1, 1, 1, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+]
+
 const textEncoder = new TextEncoder()
 
 export class MicroQrCore {
@@ -25,6 +97,7 @@ export class MicroQrCore {
       errorCorrectionLevel: 'auto', // auto|NONE|L|M|Q
       minVersion: 'M1',
       maxVersion: 'M4',
+      mask: -1, // -1 => auto
       ...options,
     }
   }
@@ -38,88 +111,105 @@ export class MicroQrCore {
     }
 
     const symbol = chooseSymbol(this.data, mode, this.options.errorCorrectionLevel, minIndex, maxIndex)
-    const encodedBits = encodeByMode(this.data, mode)
-    const modules = drawMicroFunctionMatrix(symbol.size)
+    const dataBits = buildDataBits(this.data, mode, symbol)
+    const finalBits = makeFinalMessageBits(symbol, dataBits)
+    const { modules, selectedMask } = buildMatrix(symbol, finalBits, this.options.mask)
 
     return {
       format: 'microqr',
       data: this.data,
-      version: symbol.version,
+      version: symbol.name,
       size: symbol.size,
       errorCorrectionLevel: symbol.ecl,
       mode,
-      capacity: symbol.capacity,
-      encodedBits,
-      // Note: ECC + final Annex-M placement will be added in next step.
+      mask: selectedMask,
       modules,
-      readyForScan: false,
+      readyForScan: true,
     }
   }
 }
 
 function chooseMode(data, preferredMode) {
   const mode = String(preferredMode || 'auto').toLowerCase()
-  if (mode === 'numeric') {
+  if (mode === MODE.NUMERIC) {
     ensureNumeric(data)
-    return 'numeric'
+    return MODE.NUMERIC
   }
-  if (mode === 'alphanumeric') {
-    ensureAlphanumeric(data)
-    return 'alphanumeric'
-  }
-  if (mode === 'byte') {
-    ensureByte(data)
-    return 'byte'
+  if (mode === MODE.ALPHANUMERIC || mode === MODE.BYTE) {
+    throw new Error('Micro QR core currently supports numeric mode only (scan-verified).')
   }
   if (mode !== 'auto') {
     throw new Error(`Unsupported preferredMode: ${preferredMode}`)
   }
 
-  if (isNumeric(data)) return 'numeric'
-  if (isAlphanumeric(data)) return 'alphanumeric'
-  return 'byte'
+  if (isNumeric(data)) return MODE.NUMERIC
+  throw new Error('Micro QR core currently supports numeric mode only (scan-verified).')
 }
 
 function chooseSymbol(data, mode, preferredEcl, minIndex, maxIndex) {
-  const dataLengthByMode = getLogicalDataLength(data, mode)
-  const normalizedPreferred = String(preferredEcl || 'auto').toUpperCase()
-  const preferredIsAuto = normalizedPreferred === 'AUTO'
+  const dataLength = mode === MODE.BYTE ? textEncoder.encode(data).length : data.length
+  const preferred = String(preferredEcl || 'auto').toUpperCase()
+  const autoEcl = preferred === 'AUTO'
 
   for (let i = minIndex; i <= maxIndex; i += 1) {
     const candidate = MICRO_SYMBOLS[i]
-    if (candidate.capacity[mode] <= 0 || dataLengthByMode > candidate.capacity[mode]) {
-      continue
-    }
+    if (candidate.cap[mode] <= 0 || dataLength > candidate.cap[mode]) continue
+    if (!CHAR_COUNT_BITS[mode]?.[candidate.v]) continue
 
-    if (!preferredIsAuto) {
-      if (candidate.ecl.includes(normalizedPreferred)) {
-        return {
-          ...candidate,
-          ecl: normalizedPreferred,
-        }
+    if (!autoEcl) {
+      if (candidate.ecl.includes(preferred)) {
+        return { ...candidate, ecl: preferred }
       }
       continue
     }
 
-    return {
-      ...candidate,
-      ecl: candidate.ecl[candidate.ecl.length - 1],
-    }
+    return { ...candidate, ecl: candidate.ecl[candidate.ecl.length - 1] }
   }
 
   throw new Error(`Input exceeds Micro QR capacity for mode "${mode}" in selected version range.`)
 }
 
-function getLogicalDataLength(data, mode) {
-  if (mode === 'byte') {
-    return textEncoder.encode(data).length
+function buildDataBits(data, mode, symbol) {
+  const capacityBits = SYMBOL_CAPACITY_BITS[symbol.v][symbol.ecl]
+  const bits = []
+
+  // M1 has no mode indicator.
+  if (symbol.v > -3) {
+    appendBits(bits, MODE_BITS_MICRO[mode], symbol.v + 3)
   }
-  return data.length
+  appendBits(bits, mode === MODE.BYTE ? textEncoder.encode(data).length : data.length, CHAR_COUNT_BITS[mode][symbol.v])
+  bits.push(...encodePayloadBits(data, mode))
+
+  // Terminator
+  const terminator = Math.min(capacityBits - bits.length, TERMINATOR_LENGTH[symbol.v])
+  for (let i = 0; i < terminator; i += 1) bits.push(0)
+
+  // Byte boundary padding except M1/M3.
+  if (symbol.v !== -3 && symbol.v !== -1) {
+    while (bits.length % 8 !== 0) bits.push(0)
+  }
+
+  // Pad codewords
+  if (symbol.v === -3 || symbol.v === -1) {
+    while (bits.length < capacityBits) bits.push(0)
+  } else {
+    let index = 0
+    while (bits.length < capacityBits) {
+      appendBits(bits, PAD_CODEWORDS[index % 2], 8)
+      index += 1
+    }
+  }
+
+  if (bits.length !== capacityBits) {
+    throw new Error('Internal Micro QR bitstream sizing error.')
+  }
+
+  return bits
 }
 
-function encodeByMode(data, mode) {
-  if (mode === 'numeric') return encodeNumeric(data)
-  if (mode === 'alphanumeric') return encodeAlphanumeric(data)
+function encodePayloadBits(data, mode) {
+  if (mode === MODE.NUMERIC) return encodeNumeric(data)
+  if (mode === MODE.ALPHANUMERIC) return encodeAlphanumeric(data)
   return encodeByte(data)
 }
 
@@ -151,103 +241,234 @@ function encodeAlphanumeric(data) {
 }
 
 function encodeByte(data) {
-  ensureByte(data)
   const bits = []
   const bytes = textEncoder.encode(data)
-  for (const value of bytes) {
-    appendBits(bits, value, 8)
-  }
+  for (const value of bytes) appendBits(bits, value, 8)
   return bits
 }
 
-function drawMicroFunctionMatrix(size) {
-  const modules = createSquareArray(size, null)
+function makeFinalMessageBits(symbol, dataBits) {
+  const layout = ECC_LAYOUT[symbol.v][symbol.ecl]
+  const dataCodewords = bitsToCodewords(dataBits)
+  if (dataCodewords.length !== layout.data) {
+    throw new Error(`Internal Micro QR data codeword mismatch (${dataCodewords.length} != ${layout.data}).`)
+  }
+
+  const eccCount = layout.total - layout.data
+  const eccCodewords = reedSolomonRemainder(dataCodewords, eccCount)
+
+  const finalBits = []
+  let nibble = null
+  if (symbol.v === -3 || symbol.v === -1) {
+    nibble = (dataCodewords[dataCodewords.length - 1] >> 4) & 0x0f
+    dataCodewords.pop()
+  }
+
+  for (const cw of dataCodewords) appendBits(finalBits, cw, 8)
+  if (nibble != null) appendBits(finalBits, nibble, 4)
+  for (const cw of eccCodewords) appendBits(finalBits, cw, 8)
+
+  return finalBits
+}
+
+function buildMatrix(symbol, finalBits, maskPreference) {
+  const base = createBaseMatrix(symbol.size)
+  const candidates = []
+  const maskFns = getMicroMaskFunctions()
+
+  const minMask = maskPreference >= 0 && maskPreference <= 3 ? maskPreference : 0
+  const maxMask = maskPreference >= 0 && maskPreference <= 3 ? maskPreference : 3
+
+  for (let mask = minMask; mask <= maxMask; mask += 1) {
+    const matrix = cloneMatrix(base.matrix)
+    addCodewords(matrix, finalBits, symbol.v)
+    applyMask(matrix, base.isFunction, maskFns[mask])
+    addFormatInfoMicro(matrix, symbol.v, symbol.ecl, mask)
+    candidates.push({ mask, matrix, score: evaluateMicroMask(matrix) })
+  }
+
+  // Micro QR: higher score is better (per ISO evaluation function).
+  candidates.sort((a, b) => b.score - a.score)
+  const best = candidates[0]
+  return {
+    selectedMask: best.mask,
+    modules: best.matrix.map((row) => row.map((value) => value === 1)),
+  }
+}
+
+function createBaseMatrix(size) {
+  const matrix = createSquareArray(size, 2) // 2 => unset/data area
   const isFunction = createSquareArray(size, false)
 
-  drawFinderPattern(modules, isFunction, 3, 3)
-  drawTimingPatterns(modules, isFunction)
-  reserveFormatArea(modules, isFunction)
+  // Reserve format region (row 8 / col 8)
+  for (let i = 0; i < 9 && i < size; i += 1) {
+    matrix[i][8] = 0
+    matrix[8][i] = 0
+    isFunction[i][8] = true
+    isFunction[8][i] = true
+  }
 
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      if (modules[y][x] == null) {
-        modules[y][x] = false
+  // Timing pattern for Micro (starts at index 8 on top row + left col)
+  let bit = 1
+  for (let i = 8; i < size; i += 1) {
+    matrix[i][0] = bit
+    matrix[0][i] = bit
+    isFunction[i][0] = true
+    isFunction[0][i] = true
+    bit ^= 1
+  }
+
+  // Single finder + separator (top-left)
+  for (let y = 0; y < 8; y += 1) {
+    for (let x = 0; x < 8; x += 1) {
+      matrix[y][x] = FINDER_PATTERN[y][x]
+      isFunction[y][x] = true
+    }
+  }
+
+  return { matrix, isFunction }
+}
+
+function addCodewords(matrix, codewords, version) {
+  const size = matrix.length
+  const isMicro = true
+  const inc = version === -3 || version === -1 ? 2 : 0
+  let index = 0
+
+  for (let right = size - 1; right > 0; right -= 2) {
+    for (let vertical = 0; vertical < size; vertical += 1) {
+      for (let z = 0; z < 2; z += 1) {
+        const x = right - z
+        const upwards = ((right + inc) & 2) === 0
+        const y = upwards ? size - 1 - vertical : vertical
+        if (matrix[y][x] === 2 && index < codewords.length) {
+          matrix[y][x] = codewords[index]
+          index += 1
+        }
       }
     }
   }
 
-  return modules
-}
-
-function drawFinderPattern(modules, isFunction, centerX, centerY) {
-  for (let dy = -3; dy <= 3; dy += 1) {
-    for (let dx = -3; dx <= 3; dx += 1) {
-      const x = centerX + dx
-      const y = centerY + dy
-      if (x < 0 || y < 0 || y >= modules.length || x >= modules.length) continue
-      const maxDistance = Math.max(Math.abs(dx), Math.abs(dy))
-      const dark = maxDistance !== 2
-      modules[y][x] = dark
-      isFunction[y][x] = true
-    }
+  if (index !== codewords.length) {
+    throw new Error(`Failed to place all Micro QR bits (${index}/${codewords.length}).`)
   }
-}
 
-function drawTimingPatterns(modules, isFunction) {
-  const size = modules.length
-  for (let x = 0; x < size; x += 1) {
-    if (!isFunction[0][x]) {
-      modules[0][x] = x % 2 === 0
-      isFunction[0][x] = true
-    }
-  }
   for (let y = 0; y < size; y += 1) {
-    if (!isFunction[y][0]) {
-      modules[y][0] = y % 2 === 0
-      isFunction[y][0] = true
+    for (let x = 0; x < size; x += 1) {
+      if (matrix[y][x] === 2) matrix[y][x] = 0
     }
   }
 }
 
-function reserveFormatArea(modules, isFunction) {
-  const size = modules.length
-  for (let i = 1; i <= 8 && i < size; i += 1) {
-    if (!isFunction[8] || i >= size) break
-    if (!isFunction[8][i]) {
-      modules[8][i] = false
-      isFunction[8][i] = true
-    }
-  }
-  for (let i = 1; i <= 8 && i < size; i += 1) {
-    if (!isFunction[i][8]) {
-      modules[i][8] = false
-      isFunction[i][8] = true
+function applyMask(matrix, isFunction, maskFn) {
+  for (let y = 0; y < matrix.length; y += 1) {
+    for (let x = 0; x < matrix.length; x += 1) {
+      if (!isFunction[y][x] && maskFn(y, x)) {
+        matrix[y][x] ^= 1
+      }
     }
   }
 }
 
-function appendBits(bitBuffer, value, bitLength) {
-  for (let i = bitLength - 1; i >= 0; i -= 1) {
+function getMicroMaskFunctions() {
+  return [
+    (i, j) => (i & 1) === 0,
+    (i, j) => ((Math.floor(i / 2) + Math.floor(j / 3)) & 1) === 0,
+    (i, j) => ((((i * j) & 1) + ((i * j) % 3)) & 1) === 0,
+    (i, j) => ((((i + j) & 1) + ((i * j) % 3)) & 1) === 0,
+  ]
+}
+
+function addFormatInfoMicro(matrix, version, ecl, mask) {
+  const prefix = ECL_TO_MICRO_PREFIX[version][ecl]
+  const fmt = mask + (prefix << 2)
+  const formatInfo = FORMAT_INFO_MICRO[fmt]
+
+  // Place 15 format bits into top-left format region for Micro.
+  for (let i = 0; i < 8; i += 1) {
+    const vbit = (formatInfo >> i) & 1
+    const hbit = (formatInfo >> (14 - i)) & 1
+    matrix[i + 1][8] = vbit
+    matrix[8][i + 1] = hbit
+  }
+}
+
+function evaluateMicroMask(matrix) {
+  const size = matrix.length
+  let sumCol = 0
+  let sumRow = 0
+  for (let i = 1; i < size; i += 1) {
+    sumCol += matrix[i][size - 1]
+    sumRow += matrix[size - 1][i]
+  }
+  return sumCol <= sumRow ? sumCol * 16 + sumRow : sumRow * 16 + sumCol
+}
+
+function reedSolomonRemainder(data, degree) {
+  const divisor = reedSolomonGenerator(degree)
+  const result = new Array(degree).fill(0)
+
+  for (const value of data) {
+    const factor = value ^ result.shift()
+    result.push(0)
+    for (let i = 0; i < divisor.length; i += 1) {
+      result[i] ^= multiplyFiniteField(divisor[i], factor)
+    }
+  }
+
+  return result
+}
+
+function reedSolomonGenerator(degree) {
+  let result = [1]
+  let root = 1
+  for (let i = 0; i < degree; i += 1) {
+    const next = new Array(result.length + 1).fill(0)
+    for (let j = 0; j < result.length; j += 1) {
+      next[j] ^= multiplyFiniteField(result[j], root)
+      next[j + 1] ^= result[j]
+    }
+    result = next
+    root = multiplyFiniteField(root, 0x02)
+  }
+  result.pop()
+  return result.reverse()
+}
+
+function multiplyFiniteField(x, y) {
+  let z = 0
+  for (let i = 7; i >= 0; i -= 1) {
+    z = (z << 1) ^ ((z >>> 7) * 0x11d)
+    if (((y >>> i) & 1) !== 0) z ^= x
+  }
+  return z
+}
+
+function bitsToCodewords(bits) {
+  const result = []
+  for (let i = 0; i < bits.length; i += 8) {
+    let value = 0
+    for (let j = 0; j < 8; j += 1) {
+      value = (value << 1) | (bits[i + j] ?? 0)
+    }
+    result.push(value)
+  }
+  return result
+}
+
+function appendBits(bitBuffer, value, length) {
+  for (let i = length - 1; i >= 0; i -= 1) {
     bitBuffer.push((value >>> i) & 1)
   }
 }
 
 function ensureNumeric(data) {
-  if (!isNumeric(data)) {
-    throw new Error('Data contains non-numeric characters.')
-  }
+  if (!isNumeric(data)) throw new Error('Data contains non-numeric characters.')
 }
 
 function ensureAlphanumeric(data) {
   if (!isAlphanumeric(data)) {
     throw new Error('Data contains non-alphanumeric characters for Micro QR alphanumeric mode.')
-  }
-}
-
-function ensureByte(data) {
-  const bytes = textEncoder.encode(data)
-  if (bytes.length === 0) {
-    throw new Error('Byte mode data is empty.')
   }
 }
 
@@ -264,13 +485,15 @@ function isAlphanumeric(data) {
 
 function versionToIndex(version) {
   const normalized = String(version || 'M1').toUpperCase()
-  const index = MICRO_SYMBOLS.findIndex((symbol) => symbol.version === normalized)
-  if (index < 0) {
-    throw new Error(`Unsupported Micro QR version: ${version}`)
-  }
+  const index = MICRO_SYMBOLS.findIndex((symbol) => symbol.name === normalized)
+  if (index < 0) throw new Error(`Unsupported Micro QR version: ${version}`)
   return index
 }
 
-function createSquareArray(size, initialValue) {
-  return Array.from({ length: size }, () => Array.from({ length: size }, () => initialValue))
+function createSquareArray(size, value) {
+  return Array.from({ length: size }, () => Array.from({ length: size }, () => value))
+}
+
+function cloneMatrix(matrix) {
+  return matrix.map((row) => row.slice())
 }
