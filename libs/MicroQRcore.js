@@ -83,8 +83,6 @@ const FINDER_PATTERN = [
   [0, 0, 0, 0, 0, 0, 0, 0],
 ]
 
-const textEncoder = new TextEncoder()
-
 export class MicroQrCore {
   constructor(data, options = {}) {
     if (typeof data !== 'string' || data.length === 0) {
@@ -147,26 +145,43 @@ function chooseMode(data, preferredMode) {
 }
 
 function chooseSymbol(data, mode, preferredEcl, minIndex, maxIndex) {
-  const dataLength = mode === MODE.BYTE ? textEncoder.encode(data).length : data.length
   const preferred = String(preferredEcl || 'auto').toUpperCase()
   const autoEcl = preferred === 'AUTO'
 
   for (let i = minIndex; i <= maxIndex; i += 1) {
     const candidate = MICRO_SYMBOLS[i]
-    if (candidate.cap[mode] <= 0 || dataLength > candidate.cap[mode]) continue
+    if (candidate.cap[mode] <= 0) continue
     if (!CHAR_COUNT_BITS[mode]?.[candidate.v]) continue
 
     if (!autoEcl) {
-      if (candidate.ecl.includes(preferred)) {
+      if (candidate.ecl.includes(preferred) && canEncodeInSymbol(data, mode, candidate, preferred)) {
         return { ...candidate, ecl: preferred }
       }
       continue
     }
 
-    return { ...candidate, ecl: candidate.ecl[candidate.ecl.length - 1] }
+    for (let e = candidate.ecl.length - 1; e >= 0; e -= 1) {
+      const ecl = candidate.ecl[e]
+      if (canEncodeInSymbol(data, mode, candidate, ecl)) {
+        return { ...candidate, ecl }
+      }
+    }
   }
 
   throw new Error(`Input exceeds Micro QR capacity for mode "${mode}" in selected version range.`)
+}
+
+function canEncodeInSymbol(data, mode, symbol, ecl) {
+  const capacityBits = SYMBOL_CAPACITY_BITS[symbol.v][ecl]
+  if (!capacityBits) return false
+
+  const length = mode === MODE.BYTE ? encodeLatin1Bytes(data).length : data.length
+  const cciBits = CHAR_COUNT_BITS[mode]?.[symbol.v]
+  if (!cciBits) return false
+
+  const modeBits = symbol.v > -3 ? symbol.v + 3 : 0
+  const payloadBits = encodePayloadBits(data, mode).length
+  return modeBits + cciBits + payloadBits <= capacityBits
 }
 
 function buildDataBits(data, mode, symbol) {
@@ -177,7 +192,7 @@ function buildDataBits(data, mode, symbol) {
   if (symbol.v > -3) {
     appendBits(bits, MODE_BITS_MICRO[mode], symbol.v + 3)
   }
-  appendBits(bits, mode === MODE.BYTE ? textEncoder.encode(data).length : data.length, CHAR_COUNT_BITS[mode][symbol.v])
+  appendBits(bits, mode === MODE.BYTE ? encodeLatin1Bytes(data).length : data.length, CHAR_COUNT_BITS[mode][symbol.v])
   bits.push(...encodePayloadBits(data, mode))
 
   // Terminator
@@ -242,7 +257,7 @@ function encodeAlphanumeric(data) {
 
 function encodeByte(data) {
   const bits = []
-  const bytes = textEncoder.encode(data)
+  const bytes = encodeLatin1Bytes(data)
   for (const value of bytes) appendBits(bits, value, 8)
   return bits
 }
@@ -470,6 +485,23 @@ function ensureAlphanumeric(data) {
   if (!isAlphanumeric(data)) {
     throw new Error('Data contains non-alphanumeric characters for Micro QR alphanumeric mode.')
   }
+}
+
+function ensureLatin1(data) {
+  for (let i = 0; i < data.length; i += 1) {
+    if (data.charCodeAt(i) > 255) {
+      throw new Error('Micro QR byte mode currently supports Latin-1 characters only.')
+    }
+  }
+}
+
+function encodeLatin1Bytes(data) {
+  ensureLatin1(data)
+  const bytes = new Array(data.length)
+  for (let i = 0; i < data.length; i += 1) {
+    bytes[i] = data.charCodeAt(i) & 0xff
+  }
+  return bytes
 }
 
 function isNumeric(data) {
