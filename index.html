@@ -55,6 +55,14 @@
         </div>
 
         <div class="editor-grid">
+          <div class="field">
+            <label class="field-label" for="code-format">Code Format</label>
+            <select id="code-format" class="select-input">
+              <option value="qr" selected>QR Code</option>
+              <option value="aztec">Aztec Code</option>
+            </select>
+          </div>
+
           <div class="field field-wide">
             <label class="field-label" for="url-input">URL oder Text</label>
             <input type="text" id="url-input" class="text-input" placeholder="https://example.com" autocomplete="off">
