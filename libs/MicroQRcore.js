@@ -133,15 +133,22 @@ function chooseMode(data, preferredMode) {
     ensureNumeric(data)
     return MODE.NUMERIC
   }
-  if (mode === MODE.ALPHANUMERIC || mode === MODE.BYTE) {
-    throw new Error('Micro QR core currently supports numeric mode only (scan-verified).')
+  if (mode === MODE.ALPHANUMERIC) {
+    ensureAlphanumeric(data)
+    return MODE.ALPHANUMERIC
+  }
+  if (mode === MODE.BYTE) {
+    ensureLatin1(data)
+    return MODE.BYTE
   }
   if (mode !== 'auto') {
     throw new Error(`Unsupported preferredMode: ${preferredMode}`)
   }
 
   if (isNumeric(data)) return MODE.NUMERIC
-  throw new Error('Micro QR core currently supports numeric mode only (scan-verified).')
+  if (isAlphanumeric(data)) return MODE.ALPHANUMERIC
+  ensureLatin1(data)
+  return MODE.BYTE
 }
 
 function chooseSymbol(data, mode, preferredEcl, minIndex, maxIndex) {
@@ -307,7 +314,7 @@ function buildMatrix(symbol, finalBits, maskPreference) {
   const best = candidates[0]
   return {
     selectedMask: best.mask,
-    modules: best.matrix.map((row) => row.map((value) => value === 1)),
+    modules: best.matrix.map((row) => row.map((value) => (value & 1) === 1)),
   }
 }
 
@@ -366,12 +373,6 @@ function addCodewords(matrix, codewords, version) {
 
   if (index !== codewords.length) {
     throw new Error(`Failed to place all Micro QR bits (${index}/${codewords.length}).`)
-  }
-
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      if (matrix[y][x] === 2) matrix[y][x] = 0
-    }
   }
 }
 
