@@ -2,6 +2,7 @@
 // MicroQRcore.js - Dependency-free Micro QR generator
 // Compact build for M1-M4 with ECC + mask + format info
 // ==========================================
+import { SHIFT_JIS_KANJI_CODEPOINT_TO_VALUE } from './shiftJisKanjiMap.js'
 
 const MODE = {
   NUMERIC: 'numeric',
@@ -572,23 +573,6 @@ function encodeWindows1252Bytes(data) {
   return bytes
 }
 
-const SHIFT_JIS_KANJI_MAP = new Map([
-  ['\u6f22', [0x8a, 0xbf]], ['\u5b57', [0x8e, 0x9a]], ['\u65e5', [0x93, 0xfa]], ['\u672c', [0x96, 0x7b]],
-  ['\u8a9e', [0x8c, 0xea]], ['\u6771', [0x93, 0x8c]], ['\u4eac', [0x8b, 0x9e]], ['\u5927', [0x91, 0xe5]],
-  ['\u962a', [0x8d, 0xe3]], ['\u4e2d', [0x92, 0x86]], ['\u5c0f', [0x8f, 0xac]], ['\u5c71', [0x8e, 0x52]],
-  ['\u5ddd', [0x90, 0xec]], ['\u7530', [0x93, 0x63]], ['\u4eba', [0x90, 0x6c]], ['\u5e74', [0x94, 0x4e]],
-  ['\u6708', [0x8c, 0x8e]], ['\u706b', [0x89, 0xce]], ['\u6c34', [0x90, 0x85]], ['\u6728', [0x96, 0xd8]],
-  ['\u91d1', [0x8b, 0xe0]], ['\u571f', [0x93, 0x79]], ['\u4e0a', [0x8f, 0xe3]], ['\u4e0b', [0x89, 0xba]],
-  ['\u5de6', [0x8d, 0xb6]], ['\u53f3', [0x89, 0x45]], ['\u5b66', [0x8a, 0x77]], ['\u6821', [0x8d, 0x5a]],
-  ['\u751f', [0x90, 0xb6]], ['\u5148', [0x90, 0xe6]], ['\u6642', [0x8e, 0x9e]], ['\u9593', [0x8a, 0xd4]],
-  ['\u65b0', [0x90, 0x56]], ['\u805e', [0x95, 0xb7]], ['\u96fb', [0x93, 0x64]], ['\u8eca', [0x8e, 0xd4]],
-  ['\u99c5', [0x89, 0x77]], ['\u9053', [0x93, 0xb9]], ['\u56fd', [0x8d, 0x91]], ['\u6d77', [0x8a, 0x43]],
-  ['\u7a7a', [0x8b, 0xf3]], ['\u5929', [0x93, 0x56]], ['\u6c17', [0x8b, 0x43]], ['\u540d', [0x96, 0xbc]],
-  ['\u524d', [0x91, 0x4f]], ['\u5f8c', [0x8c, 0xe3]], ['\u4eca', [0x8d, 0xa1]], ['\u79c1', [0x8e, 0x84]],
-  ['\u4f1a', [0x89, 0xef]], ['\u793e', [0x8e, 0xd0]], ['\u9577', [0x92, 0xb7]], ['\u9ad8', [0x8d, 0x82]],
-  ['\u5b89', [0x88, 0xc0]], ['\u5186', [0x89, 0x7e]],
-])
-
 function encodeShiftJisBytes(data, options = {}) {
   const { strictKanjiOnly = false } = options
   const bytes = []
@@ -598,9 +582,9 @@ function encodeShiftJisBytes(data, options = {}) {
       throw new Error(`Character U+${cp.toString(16).toUpperCase()} is not encodable in supported Shift_JIS subset.`)
     }
 
-    const kanjiPair = SHIFT_JIS_KANJI_MAP.get(char)
-    if (kanjiPair) {
-      bytes.push(kanjiPair[0], kanjiPair[1])
+    const kanjiValue = SHIFT_JIS_KANJI_CODEPOINT_TO_VALUE.get(cp)
+    if (kanjiValue != null) {
+      bytes.push((kanjiValue >> 8) & 0xff, kanjiValue & 0xff)
       continue
     }
 
