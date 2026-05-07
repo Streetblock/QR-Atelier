@@ -32,13 +32,9 @@ export class AztecCore {
     if (eccWords <= 0) {
       throw new Error('Aztec planning produced non-positive ECC word count.')
     }
-    const checkWords = reedSolomonCheckWords(messageWords, eccWords, layerPlan.wordSize)
-    const { modules, isFunction } = buildSymbolScaffold(layerPlan.layers, layerPlan.compact)
-    const allWords = [...messageWords, ...checkWords]
-    const dataStreamBits = wordsToBits(allWords, layerPlan.wordSize)
-    placeDataBits(modules, isFunction, dataStreamBits)
-    const modeMessageBits = buildModeMessageBits(layerPlan.layers, layerPlan.compact, messageWords.length)
-    placeModeMessage(modules, isFunction, modeMessageBits, layerPlan.compact)
+    const messageBits = generateCheckWordsFromBits(stuffedBits, layerPlan.capacityBits, layerPlan.wordSize)
+    const modeMessageBits = generateModeMessage(layerPlan.compact, layerPlan.layers, messageWords.length)
+    const { modules, isFunction, matrixSize } = buildAztecMatrix(layerPlan, messageBits, modeMessageBits)
 
     // Current scope:
     // 1) simple binary payload sizing
@@ -57,17 +53,17 @@ export class AztecCore {
       payloadBits,
       stuffedBits,
       messageWords,
-      checkWords,
+      checkWords: bitsToWords(messageBits.slice(messageWords.length * layerPlan.wordSize), layerPlan.wordSize),
       modeMessageBits,
-      placedDataBits: dataStreamBits.length,
+      placedDataBits: messageBits.length,
       eccBits: layerPlan.eccBits,
       codewordSize: layerPlan.wordSize,
       capacityBits: layerPlan.capacityBits,
       usableBits: layerPlan.usableBits,
-      readyForScan: false,
+      readyForScan: true,
       modules,
       isFunction,
-      size: layerPlan.size,
+      size: matrixSize,
       layers: layerPlan.layers,
       compact: layerPlan.compact,
     }
@@ -141,7 +137,6 @@ function chooseLayerPlan(payloadBits, options) {
         capacityBits,
         usableBits,
         eccBits,
-        size: candidate.compact ? 11 + 4 * candidate.layers : 15 + 4 * candidate.layers,
       }
     }
   }
@@ -161,20 +156,6 @@ function totalBitsInLayer(layers, compact) {
   return ((compact ? 88 : 112) + 16 * layers) * layers
 }
 
-function buildSymbolScaffold(layers, compact) {
-  const size = compact ? 11 + 4 * layers : 15 + 4 * layers
-  const modules = createSquare(size, false)
-  const isFunction = createSquare(size, false)
-  const center = Math.floor(size / 2)
-
-  drawBullsEye(modules, isFunction, center, compact ? 5 : 7)
-  if (!compact) {
-    drawReferenceGrid(modules, isFunction, center)
-  }
-
-  return { modules, isFunction }
-}
-
 function drawBullsEye(modules, isFunction, center, size) {
   for (let ring = 0; ring < size; ring += 2) {
     for (let i = center - ring; i <= center + ring; i += 1) {
@@ -192,28 +173,6 @@ function drawBullsEye(modules, isFunction, center, size) {
   setFunction(modules, isFunction, center + size, center - size, true)
   setFunction(modules, isFunction, center + size, center - size + 1, true)
   setFunction(modules, isFunction, center + size, center + size - 1, true)
-}
-
-function drawReferenceGrid(modules, isFunction, center) {
-  const size = modules.length
-  for (let offset = 0; center - offset >= 0; offset += 16) {
-    const x1 = center - offset
-    const x2 = center + offset
-    if (x1 >= 0) {
-      for (let i = 0; i < size; i += 1) {
-        const bit = (i & 1) === 0
-        setFunction(modules, isFunction, x1, i, bit)
-        setFunction(modules, isFunction, i, x1, bit)
-      }
-    }
-    if (x2 < size && offset !== 0) {
-      for (let i = 0; i < size; i += 1) {
-        const bit = (i & 1) === 0
-        setFunction(modules, isFunction, x2, i, bit)
-        setFunction(modules, isFunction, i, x2, bit)
-      }
-    }
-  }
 }
 
 function bitStuff(bytes, wordSize) {
@@ -307,6 +266,7 @@ function polyMultiply(a, b, gf) {
 
 function createGenericGF(wordSize) {
   const config = {
+    4: { primitive: 0x13, size: 16 },
     6: { primitive: 0x43, size: 64 },
     8: { primitive: 0x12d, size: 256 },
     10: { primitive: 0x409, size: 1024 },
@@ -347,60 +307,117 @@ function wordsToBits(words, wordSize) {
   return bits
 }
 
-function placeDataBits(modules, isFunction, bits) {
-  const size = modules.length
-  const order = []
-  for (let ring = 0; ring <= Math.floor(size / 2); ring += 1) {
-    const min = ring
-    const max = size - 1 - ring
-    if (min > max) break
-    for (let x = min; x <= max; x += 1) order.push([x, min])
-    for (let y = min + 1; y <= max; y += 1) order.push([max, y])
-    if (max > min) {
-      for (let x = max - 1; x >= min; x -= 1) order.push([x, max])
-      for (let y = max - 1; y > min; y -= 1) order.push([min, y])
+function buildAztecMatrix(layerPlan, messageBits, modeMessageBits) {
+  const layers = layerPlan.layers
+  const compact = layerPlan.compact
+  const baseMatrixSize = (compact ? 11 : 14) + layers * 4
+  const alignmentMap = new Array(baseMatrixSize)
+  let matrixSize
+
+  if (compact) {
+    matrixSize = baseMatrixSize
+    for (let i = 0; i < baseMatrixSize; i += 1) alignmentMap[i] = i
+  } else {
+    matrixSize = baseMatrixSize + 1 + 2 * Math.floor((baseMatrixSize / 2 - 1) / 15)
+    const origCenter = Math.floor(baseMatrixSize / 2)
+    const center = Math.floor(matrixSize / 2)
+    for (let i = 0; i < origCenter; i += 1) {
+      const newOffset = i + Math.floor(i / 15)
+      alignmentMap[origCenter - i - 1] = center - newOffset - 1
+      alignmentMap[origCenter + i] = center + newOffset + 1
     }
   }
 
-  let idx = 0
-  for (const [x, y] of order) {
-    if (isFunction[y][x]) continue
-    modules[y][x] = idx < bits.length ? bits[idx] === 1 : false
-    idx += 1
-  }
-}
+  const modules = createSquare(matrixSize, false)
+  const isFunction = createSquare(matrixSize, false)
 
-function buildModeMessageBits(layers, compact, messageWordCount) {
-  // Placeholder mode message layout:
-  // compact: 2 bits layers-1 + 6 bits dataWords
-  // full: 5 bits layers-1 + 11 bits dataWords
+  let rowOffset = 0
+  for (let i = 0; i < layers; i += 1) {
+    const rowSize = (layers - i) * 4 + (compact ? 9 : 12)
+    for (let j = 0; j < rowSize; j += 1) {
+      const columnOffset = j * 2
+      for (let k = 0; k < 2; k += 1) {
+        if (messageBits[rowOffset + columnOffset + k]) {
+          modules[alignmentMap[i * 2 + j]][alignmentMap[i * 2 + k]] = true
+        }
+        if (messageBits[rowOffset + rowSize * 2 + columnOffset + k]) {
+          modules[alignmentMap[baseMatrixSize - 1 - i * 2 - k]][alignmentMap[i * 2 + j]] = true
+        }
+        if (messageBits[rowOffset + rowSize * 4 + columnOffset + k]) {
+          modules[alignmentMap[baseMatrixSize - 1 - i * 2 - j]][alignmentMap[baseMatrixSize - 1 - i * 2 - k]] = true
+        }
+        if (messageBits[rowOffset + rowSize * 6 + columnOffset + k]) {
+          modules[alignmentMap[i * 2 + k]][alignmentMap[baseMatrixSize - 1 - i * 2 - j]] = true
+        }
+      }
+    }
+    rowOffset += rowSize * 8
+  }
+
+  drawModeMessage(modules, isFunction, compact, matrixSize, modeMessageBits)
   if (compact) {
-    const value = (((layers - 1) & 0x03) << 6) | (messageWordCount & 0x3f)
-    return toBits(value, 8)
+    drawBullsEye(modules, isFunction, Math.floor(matrixSize / 2), 5)
+  } else {
+    const center = Math.floor(matrixSize / 2)
+    drawBullsEye(modules, isFunction, center, 7)
+    for (let i = 0, j = 0; i < Math.floor(baseMatrixSize / 2) - 1; i += 15, j += 16) {
+      for (let k = center & 1; k < matrixSize; k += 2) {
+        setFunction(modules, isFunction, center - j, k, true)
+        setFunction(modules, isFunction, center + j, k, true)
+        setFunction(modules, isFunction, k, center - j, true)
+        setFunction(modules, isFunction, k, center + j, true)
+      }
+    }
   }
-  const value = (((layers - 1) & 0x1f) << 11) | (messageWordCount & 0x7ff)
-  return toBits(value, 16)
+
+  return { modules, isFunction, matrixSize }
 }
 
-function placeModeMessage(modules, isFunction, modeBits, compact) {
-  const size = modules.length
-  const center = Math.floor(size / 2)
-  const radius = compact ? 5 : 7
-  const slots = []
-
-  for (let x = center - radius; x <= center + radius; x += 1) slots.push([x, center - radius - 1])
-  for (let y = center - radius; y <= center + radius; y += 1) slots.push([center + radius + 1, y])
-  for (let x = center + radius; x >= center - radius; x -= 1) slots.push([x, center + radius + 1])
-  for (let y = center + radius; y >= center - radius; y -= 1) slots.push([center - radius - 1, y])
-
-  let i = 0
-  for (const [x, y] of slots) {
-    if (x < 0 || y < 0 || x >= size || y >= size) continue
-    const bit = modeBits[i % modeBits.length] === 1
-    modules[y][x] = bit
-    isFunction[y][x] = true
-    i += 1
+function generateModeMessage(compact, layers, messageSizeInWords) {
+  const bits = []
+  if (compact) {
+    bits.push(...toBits(layers - 1, 2))
+    bits.push(...toBits(messageSizeInWords - 1, 6))
+    return generateCheckWordsFromBits(bits, 28, 4)
   }
+  bits.push(...toBits(layers - 1, 5))
+  bits.push(...toBits(messageSizeInWords - 1, 11))
+  return generateCheckWordsFromBits(bits, 40, 4)
+}
+
+function drawModeMessage(modules, isFunction, compact, matrixSize, modeBits) {
+  const center = Math.floor(matrixSize / 2)
+  if (compact) {
+    for (let i = 0; i < 7; i += 1) {
+      const offset = center - 3 + i
+      setFunction(modules, isFunction, offset, center - 5, modeBits[i] === 1)
+      setFunction(modules, isFunction, center + 5, offset, modeBits[i + 7] === 1)
+      setFunction(modules, isFunction, offset, center + 5, modeBits[20 - i] === 1)
+      setFunction(modules, isFunction, center - 5, offset, modeBits[27 - i] === 1)
+    }
+  } else {
+    for (let i = 0; i < 10; i += 1) {
+      const offset = center - 5 + i + Math.floor(i / 5)
+      setFunction(modules, isFunction, offset, center - 7, modeBits[i] === 1)
+      setFunction(modules, isFunction, center + 7, offset, modeBits[i + 10] === 1)
+      setFunction(modules, isFunction, offset, center + 7, modeBits[29 - i] === 1)
+      setFunction(modules, isFunction, center - 7, offset, modeBits[39 - i] === 1)
+    }
+  }
+}
+
+function generateCheckWordsFromBits(inputBits, totalBits, wordSize) {
+  const messageSizeInWords = Math.floor(inputBits.length / wordSize)
+  const totalWords = Math.floor(totalBits / wordSize)
+  const messageWords = bitsToWords(inputBits, wordSize)
+  while (messageWords.length < totalWords) messageWords.push(0)
+  const checkWordCount = totalWords - messageSizeInWords
+  const checkWords = reedSolomonCheckWords(messageWords.slice(0, messageSizeInWords), checkWordCount, wordSize)
+  const allWords = [...messageWords.slice(0, messageSizeInWords), ...checkWords]
+  const startPad = totalBits % wordSize
+  const outBits = new Array(startPad).fill(0)
+  outBits.push(...wordsToBits(allWords, wordSize))
+  return outBits
 }
 
 function createSquare(size, value) {
