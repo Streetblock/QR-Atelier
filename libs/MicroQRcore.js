@@ -96,7 +96,7 @@ export class MicroQrCore {
       minVersion: 'M1',
       maxVersion: 'M4',
       mask: -1, // -1 => auto
-      byteEncoding: 'utf8', // utf8|latin1
+      byteEncoding: 'latin1', // latin1|utf8
       ...options,
     }
   }
