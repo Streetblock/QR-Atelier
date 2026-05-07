@@ -33,6 +33,7 @@ export class AztecCore {
       throw new Error('Aztec planning produced non-positive ECC word count.')
     }
     const checkWords = reedSolomonCheckWords(messageWords, eccWords, layerPlan.wordSize)
+    const { modules, isFunction } = buildSymbolScaffold(layerPlan.layers, layerPlan.compact)
 
     // Current scope:
     // 1) simple binary payload sizing
@@ -57,7 +58,8 @@ export class AztecCore {
       capacityBits: layerPlan.capacityBits,
       usableBits: layerPlan.usableBits,
       readyForScan: false,
-      modules: [],
+      modules,
+      isFunction,
       size: layerPlan.size,
       layers: layerPlan.layers,
       compact: layerPlan.compact,
@@ -150,6 +152,61 @@ function getAztecWordSize(layers) {
 function totalBitsInLayer(layers, compact) {
   // Matches ZXing formula.
   return ((compact ? 88 : 112) + 16 * layers) * layers
+}
+
+function buildSymbolScaffold(layers, compact) {
+  const size = compact ? 11 + 4 * layers : 15 + 4 * layers
+  const modules = createSquare(size, false)
+  const isFunction = createSquare(size, false)
+  const center = Math.floor(size / 2)
+
+  drawBullsEye(modules, isFunction, center, compact ? 5 : 7)
+  if (!compact) {
+    drawReferenceGrid(modules, isFunction, center)
+  }
+
+  return { modules, isFunction }
+}
+
+function drawBullsEye(modules, isFunction, center, size) {
+  for (let ring = 0; ring < size; ring += 2) {
+    for (let i = center - ring; i <= center + ring; i += 1) {
+      setFunction(modules, isFunction, i, center - ring, true)
+      setFunction(modules, isFunction, i, center + ring, true)
+      setFunction(modules, isFunction, center - ring, i, true)
+      setFunction(modules, isFunction, center + ring, i, true)
+    }
+  }
+
+  // orientation marks (similar structure used by ZXing Aztec drawing)
+  setFunction(modules, isFunction, center - size, center - size, true)
+  setFunction(modules, isFunction, center - size + 1, center - size, true)
+  setFunction(modules, isFunction, center - size, center - size + 1, true)
+  setFunction(modules, isFunction, center + size, center - size, true)
+  setFunction(modules, isFunction, center + size, center - size + 1, true)
+  setFunction(modules, isFunction, center + size, center + size - 1, true)
+}
+
+function drawReferenceGrid(modules, isFunction, center) {
+  const size = modules.length
+  for (let offset = 0; center - offset >= 0; offset += 16) {
+    const x1 = center - offset
+    const x2 = center + offset
+    if (x1 >= 0) {
+      for (let i = 0; i < size; i += 1) {
+        const bit = (i & 1) === 0
+        setFunction(modules, isFunction, x1, i, bit)
+        setFunction(modules, isFunction, i, x1, bit)
+      }
+    }
+    if (x2 < size && offset !== 0) {
+      for (let i = 0; i < size; i += 1) {
+        const bit = (i & 1) === 0
+        setFunction(modules, isFunction, x2, i, bit)
+        setFunction(modules, isFunction, i, x2, bit)
+      }
+    }
+  }
 }
 
 function bitStuff(bytes, wordSize) {
@@ -273,4 +330,14 @@ function toBits(value, length) {
     bits[length - 1 - i] = (value >>> i) & 1
   }
   return bits
+}
+
+function createSquare(size, value) {
+  return Array.from({ length: size }, () => Array.from({ length: size }, () => value))
+}
+
+function setFunction(modules, isFunction, x, y, value) {
+  if (y < 0 || y >= modules.length || x < 0 || x >= modules.length) return
+  modules[y][x] = value
+  isFunction[y][x] = true
 }
