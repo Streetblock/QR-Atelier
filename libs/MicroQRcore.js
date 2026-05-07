@@ -7,6 +7,7 @@ const MODE = {
   NUMERIC: 'numeric',
   ALPHANUMERIC: 'alphanumeric',
   BYTE: 'byte',
+  KANJI: 'kanji',
 }
 
 const ECL = {
@@ -29,12 +30,14 @@ const MODE_BITS_MICRO = {
   [MODE.NUMERIC]: 0,
   [MODE.ALPHANUMERIC]: 1,
   [MODE.BYTE]: 2,
+  [MODE.KANJI]: 3,
 }
 
 const CHAR_COUNT_BITS = {
   [MODE.NUMERIC]: { [-3]: 3, [-2]: 4, [-1]: 5, [0]: 6 },
   [MODE.ALPHANUMERIC]: { [-2]: 3, [-1]: 4, [0]: 5 },
   [MODE.BYTE]: { [-1]: 4, [0]: 5 },
+  [MODE.KANJI]: { [-1]: 3, [0]: 4 },
 }
 
 const TERMINATOR_LENGTH = { [-3]: 3, [-2]: 5, [-1]: 7, [0]: 9 }
@@ -144,12 +147,17 @@ function chooseMode(data, preferredMode, byteEncoding) {
     ensureByteEncodable(data, byteEncoding)
     return MODE.BYTE
   }
+  if (mode === MODE.KANJI) {
+    ensureKanjiEncodable(data)
+    return MODE.KANJI
+  }
   if (mode !== 'auto') {
     throw new Error(`Unsupported preferredMode: ${preferredMode}`)
   }
 
   if (isNumeric(data)) return MODE.NUMERIC
   if (isAlphanumeric(data)) return MODE.ALPHANUMERIC
+  if (isKanjiEncodable(data)) return MODE.KANJI
   ensureByteEncodable(data, byteEncoding)
   return MODE.BYTE
 }
@@ -235,6 +243,7 @@ function buildDataBits(data, mode, symbol, byteEncoding) {
 function encodePayloadBits(data, mode, byteEncoding) {
   if (mode === MODE.NUMERIC) return encodeNumeric(data)
   if (mode === MODE.ALPHANUMERIC) return encodeAlphanumeric(data)
+  if (mode === MODE.KANJI) return encodeKanji(data)
   return encodeByte(data, byteEncoding)
 }
 
@@ -269,6 +278,25 @@ function encodeByte(data, byteEncoding) {
   const bits = []
   const bytes = encodeByteArray(data, byteEncoding)
   for (const value of bytes) appendBits(bits, value, 8)
+  return bits
+}
+
+function encodeKanji(data) {
+  const bits = []
+  const bytes = encodeShiftJisBytes(data, { strictKanjiOnly: true })
+  for (let i = 0; i < bytes.length; i += 2) {
+    const value = (bytes[i] << 8) | bytes[i + 1]
+    let adjusted
+    if (value >= 0x8140 && value <= 0x9ffc) {
+      adjusted = value - 0x8140
+    } else if (value >= 0xe040 && value <= 0xebbf) {
+      adjusted = value - 0xc140
+    } else {
+      throw new Error(`Shift_JIS value 0x${value.toString(16)} is not valid for Kanji mode.`)
+    }
+    const encoded = ((adjusted >> 8) * 0xc0) + (adjusted & 0xff)
+    appendBits(bits, encoded, 13)
+  }
   return bits
 }
 
@@ -544,31 +572,54 @@ function encodeWindows1252Bytes(data) {
   return bytes
 }
 
-function encodeShiftJisBytes(data) {
+const SHIFT_JIS_KANJI_MAP = new Map([
+  ['\u6f22', [0x8a, 0xbf]], ['\u5b57', [0x8e, 0x9a]], ['\u65e5', [0x93, 0xfa]], ['\u672c', [0x96, 0x7b]],
+  ['\u8a9e', [0x8c, 0xea]], ['\u6771', [0x93, 0x8c]], ['\u4eac', [0x8b, 0x9e]], ['\u5927', [0x91, 0xe5]],
+  ['\u962a', [0x8d, 0xe3]], ['\u4e2d', [0x92, 0x86]], ['\u5c0f', [0x8f, 0xac]], ['\u5c71', [0x8e, 0x52]],
+  ['\u5ddd', [0x90, 0xec]], ['\u7530', [0x93, 0x63]], ['\u4eba', [0x90, 0x6c]], ['\u5e74', [0x94, 0x4e]],
+  ['\u6708', [0x8c, 0x8e]], ['\u706b', [0x89, 0xce]], ['\u6c34', [0x90, 0x85]], ['\u6728', [0x96, 0xd8]],
+  ['\u91d1', [0x8b, 0xe0]], ['\u571f', [0x93, 0x79]], ['\u4e0a', [0x8f, 0xe3]], ['\u4e0b', [0x89, 0xba]],
+  ['\u5de6', [0x8d, 0xb6]], ['\u53f3', [0x89, 0x45]], ['\u5b66', [0x8a, 0x77]], ['\u6821', [0x8d, 0x5a]],
+  ['\u751f', [0x90, 0xb6]], ['\u5148', [0x90, 0xe6]], ['\u6642', [0x8e, 0x9e]], ['\u9593', [0x8a, 0xd4]],
+  ['\u65b0', [0x90, 0x56]], ['\u805e', [0x95, 0xb7]], ['\u96fb', [0x93, 0x64]], ['\u8eca', [0x8e, 0xd4]],
+  ['\u99c5', [0x89, 0x77]], ['\u9053', [0x93, 0xb9]], ['\u56fd', [0x8d, 0x91]], ['\u6d77', [0x8a, 0x43]],
+  ['\u7a7a', [0x8b, 0xf3]], ['\u5929', [0x93, 0x56]], ['\u6c17', [0x8b, 0x43]], ['\u540d', [0x96, 0xbc]],
+  ['\u524d', [0x91, 0x4f]], ['\u5f8c', [0x8c, 0xe3]], ['\u4eca', [0x8d, 0xa1]], ['\u79c1', [0x8e, 0x84]],
+  ['\u4f1a', [0x89, 0xef]], ['\u793e', [0x8e, 0xd0]], ['\u9577', [0x92, 0xb7]], ['\u9ad8', [0x8d, 0x82]],
+  ['\u5b89', [0x88, 0xc0]], ['\u5186', [0x89, 0x7e]],
+])
+
+function encodeShiftJisBytes(data, options = {}) {
+  const { strictKanjiOnly = false } = options
   const bytes = []
-  for (let i = 0; i < data.length; i += 1) {
-    const cp = data.codePointAt(i)
+  for (const char of data) {
+    const cp = char.codePointAt(0)
     if (cp > 0xffff) {
-      i += 1
       throw new Error(`Character U+${cp.toString(16).toUpperCase()} is not encodable in supported Shift_JIS subset.`)
     }
 
+    const kanjiPair = SHIFT_JIS_KANJI_MAP.get(char)
+    if (kanjiPair) {
+      bytes.push(kanjiPair[0], kanjiPair[1])
+      continue
+    }
+
     // ASCII
-    if (cp <= 0x7f) {
+    if (!strictKanjiOnly && cp <= 0x7f) {
       bytes.push(cp)
       continue
     }
     // Halfwidth katakana (JIS X 0201)
-    if (cp >= 0xff61 && cp <= 0xff9f) {
+    if (!strictKanjiOnly && cp >= 0xff61 && cp <= 0xff9f) {
       bytes.push(cp - 0xff61 + 0xa1)
       continue
     }
     // Common JIS X 0201 single-byte mappings
-    if (cp === 0x00a5) { // YEN SIGN
+    if (!strictKanjiOnly && cp === 0x00a5) { // YEN SIGN
       bytes.push(0x5c)
       continue
     }
-    if (cp === 0x203e) { // OVERLINE
+    if (!strictKanjiOnly && cp === 0x203e) { // OVERLINE
       bytes.push(0x7e)
       continue
     }
@@ -595,6 +646,21 @@ function ensureByteEncodable(data, byteEncoding) {
   }
   // Re-use concrete encoders to guarantee identical validation semantics.
   encodeByteArray(data, byteEncoding)
+}
+
+function ensureKanjiEncodable(data) {
+  if (!isKanjiEncodable(data)) {
+    throw new Error('Data contains characters outside supported Kanji mode mapping.')
+  }
+}
+
+function isKanjiEncodable(data) {
+  try {
+    const bytes = encodeShiftJisBytes(data, { strictKanjiOnly: true })
+    return bytes.length % 2 === 0 && bytes.length > 0
+  } catch {
+    return false
+  }
 }
 
 function normalizeByteEncoding(value) {
