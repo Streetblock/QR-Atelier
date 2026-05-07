@@ -61,6 +61,14 @@
           </div>
 
           <div class="field">
+            <label class="field-label" for="code-type">Code Typ</label>
+            <select id="code-type" class="select-input">
+              <option value="qr" selected>QR Code</option>
+              <option value="microqr">Micro QR</option>
+            </select>
+          </div>
+
+          <div class="field">
             <label class="field-label" for="dot-shape">Dot Style</label>
             <select id="dot-shape" class="select-input">
               <option value="rounded" selected>Rounded</option>
@@ -115,6 +123,62 @@
               <input type="color" id="color-end" class="color-input" value="#0ea5e9">
               <span class="color-code" id="color-end-hex">#0ea5e9</span>
             </div>
+          </div>
+
+          <div id="micro-options" class="field field-wide hidden">
+            <label class="field-label">Micro QR Optionen</label>
+            <div class="editor-grid">
+              <div class="field">
+                <label class="field-label" for="micro-ecl">Micro ECL</label>
+                <select id="micro-ecl" class="select-input">
+                  <option value="L" selected>L</option>
+                  <option value="M">M</option>
+                  <option value="Q">Q</option>
+                  <option value="NONE">NONE (nur M1)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="micro-min-version">Min Version</label>
+                <select id="micro-min-version" class="select-input">
+                  <option value="M1" selected>M1</option>
+                  <option value="M2">M2</option>
+                  <option value="M3">M3</option>
+                  <option value="M4">M4</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="micro-max-version">Max Version</label>
+                <select id="micro-max-version" class="select-input">
+                  <option value="M1">M1</option>
+                  <option value="M2">M2</option>
+                  <option value="M3">M3</option>
+                  <option value="M4" selected>M4</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="micro-preferred-mode">Micro Mode</label>
+                <select id="micro-preferred-mode" class="select-input">
+                  <option value="auto" selected>auto</option>
+                  <option value="numeric">numeric</option>
+                  <option value="alphanumeric">alphanumeric</option>
+                  <option value="byte">byte</option>
+                  <option value="kanji">kanji</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="micro-byte-encoding">Byte Encoding</label>
+                <select id="micro-byte-encoding" class="select-input">
+                  <option value="latin1" selected>latin1 (Default)</option>
+                  <option value="utf8">utf8</option>
+                  <option value="windows-1252">windows-1252</option>
+                  <option value="shift-jis">shift_jis</option>
+                </select>
+              </div>
+            </div>
+            <p class="section-copy" style="margin-top: 0.6rem;">
+              Encoding-Hinweis: Micro QR nutzt standardmaessig <strong>latin1</strong> fuer maximale Kompaktheit/Interop.
+              <strong>utf8</strong> ist optional und kann mehr Kapazitaet benoetigen; fuer japanische Daten ist <strong>shift_jis</strong> plus <strong>kanji</strong>-Mode empfohlen.
+            </p>
           </div>
         </div>
       </section>
