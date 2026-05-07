@@ -30,7 +30,7 @@ test('zxing library is installed for aztec integration checks', async (t) => {
   assert.ok(zxing)
 })
 
-test('aztec roundtrip decodes with zxing', async (t) => {
+test('aztec roundtrip decodes with zxing for multiple payloads', async (t) => {
   let zxing
   try {
     zxing = await import('@zxing/library')
@@ -38,10 +38,6 @@ test('aztec roundtrip decodes with zxing', async (t) => {
     t.skip('@zxing/library not installed')
     return
   }
-  const payload = 'AZTEC ROUNDTRIP 123'
-  const aztec = new AztecCore(payload, { mode: 'auto' }).generate()
-  const { luminance, width, height } = matrixToLuminance(aztec.modules)
-
   const {
     MultiFormatReader,
     BarcodeFormat,
@@ -53,11 +49,20 @@ test('aztec roundtrip decodes with zxing', async (t) => {
 
   const hints = new Map()
   hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.AZTEC])
+  const payloads = [
+    'AZTEC ROUNDTRIP 123',
+    'https://example.com/path?a=1&b=2',
+    'Plain ASCII payload 42',
+    'Longer payload for aztec decode check 0123456789 abcdefghijklmnopqrstuvwxyz',
+  ]
 
-  const source = new RGBLuminanceSource(luminance, width, height)
-  const bitmap = new BinaryBitmap(new HybridBinarizer(source))
-  const reader = new MultiFormatReader()
-  const result = reader.decode(bitmap, hints)
-
-  assert.equal(result.getText(), payload)
+  for (const payload of payloads) {
+    const aztec = new AztecCore(payload, { mode: 'auto' }).generate()
+    const { luminance, width, height } = matrixToLuminance(aztec.modules)
+    const source = new RGBLuminanceSource(luminance, width, height)
+    const bitmap = new BinaryBitmap(new HybridBinarizer(source))
+    const reader = new MultiFormatReader()
+    const result = reader.decode(bitmap, hints)
+    assert.equal(result.getText(), payload)
+  }
 })

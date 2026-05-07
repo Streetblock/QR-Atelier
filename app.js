@@ -30,8 +30,11 @@ class QRPlaygroundApp {
       urlInput: document.getElementById('url-input'),
       dotShape: document.getElementById('dot-shape'),
       cornerShape: document.getElementById('corner-shape'),
+      dotShapeField: document.getElementById('field-dot-shape'),
+      cornerShapeField: document.getElementById('field-corner-shape'),
       downloadSize: document.getElementById('download-size'),
       logoUpload: document.getElementById('logo-upload'),
+      logoUploadField: document.getElementById('field-logo-upload'),
       clearLogoBtn: document.getElementById('btn-clear-logo'),
       logoStatus: document.getElementById('logo-status'),
       colorStart: document.getElementById('color-start'),
@@ -48,6 +51,7 @@ class QRPlaygroundApp {
   #init() {
     this.#bindEvents()
     this.#parseUrlParams()
+    this.#syncFormatUi()
   }
 
   #bindEvents() {
@@ -109,6 +113,7 @@ class QRPlaygroundApp {
   update(newOptions = {}) {
     this.state.options = { ...this.state.options, ...newOptions }
     if (newOptions.data !== undefined) this.state.data = newOptions.data
+    this.#syncFormatUi()
 
     if (!this.state.data) {
       this.ui.container.innerHTML = ''
@@ -186,6 +191,24 @@ class QRPlaygroundApp {
     return new QrSvgRenderer(qr, { size, ...this.state.options })
   }
 
+  #syncFormatUi() {
+    const isAztec = this.state.options.format === 'aztec'
+    this.ui.dotShape.disabled = isAztec
+    this.ui.cornerShape.disabled = isAztec
+    this.ui.logoUpload.disabled = isAztec
+    this.ui.clearLogoBtn.disabled = isAztec
+
+    this.ui.dotShapeField.classList.toggle('hidden', isAztec)
+    this.ui.cornerShapeField.classList.toggle('hidden', isAztec)
+    this.ui.logoUploadField.classList.toggle('hidden', isAztec)
+
+    if (isAztec && this.state.options.logo) {
+      this.state.options.logo = null
+      this.ui.logoUpload.value = ''
+      this.ui.logoStatus.textContent = 'Kein Logo geladen.'
+    }
+  }
+
   #filePrefix() {
     return this.state.options.format === 'aztec' ? 'aztec-code' : 'qr-code'
   }
@@ -227,4 +250,3 @@ class QRPlaygroundApp {
 document.addEventListener('DOMContentLoaded', () => {
   new QRPlaygroundApp()
 })
-
