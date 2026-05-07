@@ -34,6 +34,11 @@ export class AztecCore {
     }
     const checkWords = reedSolomonCheckWords(messageWords, eccWords, layerPlan.wordSize)
     const { modules, isFunction } = buildSymbolScaffold(layerPlan.layers, layerPlan.compact)
+    const allWords = [...messageWords, ...checkWords]
+    const dataStreamBits = wordsToBits(allWords, layerPlan.wordSize)
+    placeDataBits(modules, isFunction, dataStreamBits)
+    const modeMessageBits = buildModeMessageBits(layerPlan.layers, layerPlan.compact, messageWords.length)
+    placeModeMessage(modules, isFunction, modeMessageBits, layerPlan.compact)
 
     // Current scope:
     // 1) simple binary payload sizing
@@ -53,6 +58,8 @@ export class AztecCore {
       stuffedBits,
       messageWords,
       checkWords,
+      modeMessageBits,
+      placedDataBits: dataStreamBits.length,
       eccBits: layerPlan.eccBits,
       codewordSize: layerPlan.wordSize,
       capacityBits: layerPlan.capacityBits,
@@ -330,6 +337,70 @@ function toBits(value, length) {
     bits[length - 1 - i] = (value >>> i) & 1
   }
   return bits
+}
+
+function wordsToBits(words, wordSize) {
+  const bits = []
+  for (const word of words) {
+    bits.push(...toBits(word, wordSize))
+  }
+  return bits
+}
+
+function placeDataBits(modules, isFunction, bits) {
+  const size = modules.length
+  const order = []
+  for (let ring = 0; ring <= Math.floor(size / 2); ring += 1) {
+    const min = ring
+    const max = size - 1 - ring
+    if (min > max) break
+    for (let x = min; x <= max; x += 1) order.push([x, min])
+    for (let y = min + 1; y <= max; y += 1) order.push([max, y])
+    if (max > min) {
+      for (let x = max - 1; x >= min; x -= 1) order.push([x, max])
+      for (let y = max - 1; y > min; y -= 1) order.push([min, y])
+    }
+  }
+
+  let idx = 0
+  for (const [x, y] of order) {
+    if (isFunction[y][x]) continue
+    modules[y][x] = idx < bits.length ? bits[idx] === 1 : false
+    idx += 1
+  }
+}
+
+function buildModeMessageBits(layers, compact, messageWordCount) {
+  // Placeholder mode message layout:
+  // compact: 2 bits layers-1 + 6 bits dataWords
+  // full: 5 bits layers-1 + 11 bits dataWords
+  if (compact) {
+    const value = (((layers - 1) & 0x03) << 6) | (messageWordCount & 0x3f)
+    return toBits(value, 8)
+  }
+  const value = (((layers - 1) & 0x1f) << 11) | (messageWordCount & 0x7ff)
+  return toBits(value, 16)
+}
+
+function placeModeMessage(modules, isFunction, modeBits, compact) {
+  const size = modules.length
+  const center = Math.floor(size / 2)
+  const radius = compact ? 5 : 7
+  const slots = []
+
+  for (let x = center - radius; x <= center + radius; x += 1) slots.push([x, center - radius - 1])
+  for (let y = center - radius; y <= center + radius; y += 1) slots.push([center + radius + 1, y])
+  for (let x = center + radius; x >= center - radius; x -= 1) slots.push([x, center + radius + 1])
+  for (let y = center + radius; y >= center - radius; y -= 1) slots.push([center - radius - 1, y])
+
+  let i = 0
+  for (const [x, y] of slots) {
+    if (x < 0 || y < 0 || x >= size || y >= size) continue
+    const bit = modeBits[i % modeBits.length] === 1
+    modules[y][x] = bit
+    isFunction[y][x] = true
+    i += 1
+  }
 }
 
 function createSquare(size, value) {
