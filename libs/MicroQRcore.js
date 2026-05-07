@@ -96,20 +96,22 @@ export class MicroQrCore {
       minVersion: 'M1',
       maxVersion: 'M4',
       mask: -1, // -1 => auto
+      byteEncoding: 'utf8', // utf8|latin1
       ...options,
     }
   }
 
   generate() {
-    const mode = chooseMode(this.data, this.options.preferredMode)
+    const byteEncoding = normalizeByteEncoding(this.options.byteEncoding)
+    const mode = chooseMode(this.data, this.options.preferredMode, byteEncoding)
     const minIndex = versionToIndex(this.options.minVersion)
     const maxIndex = versionToIndex(this.options.maxVersion)
     if (minIndex > maxIndex) {
       throw new Error('minVersion must be less than or equal to maxVersion.')
     }
 
-    const symbol = chooseSymbol(this.data, mode, this.options.errorCorrectionLevel, minIndex, maxIndex)
-    const dataBits = buildDataBits(this.data, mode, symbol)
+    const symbol = chooseSymbol(this.data, mode, this.options.errorCorrectionLevel, minIndex, maxIndex, byteEncoding)
+    const dataBits = buildDataBits(this.data, mode, symbol, byteEncoding)
     const finalBits = makeFinalMessageBits(symbol, dataBits)
     const { modules, selectedMask } = buildMatrix(symbol, finalBits, this.options.mask)
 
@@ -120,6 +122,7 @@ export class MicroQrCore {
       size: symbol.size,
       errorCorrectionLevel: symbol.ecl,
       mode,
+      byteEncoding: mode === MODE.BYTE ? byteEncoding : null,
       mask: selectedMask,
       modules,
       readyForScan: true,
@@ -127,7 +130,7 @@ export class MicroQrCore {
   }
 }
 
-function chooseMode(data, preferredMode) {
+function chooseMode(data, preferredMode, byteEncoding) {
   const mode = String(preferredMode || 'auto').toLowerCase()
   if (mode === MODE.NUMERIC) {
     ensureNumeric(data)
@@ -138,7 +141,7 @@ function chooseMode(data, preferredMode) {
     return MODE.ALPHANUMERIC
   }
   if (mode === MODE.BYTE) {
-    ensureLatin1(data)
+    ensureByteEncodable(data, byteEncoding)
     return MODE.BYTE
   }
   if (mode !== 'auto') {
@@ -147,11 +150,11 @@ function chooseMode(data, preferredMode) {
 
   if (isNumeric(data)) return MODE.NUMERIC
   if (isAlphanumeric(data)) return MODE.ALPHANUMERIC
-  ensureLatin1(data)
+  ensureByteEncodable(data, byteEncoding)
   return MODE.BYTE
 }
 
-function chooseSymbol(data, mode, preferredEcl, minIndex, maxIndex) {
+function chooseSymbol(data, mode, preferredEcl, minIndex, maxIndex, byteEncoding) {
   const preferred = String(preferredEcl || 'auto').toUpperCase()
   const autoEcl = preferred === 'AUTO'
 
@@ -161,7 +164,7 @@ function chooseSymbol(data, mode, preferredEcl, minIndex, maxIndex) {
     if (!CHAR_COUNT_BITS[mode]?.[candidate.v]) continue
 
     if (!autoEcl) {
-      if (candidate.ecl.includes(preferred) && canEncodeInSymbol(data, mode, candidate, preferred)) {
+      if (candidate.ecl.includes(preferred) && canEncodeInSymbol(data, mode, candidate, preferred, byteEncoding)) {
         return { ...candidate, ecl: preferred }
       }
       continue
@@ -169,7 +172,7 @@ function chooseSymbol(data, mode, preferredEcl, minIndex, maxIndex) {
 
     for (let e = candidate.ecl.length - 1; e >= 0; e -= 1) {
       const ecl = candidate.ecl[e]
-      if (canEncodeInSymbol(data, mode, candidate, ecl)) {
+      if (canEncodeInSymbol(data, mode, candidate, ecl, byteEncoding)) {
         return { ...candidate, ecl }
       }
     }
@@ -178,20 +181,20 @@ function chooseSymbol(data, mode, preferredEcl, minIndex, maxIndex) {
   throw new Error(`Input exceeds Micro QR capacity for mode "${mode}" in selected version range.`)
 }
 
-function canEncodeInSymbol(data, mode, symbol, ecl) {
+function canEncodeInSymbol(data, mode, symbol, ecl, byteEncoding) {
   const capacityBits = SYMBOL_CAPACITY_BITS[symbol.v][ecl]
   if (!capacityBits) return false
 
-  const length = mode === MODE.BYTE ? encodeLatin1Bytes(data).length : data.length
+  const length = mode === MODE.BYTE ? encodeByteArray(data, byteEncoding).length : data.length
   const cciBits = CHAR_COUNT_BITS[mode]?.[symbol.v]
   if (!cciBits) return false
 
   const modeBits = symbol.v > -3 ? symbol.v + 3 : 0
-  const payloadBits = encodePayloadBits(data, mode).length
+  const payloadBits = encodePayloadBits(data, mode, byteEncoding).length
   return modeBits + cciBits + payloadBits <= capacityBits
 }
 
-function buildDataBits(data, mode, symbol) {
+function buildDataBits(data, mode, symbol, byteEncoding) {
   const capacityBits = SYMBOL_CAPACITY_BITS[symbol.v][symbol.ecl]
   const bits = []
 
@@ -199,8 +202,8 @@ function buildDataBits(data, mode, symbol) {
   if (symbol.v > -3) {
     appendBits(bits, MODE_BITS_MICRO[mode], symbol.v + 3)
   }
-  appendBits(bits, mode === MODE.BYTE ? encodeLatin1Bytes(data).length : data.length, CHAR_COUNT_BITS[mode][symbol.v])
-  bits.push(...encodePayloadBits(data, mode))
+  appendBits(bits, mode === MODE.BYTE ? encodeByteArray(data, byteEncoding).length : data.length, CHAR_COUNT_BITS[mode][symbol.v])
+  bits.push(...encodePayloadBits(data, mode, byteEncoding))
 
   // Terminator
   const terminator = Math.min(capacityBits - bits.length, TERMINATOR_LENGTH[symbol.v])
@@ -229,10 +232,10 @@ function buildDataBits(data, mode, symbol) {
   return bits
 }
 
-function encodePayloadBits(data, mode) {
+function encodePayloadBits(data, mode, byteEncoding) {
   if (mode === MODE.NUMERIC) return encodeNumeric(data)
   if (mode === MODE.ALPHANUMERIC) return encodeAlphanumeric(data)
-  return encodeByte(data)
+  return encodeByte(data, byteEncoding)
 }
 
 function encodeNumeric(data) {
@@ -262,9 +265,9 @@ function encodeAlphanumeric(data) {
   return bits
 }
 
-function encodeByte(data) {
+function encodeByte(data, byteEncoding) {
   const bits = []
-  const bytes = encodeLatin1Bytes(data)
+  const bytes = encodeByteArray(data, byteEncoding)
   for (const value of bytes) appendBits(bits, value, 8)
   return bits
 }
@@ -503,6 +506,27 @@ function encodeLatin1Bytes(data) {
     bytes[i] = data.charCodeAt(i) & 0xff
   }
   return bytes
+}
+
+function encodeUtf8Bytes(data) {
+  return Array.from(new TextEncoder().encode(data))
+}
+
+function encodeByteArray(data, byteEncoding) {
+  return byteEncoding === 'latin1' ? encodeLatin1Bytes(data) : encodeUtf8Bytes(data)
+}
+
+function ensureByteEncodable(data, byteEncoding) {
+  if (byteEncoding === 'latin1') {
+    ensureLatin1(data)
+  }
+}
+
+function normalizeByteEncoding(value) {
+  const normalized = String(value ?? 'utf8').toLowerCase()
+  if (normalized === 'utf8' || normalized === 'utf-8') return 'utf8'
+  if (normalized === 'latin1' || normalized === 'latin-1' || normalized === 'iso-8859-1') return 'latin1'
+  throw new Error(`Unsupported byteEncoding: ${value}`)
 }
 
 function isNumeric(data) {
