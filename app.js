@@ -1,5 +1,7 @@
 import { QrCore } from './libs/QRcore.js'
 import { QrSvgRenderer } from './libs/QRsvg.js'
+import { AztecCore } from './libs/AztecCore.js'
+import { AztecSvgRenderer } from './libs/AztecSvg.js'
 
 class QRPlaygroundApp {
   constructor() {
@@ -10,6 +12,7 @@ class QRPlaygroundApp {
         errorCorrectionLevel: 'Q',
         colorStart: '#0f172a',
         colorEnd: '#0ea5e9',
+        aztecStyle: 'square',
         dotStyle: 'rounded',
         cornerStyle: 'extra-rounded',
         logo: null,
@@ -62,9 +65,8 @@ class QRPlaygroundApp {
       }, 180)
     })
 
-    if (this.ui.format) {
-      this.ui.format.addEventListener('change', (e) => this.update({ format: e.target.value }))
-    }
+    this.ui.format.addEventListener('change', (e) => this.update({ format: e.target.value }))
+    this.ui.aztecStyle.addEventListener('change', (e) => this.update({ aztecStyle: e.target.value }))
     this.ui.dotShape.addEventListener('change', (e) => this.update({ dotStyle: e.target.value }))
     this.ui.cornerShape.addEventListener('change', (e) => this.update({ cornerStyle: e.target.value }))
 
@@ -82,7 +84,6 @@ class QRPlaygroundApp {
     this.ui.logoUpload.addEventListener('change', () => {
       const file = this.ui.logoUpload.files[0]
       if (!file) return
-
       const reader = new FileReader()
       reader.onload = () => {
         this.ui.logoStatus.textContent = `Logo: ${file.name}`
@@ -150,7 +151,6 @@ class QRPlaygroundApp {
 
   async #downloadSVG() {
     if (this.isDownloading || !this.hasCode()) return
-
     this.isDownloading = true
     try {
       const size = this.getDownloadSize()
@@ -165,7 +165,6 @@ class QRPlaygroundApp {
 
   async #downloadPNG() {
     if (this.isDownloading || !this.hasCode()) return
-
     this.isDownloading = true
     try {
       const size = this.getDownloadSize()
@@ -182,28 +181,42 @@ class QRPlaygroundApp {
   }
 
   #createRenderer(size) {
+    if (this.state.options.format === 'aztec') {
+      const aztec = new AztecCore(this.state.data).generate()
+      return new AztecSvgRenderer(aztec, {
+        size,
+        colorStart: this.state.options.colorStart,
+        colorEnd: this.state.options.colorEnd,
+        moduleStyle: this.state.options.aztecStyle,
+      })
+    }
+
     const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
     const qr = new QrCore(this.state.data, { errorCorrectionLevel: ecl }).generate()
     return new QrSvgRenderer(qr, { size, ...this.state.options })
   }
 
   #syncFormatUi() {
-    this.state.options.format = 'qr'
-    if (this.ui.format) this.ui.format.value = 'qr'
+    const isAztec = this.state.options.format === 'aztec'
+    this.ui.dotShape.disabled = isAztec
+    this.ui.cornerShape.disabled = isAztec
+    this.ui.logoUpload.disabled = isAztec
+    this.ui.clearLogoBtn.disabled = isAztec
 
-    if (this.ui.dotShape) this.ui.dotShape.disabled = false
-    if (this.ui.cornerShape) this.ui.cornerShape.disabled = false
-    if (this.ui.logoUpload) this.ui.logoUpload.disabled = false
-    if (this.ui.clearLogoBtn) this.ui.clearLogoBtn.disabled = false
+    this.ui.dotShapeField.classList.toggle('hidden', isAztec)
+    this.ui.aztecStyleField.classList.toggle('hidden', !isAztec)
+    this.ui.cornerShapeField.classList.toggle('hidden', isAztec)
+    this.ui.logoUploadField.classList.toggle('hidden', isAztec)
 
-    if (this.ui.dotShapeField) this.ui.dotShapeField.classList.remove('hidden')
-    if (this.ui.aztecStyleField) this.ui.aztecStyleField.classList.add('hidden')
-    if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.remove('hidden')
-    if (this.ui.logoUploadField) this.ui.logoUploadField.classList.remove('hidden')
+    if (isAztec && this.state.options.logo) {
+      this.state.options.logo = null
+      this.ui.logoUpload.value = ''
+      this.ui.logoStatus.textContent = 'Kein Logo geladen.'
+    }
   }
 
   #filePrefix() {
-    return 'qr-code'
+    return this.state.options.format === 'aztec' ? 'aztec-code' : 'qr-code'
   }
 
   #buildDownloadFilename(extension, size) {
@@ -250,26 +263,22 @@ class QRPlaygroundApp {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' }))
       const image = new Image()
-
       image.onload = () => {
         const canvas = document.createElement('canvas')
         canvas.width = size
         canvas.height = size
         const context = canvas.getContext('2d')
         context.drawImage(image, 0, 0, size, size)
-
         canvas.toBlob((blob) => {
           URL.revokeObjectURL(url)
           if (blob) resolve(blob)
           else reject(new Error('Canvas to Blob failed.'))
         }, 'image/png')
       }
-
       image.onerror = () => {
         URL.revokeObjectURL(url)
         reject(new Error('SVG konnte nicht als PNG gerendert werden.'))
       }
-
       image.src = url
     })
   }
