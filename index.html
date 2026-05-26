@@ -55,12 +55,30 @@
         </div>
 
         <div class="editor-grid">
+          <div class="field">
+            <label class="field-label" for="code-format">Code Format</label>
+            <select id="code-format" class="select-input">
+              <option value="qr" selected>QR Code</option>
+              <option value="aztec">Aztec Code</option>
+            </select>
+          </div>
+
+          <div class="field hidden" id="field-aztec-style">
+            <label class="field-label" for="aztec-style">Aztec Style</label>
+            <select id="aztec-style" class="select-input">
+              <option value="square" selected>Square</option>
+              <option value="rounded">Rounded</option>
+              <option value="dots">Dots</option>
+              <option value="classy">Classy</option>
+            </select>
+          </div>
+
           <div class="field field-wide">
             <label class="field-label" for="url-input">URL oder Text</label>
             <input type="text" id="url-input" class="text-input" placeholder="https://example.com" autocomplete="off">
           </div>
 
-          <div class="field">
+          <div class="field" id="field-dot-shape">
             <label class="field-label" for="dot-shape">Dot Style</label>
             <select id="dot-shape" class="select-input">
               <option value="rounded" selected>Rounded</option>
@@ -73,7 +91,7 @@
             </select>
           </div>
 
-          <div class="field">
+          <div class="field" id="field-corner-shape">
             <label class="field-label" for="corner-shape">Finder Style</label>
             <select id="corner-shape" class="select-input">
               <option value="extra-rounded" selected>Extra Rounded</option>
@@ -92,7 +110,7 @@
             </select>
           </div>
 
-          <div class="field">
+          <div class="field" id="field-logo-upload">
             <label class="field-label" for="logo-upload">Center Logo</label>
             <input type="file" id="logo-upload" class="upload-input" accept="image/png,image/svg+xml,image/jpeg">
             <div class="logo-actions">
