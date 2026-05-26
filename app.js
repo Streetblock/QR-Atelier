@@ -157,7 +157,7 @@ class QRPlaygroundApp {
       const renderer = this.#createRenderer(size)
       const svg = renderer.render()
       const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
-      this.#triggerBlobDownload(blob, `${this.#filePrefix()}-${size}.svg`)
+      this.#triggerBlobDownload(blob, this.#buildDownloadFilename('svg', size))
     } finally {
       this.isDownloading = false
     }
@@ -171,7 +171,7 @@ class QRPlaygroundApp {
       const renderer = this.#createRenderer(size)
       const svg = renderer.render()
       const blob = await this.#svgToPngBlob(svg, size)
-      this.#triggerBlobDownload(blob, `${this.#filePrefix()}-${size}.png`)
+      this.#triggerBlobDownload(blob, this.#buildDownloadFilename('png', size))
     } catch (error) {
       console.error('PNG Download fehlgeschlagen:', error)
       alert('Der PNG-Export ist fehlgeschlagen.')
@@ -217,6 +217,37 @@ class QRPlaygroundApp {
 
   #filePrefix() {
     return this.state.options.format === 'aztec' ? 'aztec-code' : 'qr-code'
+  }
+
+  #buildDownloadFilename(extension, size) {
+    const prefix = this.#filePrefix()
+    const dataHint = this.#dataHint()
+    const timestamp = this.#timestampForFilename()
+    return `${prefix}-${dataHint}-${size}-${timestamp}.${extension}`
+  }
+
+  #dataHint() {
+    const raw = (this.state.data || '').trim().replace(/^https?:\/\//i, '')
+    const ascii = raw
+      .normalize('NFKD')
+      .replace(/[^\x00-\x7F]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+    return (ascii || 'code').slice(0, 32)
+  }
+
+  #timestampForFilename() {
+    const now = new Date()
+    const pad = (value) => String(value).padStart(2, '0')
+    const year = now.getFullYear()
+    const month = pad(now.getMonth() + 1)
+    const day = pad(now.getDate())
+    const hours = pad(now.getHours())
+    const minutes = pad(now.getMinutes())
+    const seconds = pad(now.getSeconds())
+    return `${year}${month}${day}-${hours}${minutes}${seconds}`
   }
 
   #triggerBlobDownload(blob, filename) {
