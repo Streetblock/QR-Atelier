@@ -1,5 +1,7 @@
 import { QrCore } from './libs/QRcore.js'
 import { QrSvgRenderer } from './libs/QRsvg.js'
+import { DmCore } from './libs/DMcore.js'
+import { DmSvgRenderer } from './libs/DMsvg.js'
 
 class QRPlaygroundApp {
   constructor() {
@@ -182,28 +184,51 @@ class QRPlaygroundApp {
   }
 
   #createRenderer(size) {
+    if (this.state.options.format === 'datamatrix') {
+      const dmMatrix = new DmCore(this.state.data).generate()
+      return new DmSvgRenderer(dmMatrix, {
+        size,
+        margin: 8,
+        colorStart: this.state.options.colorStart,
+        colorEnd: this.state.options.colorEnd,
+        dotStyle: this.state.options.dotStyle,
+      })
+    }
+
     const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
     const qr = new QrCore(this.state.data, { errorCorrectionLevel: ecl }).generate()
     return new QrSvgRenderer(qr, { size, ...this.state.options })
   }
 
   #syncFormatUi() {
-    this.state.options.format = 'qr'
-    if (this.ui.format) this.ui.format.value = 'qr'
+    if (!['qr', 'datamatrix'].includes(this.state.options.format)) {
+      this.state.options.format = 'qr'
+    }
+    if (this.ui.format) this.ui.format.value = this.state.options.format
+
+    const isDm = this.state.options.format === 'datamatrix'
 
     if (this.ui.dotShape) this.ui.dotShape.disabled = false
-    if (this.ui.cornerShape) this.ui.cornerShape.disabled = false
-    if (this.ui.logoUpload) this.ui.logoUpload.disabled = false
-    if (this.ui.clearLogoBtn) this.ui.clearLogoBtn.disabled = false
+    if (this.ui.cornerShape) this.ui.cornerShape.disabled = isDm
+    if (this.ui.logoUpload) this.ui.logoUpload.disabled = isDm
+    if (this.ui.clearLogoBtn) this.ui.clearLogoBtn.disabled = isDm
 
     if (this.ui.dotShapeField) this.ui.dotShapeField.classList.remove('hidden')
     if (this.ui.aztecStyleField) this.ui.aztecStyleField.classList.add('hidden')
-    if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.remove('hidden')
-    if (this.ui.logoUploadField) this.ui.logoUploadField.classList.remove('hidden')
+    if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.toggle('hidden', isDm)
+    if (this.ui.logoUploadField) this.ui.logoUploadField.classList.toggle('hidden', isDm)
+
+    if (isDm && this.state.options.logo) {
+      this.state.options.logo = null
+      this.ui.logoUpload.value = ''
+      this.ui.logoStatus.textContent = 'Logo deaktiviert fuer Data Matrix.'
+    } else if (!isDm && this.ui.logoStatus.textContent === 'Logo deaktiviert fuer Data Matrix.') {
+      this.ui.logoStatus.textContent = 'Kein Logo geladen.'
+    }
   }
 
   #filePrefix() {
-    return 'qr-code'
+    return this.state.options.format === 'datamatrix' ? 'data-matrix' : 'qr-code'
   }
 
   #buildDownloadFilename(extension, size) {
