@@ -1,5 +1,7 @@
 import { QrCore } from './libs/QRcore.js'
 import { QrSvgRenderer } from './libs/QRsvg.js'
+import { MicroQrCore } from './libs/MicroQRcore.js'
+import { MicroQrSvgRenderer } from './libs/MicroQRsvg.js'
 
 class QRPlaygroundApp {
   constructor() {
@@ -13,6 +15,11 @@ class QRPlaygroundApp {
         dotStyle: 'rounded',
         cornerStyle: 'extra-rounded',
         logo: null,
+        microErrorCorrectionLevel: 'L',
+        microMinVersion: 'M1',
+        microMaxVersion: 'M4',
+        microByteEncoding: 'latin1',
+        microPreferredMode: 'auto',
       },
       currentSvg: '',
     }
@@ -41,6 +48,12 @@ class QRPlaygroundApp {
       colorEnd: document.getElementById('color-end'),
       colorStartHex: document.getElementById('color-start-hex'),
       colorEndHex: document.getElementById('color-end-hex'),
+      microEcl: document.getElementById('micro-ecl'),
+      microMinVersion: document.getElementById('micro-min-version'),
+      microMaxVersion: document.getElementById('micro-max-version'),
+      microByteEncoding: document.getElementById('micro-byte-encoding'),
+      microPreferredMode: document.getElementById('micro-preferred-mode'),
+      microOptions: document.getElementById('micro-options'),
       btnSVG: document.getElementById('btn-download-svg'),
       btnPNG: document.getElementById('btn-download-png'),
     }
@@ -67,6 +80,12 @@ class QRPlaygroundApp {
     }
     this.ui.dotShape.addEventListener('change', (e) => this.update({ dotStyle: e.target.value }))
     this.ui.cornerShape.addEventListener('change', (e) => this.update({ cornerStyle: e.target.value }))
+
+    this.ui.microEcl.addEventListener('change', (e) => this.update({ microErrorCorrectionLevel: e.target.value }))
+    this.ui.microMinVersion.addEventListener('change', (e) => this.update({ microMinVersion: e.target.value }))
+    this.ui.microMaxVersion.addEventListener('change', (e) => this.update({ microMaxVersion: e.target.value }))
+    this.ui.microByteEncoding.addEventListener('change', (e) => this.update({ microByteEncoding: e.target.value }))
+    this.ui.microPreferredMode.addEventListener('change', (e) => this.update({ microPreferredMode: e.target.value }))
 
     const onColorChange = () => {
       this.ui.colorStartHex.textContent = this.ui.colorStart.value
@@ -182,28 +201,58 @@ class QRPlaygroundApp {
   }
 
   #createRenderer(size) {
+    if (this.state.options.format === 'microqr') {
+      const micro = new MicroQrCore(this.state.data, {
+        errorCorrectionLevel: this.state.options.microErrorCorrectionLevel,
+        minVersion: this.state.options.microMinVersion,
+        maxVersion: this.state.options.microMaxVersion,
+        byteEncoding: this.state.options.microByteEncoding,
+        preferredMode: this.state.options.microPreferredMode,
+      }).generate()
+      return new MicroQrSvgRenderer(micro, {
+        size,
+        margin: 8,
+        colorStart: this.state.options.colorStart,
+        colorEnd: this.state.options.colorEnd,
+        dotStyle: this.state.options.dotStyle,
+      })
+    }
+
     const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
     const qr = new QrCore(this.state.data, { errorCorrectionLevel: ecl }).generate()
     return new QrSvgRenderer(qr, { size, ...this.state.options })
   }
 
   #syncFormatUi() {
-    this.state.options.format = 'qr'
-    if (this.ui.format) this.ui.format.value = 'qr'
+    if (!['qr', 'microqr'].includes(this.state.options.format)) {
+      this.state.options.format = 'qr'
+    }
+    if (this.ui.format) this.ui.format.value = this.state.options.format
+
+    const isMicro = this.state.options.format === 'microqr'
 
     if (this.ui.dotShape) this.ui.dotShape.disabled = false
-    if (this.ui.cornerShape) this.ui.cornerShape.disabled = false
-    if (this.ui.logoUpload) this.ui.logoUpload.disabled = false
-    if (this.ui.clearLogoBtn) this.ui.clearLogoBtn.disabled = false
+    if (this.ui.cornerShape) this.ui.cornerShape.disabled = isMicro
+    if (this.ui.logoUpload) this.ui.logoUpload.disabled = isMicro
+    if (this.ui.clearLogoBtn) this.ui.clearLogoBtn.disabled = isMicro
 
     if (this.ui.dotShapeField) this.ui.dotShapeField.classList.remove('hidden')
     if (this.ui.aztecStyleField) this.ui.aztecStyleField.classList.add('hidden')
-    if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.remove('hidden')
-    if (this.ui.logoUploadField) this.ui.logoUploadField.classList.remove('hidden')
+    if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.toggle('hidden', isMicro)
+    if (this.ui.logoUploadField) this.ui.logoUploadField.classList.toggle('hidden', isMicro)
+    this.ui.microOptions.classList.toggle('hidden', !isMicro)
+
+    if (isMicro && this.state.options.logo) {
+      this.state.options.logo = null
+      this.ui.logoUpload.value = ''
+      this.ui.logoStatus.textContent = 'Logo deaktiviert fuer Micro QR.'
+    } else if (!isMicro && this.ui.logoStatus.textContent === 'Logo deaktiviert fuer Micro QR.') {
+      this.ui.logoStatus.textContent = 'Kein Logo geladen.'
+    }
   }
 
   #filePrefix() {
-    return 'qr-code'
+    return this.state.options.format === 'microqr' ? 'micro-qr-code' : 'qr-code'
   }
 
   #buildDownloadFilename(extension, size) {
