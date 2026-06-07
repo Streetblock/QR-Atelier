@@ -222,9 +222,15 @@ class QRPlaygroundApp {
     if (this.ui.aztecStyleField) this.ui.aztecStyleField.classList.add('hidden')
     if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.remove('hidden')
     if (this.ui.logoUploadField) this.ui.logoUploadField.classList.remove('hidden')
-    if (this.ui.wifiSection) this.ui.wifiSection.classList.toggle('hidden', !isWifi)
+    if (this.ui.wifiSection) {
+      this.ui.wifiSection.classList.toggle('hidden', !isWifi)
+      this.ui.wifiSection.style.display = isWifi ? '' : 'none'
+    }
 
-    if (this.ui.urlField) this.ui.urlField.classList.toggle('hidden', isWifi)
+    if (this.ui.urlField) {
+      this.ui.urlField.classList.toggle('hidden', isWifi)
+      this.ui.urlField.style.display = isWifi ? 'none' : ''
+    }
     if (this.ui.urlInput) {
       this.ui.urlInput.placeholder = 'https://example.com'
       this.ui.urlInput.value = this.state.data
