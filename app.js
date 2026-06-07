@@ -29,8 +29,9 @@ class QRPlaygroundApp {
       placeholder: document.getElementById('qr-placeholder'),
       downloadButtons: document.getElementById('download-buttons'),
       format: document.getElementById('code-format'),
-      urlInput: document.getElementById('url-input'),
-      urlField: document.getElementById('field-url-input'),
+      primaryInput: document.getElementById('primary-input'),
+      primaryInputLabel: document.getElementById('primary-input-label'),
+      primaryInputField: document.getElementById('field-primary-input'),
       dotShape: document.getElementById('dot-shape'),
       aztecStyle: document.getElementById('aztec-style'),
       cornerShape: document.getElementById('corner-shape'),
@@ -38,7 +39,6 @@ class QRPlaygroundApp {
       aztecStyleField: document.getElementById('field-aztec-style'),
       cornerShapeField: document.getElementById('field-corner-shape'),
       wifiAuth: document.getElementById('wifi-auth'),
-      wifiSsid: document.getElementById('wifi-ssid'),
       wifiPassword: document.getElementById('wifi-password'),
       wifiHidden: document.getElementById('wifi-hidden'),
       wifiSection: document.getElementById('field-wifi-options'),
@@ -65,10 +65,14 @@ class QRPlaygroundApp {
   }
 
   #bindEvents() {
-    this.ui.urlInput.addEventListener('input', () => {
+    this.ui.primaryInput.addEventListener('input', () => {
       clearTimeout(this.debounceTimer)
       this.debounceTimer = setTimeout(() => {
-        this.update({ data: this.ui.urlInput.value.trim() })
+        if (this.state.options.format === 'wifi') {
+          this.update({ wifiSsid: this.ui.primaryInput.value.trim() })
+        } else {
+          this.update({ data: this.ui.primaryInput.value.trim() })
+        }
       }, 180)
     })
 
@@ -78,7 +82,6 @@ class QRPlaygroundApp {
     this.ui.dotShape.addEventListener('change', (e) => this.update({ dotStyle: e.target.value }))
     this.ui.cornerShape.addEventListener('change', (e) => this.update({ cornerStyle: e.target.value }))
     if (this.ui.wifiAuth) this.ui.wifiAuth.addEventListener('change', (e) => this.update({ wifiAuth: e.target.value }))
-    if (this.ui.wifiSsid) this.ui.wifiSsid.addEventListener('input', (e) => this.update({ wifiSsid: e.target.value }))
     if (this.ui.wifiPassword) this.ui.wifiPassword.addEventListener('input', (e) => this.update({ wifiPassword: e.target.value }))
     if (this.ui.wifiHidden) this.ui.wifiHidden.addEventListener('change', (e) => this.update({ wifiHidden: e.target.checked }))
 
@@ -123,8 +126,8 @@ class QRPlaygroundApp {
     const params = new URLSearchParams(window.location.search)
     const paramUrl = params.get('url')
     if (!paramUrl) return
-    this.ui.urlInput.value = paramUrl
-    this.ui.urlInput.dispatchEvent(new Event('input'))
+    this.ui.primaryInput.value = paramUrl
+    this.ui.primaryInput.dispatchEvent(new Event('input'))
   }
 
   update(newOptions = {}) {
@@ -222,21 +225,25 @@ class QRPlaygroundApp {
     if (this.ui.aztecStyleField) this.ui.aztecStyleField.classList.add('hidden')
     if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.remove('hidden')
     if (this.ui.logoUploadField) this.ui.logoUploadField.classList.remove('hidden')
-    if (this.ui.wifiSection) this.ui.wifiSection.classList.toggle('hidden', !isWifi)
+    if (this.ui.wifiSection) {
+      this.ui.wifiSection.hidden = !isWifi
+      this.ui.wifiSection.classList.toggle('hidden', !isWifi)
+      this.ui.wifiSection.style.display = isWifi ? '' : 'none'
+    }
 
-    if (this.ui.urlField) this.ui.urlField.classList.toggle('hidden', isWifi)
-    if (this.ui.urlInput) {
-      this.ui.urlInput.placeholder = 'https://example.com'
-      this.ui.urlInput.value = this.state.data
+    if (this.ui.primaryInputField) {
+      this.ui.primaryInputField.hidden = false
+      this.ui.primaryInputField.classList.remove('hidden')
+      this.ui.primaryInputField.style.display = ''
     }
-    if (this.ui.wifiSsid) {
-      this.ui.wifiSsid.placeholder = 'Mein WLAN'
-      this.ui.wifiSsid.value = this.state.options.wifiSsid || ''
-      this.ui.wifiSsid.parentElement?.classList.toggle('hidden', !isWifi)
+    if (this.ui.primaryInputLabel) {
+      this.ui.primaryInputLabel.textContent = isWifi ? 'SSID' : 'URL oder Text'
     }
-    if (this.ui.wifiAuth) this.ui.wifiAuth.parentElement?.classList.toggle('hidden', !isWifi)
-    if (this.ui.wifiPassword) this.ui.wifiPassword.parentElement?.classList.toggle('hidden', !isWifi)
-    if (this.ui.wifiHidden) this.ui.wifiHidden.closest('.field')?.classList.toggle('hidden', !isWifi)
+    if (this.ui.primaryInput) {
+      this.ui.primaryInput.placeholder = isWifi ? 'Mein WLAN' : 'https://example.com'
+      this.ui.primaryInput.value = isWifi ? (this.state.options.wifiSsid || '') : this.state.data
+      this.ui.primaryInput.autocomplete = 'off'
+    }
   }
 
   #buildPayload() {
