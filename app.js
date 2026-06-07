@@ -14,6 +14,7 @@ class QRPlaygroundApp {
         cornerStyle: 'extra-rounded',
         logo: null,
         wifiAuth: 'WPA',
+        wifiSsid: '',
         wifiPassword: '',
         wifiHidden: false,
       },
@@ -29,7 +30,7 @@ class QRPlaygroundApp {
       downloadButtons: document.getElementById('download-buttons'),
       format: document.getElementById('code-format'),
       urlInput: document.getElementById('url-input'),
-      urlLabel: document.querySelector('label[for="url-input"]'),
+      urlField: document.getElementById('field-url-input'),
       dotShape: document.getElementById('dot-shape'),
       aztecStyle: document.getElementById('aztec-style'),
       cornerShape: document.getElementById('corner-shape'),
@@ -37,6 +38,7 @@ class QRPlaygroundApp {
       aztecStyleField: document.getElementById('field-aztec-style'),
       cornerShapeField: document.getElementById('field-corner-shape'),
       wifiAuth: document.getElementById('wifi-auth'),
+      wifiSsid: document.getElementById('wifi-ssid'),
       wifiPassword: document.getElementById('wifi-password'),
       wifiHidden: document.getElementById('wifi-hidden'),
       wifiSection: document.getElementById('field-wifi-options'),
@@ -76,6 +78,7 @@ class QRPlaygroundApp {
     this.ui.dotShape.addEventListener('change', (e) => this.update({ dotStyle: e.target.value }))
     this.ui.cornerShape.addEventListener('change', (e) => this.update({ cornerStyle: e.target.value }))
     if (this.ui.wifiAuth) this.ui.wifiAuth.addEventListener('change', (e) => this.update({ wifiAuth: e.target.value }))
+    if (this.ui.wifiSsid) this.ui.wifiSsid.addEventListener('input', (e) => this.update({ wifiSsid: e.target.value }))
     if (this.ui.wifiPassword) this.ui.wifiPassword.addEventListener('input', (e) => this.update({ wifiPassword: e.target.value }))
     if (this.ui.wifiHidden) this.ui.wifiHidden.addEventListener('change', (e) => this.update({ wifiHidden: e.target.checked }))
 
@@ -129,7 +132,9 @@ class QRPlaygroundApp {
     if (newOptions.data !== undefined) this.state.data = newOptions.data
     this.#syncFormatUi()
 
-    if (!this.state.data) {
+    const payload = this.#buildPayload()
+
+    if (!payload) {
       this.ui.container.innerHTML = ''
       this.ui.container.appendChild(this.ui.placeholder)
       this.ui.placeholder.classList.remove('hidden')
@@ -219,8 +224,19 @@ class QRPlaygroundApp {
     if (this.ui.logoUploadField) this.ui.logoUploadField.classList.remove('hidden')
     if (this.ui.wifiSection) this.ui.wifiSection.classList.toggle('hidden', !isWifi)
 
-    if (this.ui.urlLabel) this.ui.urlLabel.textContent = isWifi ? 'SSID / Netzwerkname' : 'URL oder Text'
-    this.ui.urlInput.placeholder = isWifi ? 'Mein WLAN' : 'https://example.com'
+    if (this.ui.urlField) this.ui.urlField.classList.toggle('hidden', isWifi)
+    if (this.ui.urlInput) {
+      this.ui.urlInput.placeholder = 'https://example.com'
+      this.ui.urlInput.value = this.state.data
+    }
+    if (this.ui.wifiSsid) {
+      this.ui.wifiSsid.placeholder = 'Mein WLAN'
+      this.ui.wifiSsid.value = this.state.options.wifiSsid || ''
+      this.ui.wifiSsid.parentElement?.classList.toggle('hidden', !isWifi)
+    }
+    if (this.ui.wifiAuth) this.ui.wifiAuth.parentElement?.classList.toggle('hidden', !isWifi)
+    if (this.ui.wifiPassword) this.ui.wifiPassword.parentElement?.classList.toggle('hidden', !isWifi)
+    if (this.ui.wifiHidden) this.ui.wifiHidden.closest('.field')?.classList.toggle('hidden', !isWifi)
   }
 
   #buildPayload() {
@@ -242,7 +258,8 @@ class QRPlaygroundApp {
   }
 
   #dataHint() {
-    const raw = (this.state.data || '').trim().replace(/^https?:\/\//i, '')
+    const source = this.state.options.format === 'wifi' ? this.state.options.wifiSsid : this.state.data
+    const raw = (source || '').trim().replace(/^https?:\/\//i, '')
     const ascii = raw
       .normalize('NFKD')
       .replace(/[^\x00-\x7F]/g, '')
@@ -266,7 +283,7 @@ class QRPlaygroundApp {
   }
 
   #buildWifiPayload() {
-    const ssid = (this.state.data || '').trim()
+    const ssid = (this.state.options.wifiSsid || '').trim()
     if (!ssid) return ''
 
     const auth = this.state.options.wifiAuth || 'WPA'
