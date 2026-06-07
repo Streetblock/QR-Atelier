@@ -59,6 +59,7 @@
             <label class="field-label" for="code-format">Code Format</label>
             <select id="code-format" class="select-input">
               <option value="qr" selected>QR Code</option>
+              <option value="wifi">Wi-Fi</option>
             </select>
           </div>
 
@@ -97,6 +98,31 @@
               <option value="dot">Dot</option>
               <option value="square">Square</option>
             </select>
+          </div>
+
+          <div id="field-wifi-options" class="field field-wide hidden">
+            <label class="field-label">Wi-Fi Optionen</label>
+            <div class="editor-grid">
+              <div class="field">
+                <label class="field-label" for="wifi-auth">Security</label>
+                <select id="wifi-auth" class="select-input">
+                  <option value="WPA" selected>WPA / WPA2</option>
+                  <option value="WEP">WEP</option>
+                  <option value="nopass">Open Network</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="wifi-password">Password</label>
+                <input type="password" id="wifi-password" class="text-input" placeholder="Network password" autocomplete="off">
+              </div>
+              <div class="field">
+                <label class="field-label" for="wifi-hidden">Hidden Network</label>
+                <label class="checkbox-row" for="wifi-hidden">
+                  <input type="checkbox" id="wifi-hidden" class="checkbox-input">
+                  <span>SSID is hidden</span>
+                </label>
+              </div>
+            </div>
           </div>
 
           <div class="field">

@@ -427,6 +427,23 @@ body::before {
   flex-wrap: wrap;
 }
 
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 0 2px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.checkbox-input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--sky);
+}
+
 .small-button {
   min-height: 42px;
   padding: 0 14px;

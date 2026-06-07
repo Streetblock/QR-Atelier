@@ -13,6 +13,9 @@ class QRPlaygroundApp {
         dotStyle: 'rounded',
         cornerStyle: 'extra-rounded',
         logo: null,
+        wifiAuth: 'WPA',
+        wifiPassword: '',
+        wifiHidden: false,
       },
       currentSvg: '',
     }
@@ -26,12 +29,17 @@ class QRPlaygroundApp {
       downloadButtons: document.getElementById('download-buttons'),
       format: document.getElementById('code-format'),
       urlInput: document.getElementById('url-input'),
+      urlLabel: document.querySelector('label[for="url-input"]'),
       dotShape: document.getElementById('dot-shape'),
       aztecStyle: document.getElementById('aztec-style'),
       cornerShape: document.getElementById('corner-shape'),
       dotShapeField: document.getElementById('field-dot-shape'),
       aztecStyleField: document.getElementById('field-aztec-style'),
       cornerShapeField: document.getElementById('field-corner-shape'),
+      wifiAuth: document.getElementById('wifi-auth'),
+      wifiPassword: document.getElementById('wifi-password'),
+      wifiHidden: document.getElementById('wifi-hidden'),
+      wifiSection: document.getElementById('field-wifi-options'),
       downloadSize: document.getElementById('download-size'),
       logoUpload: document.getElementById('logo-upload'),
       logoUploadField: document.getElementById('field-logo-upload'),
@@ -67,6 +75,9 @@ class QRPlaygroundApp {
     }
     this.ui.dotShape.addEventListener('change', (e) => this.update({ dotStyle: e.target.value }))
     this.ui.cornerShape.addEventListener('change', (e) => this.update({ cornerStyle: e.target.value }))
+    if (this.ui.wifiAuth) this.ui.wifiAuth.addEventListener('change', (e) => this.update({ wifiAuth: e.target.value }))
+    if (this.ui.wifiPassword) this.ui.wifiPassword.addEventListener('input', (e) => this.update({ wifiPassword: e.target.value }))
+    if (this.ui.wifiHidden) this.ui.wifiHidden.addEventListener('change', (e) => this.update({ wifiHidden: e.target.checked }))
 
     const onColorChange = () => {
       this.ui.colorStartHex.textContent = this.ui.colorStart.value
@@ -182,28 +193,45 @@ class QRPlaygroundApp {
   }
 
   #createRenderer(size) {
+    const payload = this.#buildPayload()
     const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
-    const qr = new QrCore(this.state.data, { errorCorrectionLevel: ecl }).generate()
+    const qr = new QrCore(payload, { errorCorrectionLevel: ecl }).generate()
     return new QrSvgRenderer(qr, { size, ...this.state.options })
   }
 
   #syncFormatUi() {
-    this.state.options.format = 'qr'
-    if (this.ui.format) this.ui.format.value = 'qr'
+    if (!['qr', 'wifi'].includes(this.state.options.format)) {
+      this.state.options.format = 'qr'
+    }
+    if (this.ui.format) this.ui.format.value = this.state.options.format
+
+    const isWifi = this.state.options.format === 'wifi'
 
     if (this.ui.dotShape) this.ui.dotShape.disabled = false
     if (this.ui.cornerShape) this.ui.cornerShape.disabled = false
     if (this.ui.logoUpload) this.ui.logoUpload.disabled = false
     if (this.ui.clearLogoBtn) this.ui.clearLogoBtn.disabled = false
+    if (this.ui.wifiPassword) this.ui.wifiPassword.disabled = isWifi && this.state.options.wifiAuth === 'nopass'
 
     if (this.ui.dotShapeField) this.ui.dotShapeField.classList.remove('hidden')
     if (this.ui.aztecStyleField) this.ui.aztecStyleField.classList.add('hidden')
     if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.remove('hidden')
     if (this.ui.logoUploadField) this.ui.logoUploadField.classList.remove('hidden')
+    if (this.ui.wifiSection) this.ui.wifiSection.classList.toggle('hidden', !isWifi)
+
+    if (this.ui.urlLabel) this.ui.urlLabel.textContent = isWifi ? 'SSID / Netzwerkname' : 'URL oder Text'
+    this.ui.urlInput.placeholder = isWifi ? 'Mein WLAN' : 'https://example.com'
+  }
+
+  #buildPayload() {
+    if (this.state.options.format === 'wifi') {
+      return this.#buildWifiPayload()
+    }
+    return this.state.data
   }
 
   #filePrefix() {
-    return 'qr-code'
+    return this.state.options.format === 'wifi' ? 'wifi-qr' : 'qr-code'
   }
 
   #buildDownloadFilename(extension, size) {
@@ -235,6 +263,41 @@ class QRPlaygroundApp {
     const minutes = pad(now.getMinutes())
     const seconds = pad(now.getSeconds())
     return `${year}${month}${day}-${hours}${minutes}${seconds}`
+  }
+
+  #buildWifiPayload() {
+    const ssid = (this.state.data || '').trim()
+    if (!ssid) return ''
+
+    const auth = this.state.options.wifiAuth || 'WPA'
+    const password = this.state.options.wifiPassword || ''
+    const hidden = !!this.state.options.wifiHidden
+    const segments = [
+      'WIFI:',
+      `T:${auth};`,
+      `S:${this.#escapeWifiValue(ssid)};`,
+    ]
+
+    if (auth !== 'nopass') {
+      segments.push(`P:${this.#escapeWifiValue(password)};`)
+    }
+
+    if (hidden) {
+      segments.push('H:true;')
+    }
+
+    segments.push(';')
+    return segments.join('')
+  }
+
+  #escapeWifiValue(value) {
+    return String(value)
+      .replace(/\\/g, '\\\\')
+      .replace(/;/g, '\\;')
+      .replace(/,/g, '\\,')
+      .replace(/:/g, '\\:')
+      .replace(/"/g, '\\"')
+      .replace(/\r?\n/g, ' ')
   }
 
   #triggerBlobDownload(blob, filename) {
