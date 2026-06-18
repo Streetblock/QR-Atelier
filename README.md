@@ -1,95 +1,87 @@
-# 🎨 QR-Atelier
+# QR-Atelier
 
-> **Generate sharp QR codes with a browser-native studio, not a bloated toolchain.**
+> Generate sharp 2D barcodes with a browser-native studio, not a bloated toolchain.
 
-🇩🇪 *Lies die deutsche Version hier:* [README_de.md](README_de.md)
+[Read the German version here](README_de.md)
 
-A minimalist, performant, and **completely dependency-free** QR code generator. QR-Atelier cleanly separates the complex QR matrix logic from the aesthetic SVG rendering. Everything runs directly in the browser – no build steps, no bundlers, and no framework overhead.
+QR-Atelier is a minimalist, performant, and completely dependency-free barcode studio for QR Code and MaxiCode. The project cleanly separates matrix logic from SVG rendering. Everything runs directly in the browser - no build steps, no bundlers, and no framework overhead.
 
-🔗 **Repository:** [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
+Additional 2D barcode families are developed in feature branches:
+* `feat/aztec-code`
+* `feat/datamatrix`
+* `feat/micro-qr-core`
+* `feat/maxi-code`
 
----
+Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
 
-## ✨ Features
+## Features
 
-* **Zero Dependencies:** No `npm`, no Webpack, no framework. Just pure ES6 Vanilla JavaScript, modern HTML, and CSS.
-* **Live Preview:** The QR code is instantly and efficiently re-rendered on every input (URL/text, colors, styles) thanks to built-in debouncing.
-* **In-depth Styling:** Choose between various dot styles (Rounded, Classy, Diamond, etc.), finder shapes, and create smooth SVG color gradients.
-* **Center Logo Support:** Upload your own logo. The system automatically switches to error correction level 'H' (High) in the background to guarantee readability.
-* **Local Export:** Direct download of the result as a vector (`SVG`) or raster image (`PNG` up to 2048x2048px).
-* **URL Parameters:** Populate the studio directly via URL parameters: `?url=https://your-link.com`.
+* Zero Dependencies: No `npm`, no Webpack, no framework. Just pure ES6 vanilla JavaScript, modern HTML, and CSS.
+* Live Preview: The selected barcode is instantly and efficiently re-rendered on every input thanks to built-in debouncing.
+* Two Barcode Families: QR Code and MaxiCode are both supported in the same studio.
+* In-depth Styling: Choose between different dot styles, finder shapes, and smooth SVG color gradients.
+* Center Logo Support: Upload your own logo for QR Code. The system automatically switches to error correction level H in the background.
+* Local Export: Direct download of the result as a vector (`SVG`) or raster image (`PNG` up to 2048x2048px).
+* URL Parameters: Populate the studio directly via URL parameters: `?url=https://your-link.com`.
 
----
+## Architecture & Library Scope
 
-## 🧠 Architecture & Library Scope
+The project stays intentionally small and uses one core and one renderer per barcode family:
 
-The project is highly modular and demonstrates how far you can get with two dedicated, small plain-JS classes:
-
-### 1. `QrCore.js` (The Left Brain)
-The mathematical core. Generates the matrix database of the QR code.
-* Creates codewords via Reed-Solomon error correction.
+### 1. `QrCore.js` and `QrSvg.js`
+The QR Code core and renderer.
+* Generates QR matrices with Reed-Solomon error correction.
 * Automatically selects the best mask pattern.
-* Supports version 1 through 10 (Byte-Mode) for compact to medium-length URLs.
+* Renders the QR matrix in the chosen visual style.
 
-### 2. `QrSvg.js` (The Right Brain)
-The SVG renderer. Takes the raw matrix from `QrCore` and turns it into visual art.
-* Calculates complex SVG paths for rounded corners and special "Classy" styles.
-* Draws finder patterns, places logos, and applies defined gradients.
+### 2. `MaxiCodeCore.js` and `MaxiCodeSvg.js`
+The MaxiCode core and renderer.
+* Generates the MaxiCode payload and fixed template structure.
+* Builds the MaxiCode module layout and bullseye geometry.
+* Renders MaxiCode as SVG without external dependencies.
 
-### 3. `app.js` & `styles.css` (The Stage)
-The app controller and UI. Manages state, binds DOM events to the classes, and provides the modern, glassmorphism interface.
+### 3. `app.js` and `styles.css`
+The app controller and UI. Manages state, binds DOM events, and provides the interface.
 
----
+## Installation & Usage
 
-## 🚀 Installation & Usage
-
-Since this project requires no build tools, setup is done in seconds:
-
-1. **Clone the repository**
+1. Clone the repository
    ```bash
    git clone https://github.com/Streetblock/QR-Atelier.git
    cd QR-Atelier
    ```
 
-2. **Start a local server**
-   Since ES6 modules (`import`/`export`) are used, the project must be served via a local web server (opening `index.html` directly via `file://` is blocked by browsers for security reasons).
+2. Start a local server
+   Since ES6 modules (`import`/`export`) are used, the project must be served via a local web server. Opening `index.html` directly via `file://` is blocked by browsers for security reasons.
 
-   *Using VS Code?*
-   Simply start the **Live Server** extension.
+   Using VS Code? Start the Live Server extension.
 
-   *Using Python?*
+   Using Python?
    ```bash
    python3 -m http.server 8000
    ```
    Then open `http://localhost:8000` in your browser.
 
----
-
-## 📂 File Structure
+## File Structure
 
 ```text
 QR-Atelier/
-├── index.html       # The markup (UI)
-├── styles.css       # The styling (Custom Properties, Gradients)
-├── app.js           # Main App Controller (DOM Events, State, Downloads)
-└── lib/
-    ├── QrCore.js    # Logic Module: Generates the raw QR Matrix
-    └── QrSvg.js     # Render Module: Translates the matrix into SVG paths
+|-- index.html
+|-- styles.css
+|-- app.js
+`-- libs/
+    |-- QrCore.js
+    |-- QrSvg.js
+    |-- MaxiCodeCore.js
+    `-- MaxiCodeSvg.js
 ```
 
----
+## Contributing
 
-## 🤝 Contributing
-
-Do you have ideas for new dot styles, want to add support for higher QR versions (11-40) in `QrCore.js`, or want to improve the interface? 
-Pull Requests are highly welcome!
+Ideas for new barcode styles, broader QR support, or UI improvements are welcome. The experimental 2D barcode work lives in the feature branches listed above.
 
 1. Fork the project
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
----
-
-*Designed for everyone who loves clean code and crisp vector graphics.*
