@@ -40,7 +40,7 @@ const CONTROL = {
 
 const PAD_CODEWORD = CHARSET_MAPS[0].get(CONTROL.PAD)
 const LATCH_TO_SET = {
-  0: null,
+  0: CONTROL.LATCH_A,
   1: CONTROL.LATCH_B,
 }
 
