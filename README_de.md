@@ -56,10 +56,21 @@ Der App-Controller und das UI. Steuert den State, bindet DOM-Events und sorgt fu
    ```
    Danach `http://localhost:8000` im Browser oeffnen.
 
+3. Die Libs in Node.js nutzen
+   Mit dem ESM-Setup des Repos koennen die Barcode-Libs auch direkt in Node importiert werden:
+   ```js
+   import { QrCore } from './libs/QrCore.js'
+   import { QrSvgRenderer } from './libs/QrSvg.js'
+
+   const data = new QrCore('https://example.com').generate()
+   const svg = new QrSvgRenderer(data).render()
+   ```
+
 ## Dateistruktur
 
 ```text
 QR-Atelier/
+|-- package.json
 |-- index.html
 |-- styles.css
 |-- app.js
