@@ -6,7 +6,7 @@
 
 QR-Atelier is a minimalist, performant, and completely dependency-free barcode studio for QR Code and MaxiCode. The project cleanly separates matrix logic from SVG rendering. Everything runs directly in the browser - no build steps, no bundlers, and no framework overhead.
 
-Additional 2D barcode families are developed in feature branches:
+On `main`, the studio focuses on QR Code and MaxiCode. Additional 2D barcode families live in feature branches:
 * `feat/aztec-code`
 * `feat/datamatrix`
 * `feat/micro-qr-core`
@@ -78,7 +78,7 @@ QR-Atelier/
 
 ## Contributing
 
-Ideas for new barcode styles, broader QR support, or UI improvements are welcome. The experimental 2D barcode work lives in the feature branches listed above.
+Ideas for new barcode styles, broader QR support, or UI improvements are welcome. The experimental 2D barcode work lives in the feature branches listed above, while `main` stays focused on QR Code and MaxiCode.
 
 1. Fork the project
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
