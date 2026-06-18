@@ -1,5 +1,7 @@
 import { QrCore } from './libs/QRcore.js'
 import { QrSvgRenderer } from './libs/QRsvg.js'
+import { MaxiCodeCore } from './libs/MaxiCodeCore.js'
+import { MaxiCodeSvgRenderer } from './libs/MaxiCodeSvg.js'
 
 class QRPlaygroundApp {
   constructor() {
@@ -202,18 +204,28 @@ class QRPlaygroundApp {
 
   #createRenderer(size) {
     const payload = this.#buildPayload()
+    if (this.state.options.format === 'maxi-code') {
+      const maxi = new MaxiCodeCore(payload, { mode: 4 }).generate()
+      return new MaxiCodeSvgRenderer(maxi, {
+        size,
+        colorStart: this.state.options.colorStart,
+        colorEnd: this.state.options.colorEnd,
+      })
+    }
+
     const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
     const qr = new QrCore(payload, { errorCorrectionLevel: ecl }).generate()
     return new QrSvgRenderer(qr, { size, ...this.state.options })
   }
 
   #syncFormatUi() {
-    if (!['qr', 'wifi'].includes(this.state.options.format)) {
+    if (!['qr', 'wifi', 'maxi-code'].includes(this.state.options.format)) {
       this.state.options.format = 'qr'
     }
     if (this.ui.format) this.ui.format.value = this.state.options.format
 
     const isWifi = this.state.options.format === 'wifi'
+    const isMaxi = this.state.options.format === 'maxi-code'
 
     if (this.ui.dotShape) this.ui.dotShape.disabled = false
     if (this.ui.cornerShape) this.ui.cornerShape.disabled = false
@@ -221,10 +233,10 @@ class QRPlaygroundApp {
     if (this.ui.clearLogoBtn) this.ui.clearLogoBtn.disabled = false
     if (this.ui.wifiPassword) this.ui.wifiPassword.disabled = isWifi && this.state.options.wifiAuth === 'nopass'
 
-    if (this.ui.dotShapeField) this.ui.dotShapeField.classList.remove('hidden')
+    if (this.ui.dotShapeField) this.ui.dotShapeField.classList.toggle('hidden', isMaxi)
     if (this.ui.aztecStyleField) this.ui.aztecStyleField.classList.add('hidden')
-    if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.remove('hidden')
-    if (this.ui.logoUploadField) this.ui.logoUploadField.classList.remove('hidden')
+    if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.toggle('hidden', isMaxi)
+    if (this.ui.logoUploadField) this.ui.logoUploadField.classList.toggle('hidden', isMaxi)
     if (this.ui.wifiSection) {
       this.ui.wifiSection.hidden = !isWifi
       this.ui.wifiSection.classList.toggle('hidden', !isWifi)
@@ -237,10 +249,10 @@ class QRPlaygroundApp {
       this.ui.primaryInputField.style.display = ''
     }
     if (this.ui.primaryInputLabel) {
-      this.ui.primaryInputLabel.textContent = isWifi ? 'SSID' : 'URL oder Text'
+      this.ui.primaryInputLabel.textContent = isWifi ? 'SSID' : isMaxi ? 'Text' : 'URL oder Text'
     }
     if (this.ui.primaryInput) {
-      this.ui.primaryInput.placeholder = isWifi ? 'Mein WLAN' : 'https://example.com'
+      this.ui.primaryInput.placeholder = isWifi ? 'Mein WLAN' : isMaxi ? 'Kurzer Text' : 'https://example.com'
       this.ui.primaryInput.value = isWifi ? (this.state.options.wifiSsid || '') : this.state.data
       this.ui.primaryInput.autocomplete = 'off'
     }
@@ -254,7 +266,9 @@ class QRPlaygroundApp {
   }
 
   #filePrefix() {
-    return this.state.options.format === 'wifi' ? 'wifi-qr' : 'qr-code'
+    if (this.state.options.format === 'wifi') return 'wifi-qr'
+    if (this.state.options.format === 'maxi-code') return 'maxi-code'
+    return 'qr-code'
   }
 
   #buildDownloadFilename(extension, size) {
