@@ -13,8 +13,8 @@ const FIXED_CELL_COLORS = {
 
 export class MaxiCodeSvgRenderer {
   static DEFAULT_STYLE = {
-    size: 320,
-    margin: 18,
+    size: 620,
+    margin: 4,
     background: '#ffffff',
     colorStart: '#111827',
     colorEnd: '#2563eb',
