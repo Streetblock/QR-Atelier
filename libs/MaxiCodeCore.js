@@ -478,9 +478,82 @@ const MAXICODE_BITNR = [
   [737, 736, 743, 742, 749, 748, 755, 754, 761, 760, 767, 766, 773, 772, 779, 778, 785, 784, 791, 790, 797, 796, 803, 802, 809, 808, 815, 814, 863, 862],
 ]
 
+const MAXICODE_BULLSEYE_RADIUS_FACTOR = 5.25
+const MAXICODE_BULLSEYE_SHIFT_FACTOR = 0.74
+const MAXICODE_BULLSEYE_CLEAR_FACTOR = 1.0
+const MAXICODE_HEX_RADIUS_FACTOR = 0.64
+
+function buildMaxiCodeLayout(size, margin, width, height) {
+  const scale = (size - margin * 2) / 50
+  const hexRadius = scale * MAXICODE_HEX_RADIUS_FACTOR
+  const pitchX = hexRadius * Math.sqrt(3)
+  const pitchY = hexRadius * 1.5
+  const hexWidth = pitchX
+  const hexHeight = hexRadius * 2
+  const totalWidth = (width - 1) * pitchX + hexWidth + pitchX / 2
+  const totalHeight = (height - 1) * pitchY + hexHeight
+  const offsetX = (size - totalWidth) / 2
+  const offsetY = (size - totalHeight) / 2
+  const centerX = offsetX + totalWidth / 2
+  const centerY = offsetY + totalHeight / 2
+
+  return {
+    scale,
+    hexRadius,
+    pitchX,
+    pitchY,
+    hexWidth,
+    hexHeight,
+    totalWidth,
+    totalHeight,
+    offsetX,
+    offsetY,
+    centerX,
+    centerY,
+    bullseyeCenterX: centerX - pitchX * MAXICODE_BULLSEYE_SHIFT_FACTOR,
+    bullseyeCenterY: centerY,
+    bullseyeOuterRadius: scale * MAXICODE_BULLSEYE_RADIUS_FACTOR,
+    bullseyeClearRadius: scale * MAXICODE_BULLSEYE_RADIUS_FACTOR + hexRadius * MAXICODE_BULLSEYE_CLEAR_FACTOR,
+  }
+}
+
+const MAXICODE_GO_GRID = MAXICODE_BITNR.map((row) =>
+  row.map((value) => (value < 0 ? 0 : value + 1)),
+)
+
+const MAXICODE_FIXED_TEMPLATE = buildMaxiCodeFixedTemplate()
+
+function buildMaxiCodeFixedTemplate() {
+  const black = []
+  const white = []
+  const illegal = []
+
+  for (let y = 0; y < MAXICODE_BITNR.length; y += 1) {
+    for (let x = 0; x < MAXICODE_BITNR[y].length; x += 1) {
+      const value = MAXICODE_BITNR[y][x]
+      if (value === -2) {
+        black.push([y, x])
+      } else if (value === -1) {
+        white.push([y, x])
+      } else if (value === -3) {
+        illegal.push([y, x])
+      }
+    }
+  }
+
+  return { black, white, illegal }
+}
+
 export {
   MAXICODE_HEIGHT,
   MAXICODE_WIDTH,
   MAXICODE_BITNR,
+  MAXICODE_BULLSEYE_RADIUS_FACTOR,
+  MAXICODE_BULLSEYE_SHIFT_FACTOR,
+  MAXICODE_BULLSEYE_CLEAR_FACTOR,
+  MAXICODE_HEX_RADIUS_FACTOR,
+  MAXICODE_GO_GRID,
+  MAXICODE_FIXED_TEMPLATE,
+  buildMaxiCodeLayout,
   MAXICODE_CHARSETS,
 }
