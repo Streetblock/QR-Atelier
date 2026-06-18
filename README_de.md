@@ -4,9 +4,9 @@
 
 [Read the English version here](README.md)
 
-QR-Atelier ist ein minimalistisches, performantes und komplett dependency-freies Barcode-Studio fuer QR Code und MaxiCode. Das Projekt trennt die Matrix-Logik sauber von der SVG-Darstellung. Alles laeuft direkt im Browser - ohne Build-Steps, ohne Bundler und ohne Framework-Overhead.
+QR-Atelier ist ein minimalistisches, performantes und komplett dependency-freies QR-Code-Studio. Das Projekt trennt die Matrix-Logik sauber von der SVG-Darstellung. Alles laeuft direkt im Browser - ohne Build-Steps, ohne Bundler und ohne Framework-Overhead.
 
-Auf `main` liegt der Fokus auf QR Code und MaxiCode. Weitere 2D-Barcode-Familien leben in Feature-Branches:
+Auf `main` liegt der Fokus auf QR Code. Weitere 2D-Barcode-Familien leben in Feature-Branches:
 * `feat/aztec-code`
 * `feat/datamatrix`
 * `feat/micro-qr-core`
@@ -18,7 +18,7 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 
 * Zero Dependencies: Kein `npm`, kein Webpack, kein Framework. Nur reines ES6 Vanilla JavaScript, modernes HTML und CSS.
 * Live Preview: Der ausgewaehlte Barcode wird bei jeder Eingabe dank integriertem Debouncing sofort und performant neu gerendert.
-* Zwei Barcode-Familien: QR Code und MaxiCode werden im selben Studio unterstuetzt.
+* QR-Code-Studio: Der Main-Branch liefert die QR-Code-Erfahrung.
 * Tiefgehendes Styling: Waehle zwischen verschiedenen Dot-Styles, Finder-Formen und weichen SVG-Farbverlaeufen.
 * Center Logo Support: Lade ein eigenes Logo fuer QR Code hoch. Das System wechselt im Hintergrund automatisch auf das Fehlerkorrektur-Level H.
 * Lokaler Export: Direkter Download des Ergebnisses als Vektor (`SVG`) oder Rastergrafik (`PNG` bis zu 2048x2048px).
@@ -34,13 +34,7 @@ Der QR-Code-Kern und Renderer.
 * Waehlt automatisch die beste Maskierung.
 * Rendert die QR-Matrix im gewaehlten Stil.
 
-### 2. `MaxiCodeCore.js` und `MaxiCodeSvg.js`
-Der MaxiCode-Kern und Renderer.
-* Generiert das MaxiCode-Payload und die feste Vorlagenstruktur.
-* Berechnet das MaxiCode-Raster und die Bullseye-Geometrie.
-* Rendert MaxiCode als SVG ohne externe Abhaengigkeiten.
-
-### 3. `app.js` und `styles.css`
+### 2. `app.js` und `styles.css`
 Der App-Controller und das UI. Steuert den State, bindet DOM-Events und sorgt fuer das Interface.
 
 ## Installation & Nutzung
@@ -71,14 +65,12 @@ QR-Atelier/
 |-- app.js
 `-- libs/
     |-- QrCore.js
-    |-- QrSvg.js
-    |-- MaxiCodeCore.js
-    `-- MaxiCodeSvg.js
+    `-- QrSvg.js
 ```
 
 ## Mitwirken
 
-Ideen fuer neue Barcode-Styles, mehr QR-Unterstuetzung oder UI-Verbesserungen sind willkommen. Die experimentelle 2D-Barcode-Arbeit lebt in den Feature-Branches oben, waehrend `main` auf QR Code und MaxiCode fokussiert bleibt.
+Ideen fuer neue Barcode-Styles, mehr QR-Unterstuetzung oder UI-Verbesserungen sind willkommen. Die experimentelle 2D-Barcode-Arbeit lebt in den Feature-Branches oben, waehrend `main` auf QR Code fokussiert bleibt.
 
 1. Forke das Projekt
 2. Erstelle deinen Feature-Branch (`git checkout -b feature/AmazingFeature`)

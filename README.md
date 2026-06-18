@@ -4,9 +4,9 @@
 
 [Read the German version here](README_de.md)
 
-QR-Atelier is a minimalist, performant, and completely dependency-free barcode studio for QR Code and MaxiCode. The project cleanly separates matrix logic from SVG rendering. Everything runs directly in the browser - no build steps, no bundlers, and no framework overhead.
+QR-Atelier is a minimalist, performant, and completely dependency-free QR Code studio. The project cleanly separates matrix logic from SVG rendering. Everything runs directly in the browser - no build steps, no bundlers, and no framework overhead.
 
-On `main`, the studio focuses on QR Code and MaxiCode. Additional 2D barcode families live in feature branches:
+On `main`, the studio focuses on QR Code. Additional 2D barcode families live in feature branches:
 * `feat/aztec-code`
 * `feat/datamatrix`
 * `feat/micro-qr-core`
@@ -18,7 +18,7 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 
 * Zero Dependencies: No `npm`, no Webpack, no framework. Just pure ES6 vanilla JavaScript, modern HTML, and CSS.
 * Live Preview: The selected barcode is instantly and efficiently re-rendered on every input thanks to built-in debouncing.
-* Two Barcode Families: QR Code and MaxiCode are both supported in the same studio.
+* QR Code Studio: The main branch ships the QR Code experience.
 * In-depth Styling: Choose between different dot styles, finder shapes, and smooth SVG color gradients.
 * Center Logo Support: Upload your own logo for QR Code. The system automatically switches to error correction level H in the background.
 * Local Export: Direct download of the result as a vector (`SVG`) or raster image (`PNG` up to 2048x2048px).
@@ -34,13 +34,7 @@ The QR Code core and renderer.
 * Automatically selects the best mask pattern.
 * Renders the QR matrix in the chosen visual style.
 
-### 2. `MaxiCodeCore.js` and `MaxiCodeSvg.js`
-The MaxiCode core and renderer.
-* Generates the MaxiCode payload and fixed template structure.
-* Builds the MaxiCode module layout and bullseye geometry.
-* Renders MaxiCode as SVG without external dependencies.
-
-### 3. `app.js` and `styles.css`
+### 2. `app.js` and `styles.css`
 The app controller and UI. Manages state, binds DOM events, and provides the interface.
 
 ## Installation & Usage
@@ -71,14 +65,12 @@ QR-Atelier/
 |-- app.js
 `-- libs/
     |-- QrCore.js
-    |-- QrSvg.js
-    |-- MaxiCodeCore.js
-    `-- MaxiCodeSvg.js
+    `-- QrSvg.js
 ```
 
 ## Contributing
 
-Ideas for new barcode styles, broader QR support, or UI improvements are welcome. The experimental 2D barcode work lives in the feature branches listed above, while `main` stays focused on QR Code and MaxiCode.
+Ideas for new barcode styles, broader QR support, or UI improvements are welcome. The experimental 2D barcode work lives in the feature branches listed above, while `main` stays focused on QR Code.
 
 1. Fork the project
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
