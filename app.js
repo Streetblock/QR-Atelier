@@ -33,10 +33,8 @@ class QRPlaygroundApp {
       primaryInputLabel: document.getElementById('primary-input-label'),
       primaryInputField: document.getElementById('field-primary-input'),
       dotShape: document.getElementById('dot-shape'),
-      aztecStyle: document.getElementById('aztec-style'),
       cornerShape: document.getElementById('corner-shape'),
       dotShapeField: document.getElementById('field-dot-shape'),
-      aztecStyleField: document.getElementById('field-aztec-style'),
       cornerShapeField: document.getElementById('field-corner-shape'),
       wifiAuth: document.getElementById('wifi-auth'),
       wifiPassword: document.getElementById('wifi-password'),
@@ -222,7 +220,6 @@ class QRPlaygroundApp {
     if (this.ui.wifiPassword) this.ui.wifiPassword.disabled = isWifi && this.state.options.wifiAuth === 'nopass'
 
     if (this.ui.dotShapeField) this.ui.dotShapeField.classList.remove('hidden')
-    if (this.ui.aztecStyleField) this.ui.aztecStyleField.classList.add('hidden')
     if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.remove('hidden')
     if (this.ui.logoUploadField) this.ui.logoUploadField.classList.remove('hidden')
     if (this.ui.wifiSection) {
