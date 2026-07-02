@@ -7,6 +7,7 @@ class QRPlaygroundApp {
       data: '',
       options: {
         format: 'qr',
+        contentMode: 'text',
         errorCorrectionLevel: 'Q',
         colorStart: '#0f172a',
         colorEnd: '#0ea5e9',
@@ -29,6 +30,7 @@ class QRPlaygroundApp {
       placeholder: document.getElementById('qr-placeholder'),
       downloadButtons: document.getElementById('download-buttons'),
       format: document.getElementById('code-format'),
+      contentMode: document.getElementById('content-mode'),
       primaryInput: document.getElementById('primary-input'),
       primaryInputLabel: document.getElementById('primary-input-label'),
       primaryInputField: document.getElementById('field-primary-input'),
@@ -66,7 +68,7 @@ class QRPlaygroundApp {
     this.ui.primaryInput.addEventListener('input', () => {
       clearTimeout(this.debounceTimer)
       this.debounceTimer = setTimeout(() => {
-        if (this.state.options.format === 'wifi') {
+        if (this.state.options.contentMode === 'wifi') {
           this.update({ wifiSsid: this.ui.primaryInput.value.trim() })
         } else {
           this.update({ data: this.ui.primaryInput.value.trim() })
@@ -76,6 +78,9 @@ class QRPlaygroundApp {
 
     if (this.ui.format) {
       this.ui.format.addEventListener('change', (e) => this.update({ format: e.target.value }))
+    }
+    if (this.ui.contentMode) {
+      this.ui.contentMode.addEventListener('change', (e) => this.update({ contentMode: e.target.value }))
     }
     this.ui.dotShape.addEventListener('change', (e) => this.update({ dotStyle: e.target.value }))
     this.ui.cornerShape.addEventListener('change', (e) => this.update({ cornerStyle: e.target.value }))
@@ -206,12 +211,16 @@ class QRPlaygroundApp {
   }
 
   #syncFormatUi() {
-    if (!['qr', 'wifi'].includes(this.state.options.format)) {
+    if (!['qr'].includes(this.state.options.format)) {
       this.state.options.format = 'qr'
     }
+    if (!['text', 'wifi'].includes(this.state.options.contentMode)) {
+      this.state.options.contentMode = 'text'
+    }
     if (this.ui.format) this.ui.format.value = this.state.options.format
+    if (this.ui.contentMode) this.ui.contentMode.value = this.state.options.contentMode
 
-    const isWifi = this.state.options.format === 'wifi'
+    const isWifi = this.state.options.contentMode === 'wifi'
 
     if (this.ui.dotShape) this.ui.dotShape.disabled = false
     if (this.ui.cornerShape) this.ui.cornerShape.disabled = false
@@ -244,14 +253,14 @@ class QRPlaygroundApp {
   }
 
   #buildPayload() {
-    if (this.state.options.format === 'wifi') {
+    if (this.state.options.contentMode === 'wifi') {
       return this.#buildWifiPayload()
     }
     return this.state.data
   }
 
   #filePrefix() {
-    return this.state.options.format === 'wifi' ? 'wifi-qr' : 'qr-code'
+    return this.state.options.contentMode === 'wifi' ? 'wifi-qr' : 'qr-code'
   }
 
   #buildDownloadFilename(extension, size) {
@@ -262,7 +271,7 @@ class QRPlaygroundApp {
   }
 
   #dataHint() {
-    const source = this.state.options.format === 'wifi' ? this.state.options.wifiSsid : this.state.data
+    const source = this.state.options.contentMode === 'wifi' ? this.state.options.wifiSsid : this.state.data
     const raw = (source || '').trim().replace(/^https?:\/\//i, '')
     const ascii = raw
       .normalize('NFKD')
