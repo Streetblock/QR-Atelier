@@ -15,7 +15,7 @@ function assertMatrixShape(result) {
 }
 
 test('generates QR versions above the former version 10 limit', () => {
-  const result = new QrCore('A'.repeat(180), {
+  const result = new QrCore('a'.repeat(180), {
     errorCorrectionLevel: 'Q',
     minVersion: 1,
     maxVersion: 40,
@@ -51,9 +51,42 @@ test('supports all error correction levels at version 11 and above', () => {
   }
 })
 
+test('compresses digit-only input with numeric mode', () => {
+  const result = new QrCore('123456789012345678901234567890', {
+    errorCorrectionLevel: 'H',
+    minVersion: 1,
+    maxVersion: 2,
+  }).generate()
+
+  assert.equal(result.version, 2)
+  assertMatrixShape(result)
+})
+
+test('compresses QR alphanumeric input with alphanumeric mode', () => {
+  const result = new QrCore('HELLO WORLD 12345', {
+    errorCorrectionLevel: 'H',
+    minVersion: 1,
+    maxVersion: 2,
+  }).generate()
+
+  assert.equal(result.version, 2)
+  assertMatrixShape(result)
+})
+
+test('keeps UTF-8 byte fallback for unsupported alphanumeric characters', () => {
+  const result = new QrCore('HELLO üöä â WORLD 123', {
+    errorCorrectionLevel: 'M',
+    minVersion: 1,
+    maxVersion: 5,
+  }).generate()
+
+  assert.ok(result.version <= 5)
+  assertMatrixShape(result)
+})
+
 test('reports overflow against the configured version range', () => {
   assert.throws(
-    () => new QrCore('A'.repeat(180), { errorCorrectionLevel: 'Q', maxVersion: 10 }).generate(),
+    () => new QrCore('a'.repeat(180), { errorCorrectionLevel: 'Q', maxVersion: 10 }).generate(),
     /configured QR version range/,
   )
 })
