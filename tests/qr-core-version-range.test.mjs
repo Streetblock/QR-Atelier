@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { QrCore } from '../libs/QRcore.js'
+import { QrCore, QrSegment } from '../libs/QRcore.js'
 
 function assertMatrixShape(result) {
   assert.equal(result.size, result.version * 4 + 17)
@@ -71,6 +71,87 @@ test('compresses QR alphanumeric input with alphanumeric mode', () => {
 
   assert.equal(result.version, 2)
   assertMatrixShape(result)
+})
+
+test('can force byte-only mode instead of automatic alphanumeric compression', () => {
+  const auto = new QrCore('A'.repeat(180), {
+    errorCorrectionLevel: 'Q',
+  }).generate()
+  const byteOnly = new QrCore('A'.repeat(180), {
+    errorCorrectionLevel: 'Q',
+    mode: 'byte',
+  }).generate()
+
+  assert.ok(auto.version < byteOnly.version)
+  assert.equal(byteOnly.version, 12)
+  assertMatrixShape(byteOnly)
+})
+
+test('can force low-level numeric and alphanumeric modes', () => {
+  const numeric = new QrCore('123456789012345678901234567890', {
+    errorCorrectionLevel: 'H',
+    mode: 'numeric',
+    maxVersion: 2,
+  }).generate()
+  const alphanumeric = new QrCore('HELLO WORLD 12345', {
+    errorCorrectionLevel: 'H',
+    mode: 'alphanumeric',
+    maxVersion: 2,
+  }).generate()
+
+  assert.equal(numeric.version, 2)
+  assert.equal(alphanumeric.version, 2)
+  assertMatrixShape(numeric)
+  assertMatrixShape(alphanumeric)
+})
+
+test('supports manual low-level QR segments', () => {
+  const result = new QrCore('', {
+    errorCorrectionLevel: 'M',
+    segments: [
+      QrSegment.numeric('1234567890'),
+      QrSegment.alphanumeric('HELLO WORLD'),
+      QrSegment.byte(' ue', { encoding: 'iso-8859-1' }),
+      QrSegment.bytes([0x20, 0x41]),
+    ],
+  }).generate()
+
+  assert.ok(result.version <= 3)
+  assertMatrixShape(result)
+})
+
+test('supports Latin-1 and Windows-1252 byte encodings without dependencies', () => {
+  const utf8 = new QrCore('Ä'.repeat(20), {
+    errorCorrectionLevel: 'H',
+    mode: 'byte',
+    encoding: 'utf-8',
+  }).generate()
+  const latin1 = new QrCore('Ä'.repeat(20), {
+    errorCorrectionLevel: 'H',
+    mode: 'byte',
+    encoding: 'iso-8859-1',
+  }).generate()
+  const windows1252 = new QrCore('€'.repeat(20), {
+    errorCorrectionLevel: 'H',
+    mode: 'byte',
+    encoding: 'windows-1252',
+  }).generate()
+
+  assert.ok(latin1.version < utf8.version)
+  assert.equal(latin1.version, windows1252.version)
+  assertMatrixShape(latin1)
+  assertMatrixShape(windows1252)
+})
+
+test('rejects characters that are not representable in the selected byte encoding', () => {
+  assert.throws(
+    () => new QrCore('€', { mode: 'byte', encoding: 'iso-8859-1' }).generate(),
+    /cannot be encoded as ISO-8859-1/,
+  )
+  assert.throws(
+    () => new QrCore('漢', { mode: 'byte', encoding: 'windows-1252' }).generate(),
+    /cannot be encoded as Windows-1252/,
+  )
 })
 
 test('keeps UTF-8 byte fallback for unsupported alphanumeric characters', () => {

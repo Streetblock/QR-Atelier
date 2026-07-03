@@ -102,22 +102,70 @@ const MODE_INDICATORS = {
   byte: 0x4,
 }
 const ALPHANUMERIC_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
+const DEFAULT_ENCODING = 'utf-8'
+const WINDOWS_1252_EXTENSIONS = new Map([
+  [0x20ac, 0x80],
+  [0x201a, 0x82],
+  [0x0192, 0x83],
+  [0x201e, 0x84],
+  [0x2026, 0x85],
+  [0x2020, 0x86],
+  [0x2021, 0x87],
+  [0x02c6, 0x88],
+  [0x2030, 0x89],
+  [0x0160, 0x8a],
+  [0x2039, 0x8b],
+  [0x0152, 0x8c],
+  [0x017d, 0x8e],
+  [0x2018, 0x91],
+  [0x2019, 0x92],
+  [0x201c, 0x93],
+  [0x201d, 0x94],
+  [0x2022, 0x95],
+  [0x2013, 0x96],
+  [0x2014, 0x97],
+  [0x02dc, 0x98],
+  [0x2122, 0x99],
+  [0x0161, 0x9a],
+  [0x203a, 0x9b],
+  [0x0153, 0x9c],
+  [0x017e, 0x9e],
+  [0x0178, 0x9f],
+])
 const PAD_CODEWORDS = [0xec, 0x11]
 const encoder = new TextEncoder()
+
+export const QrSegment = Object.freeze({
+  numeric(data) {
+    return createSegment('numeric', String(data))
+  },
+  alphanumeric(data) {
+    return createSegment('alphanumeric', String(data))
+  },
+  byte(data, options = {}) {
+    return createSegment('byte', String(data), options)
+  },
+  bytes(bytes) {
+    return createByteArraySegment(bytes)
+  },
+})
 
 // --- Die exportierte Hauptklasse ---
 export class QrCore {
   constructor(data, options = {}) {
-    if (typeof data !== 'string' || data.length === 0) {
+    const hasSegments = Array.isArray(options.segments) && options.segments.length > 0
+    if ((typeof data !== 'string' || data.length === 0) && !hasSegments) {
       throw new Error('QR data must be a non-empty string.')
     }
 
-    this.data = data
+    this.data = String(data ?? '')
     this.options = {
       errorCorrectionLevel: 'Q',
       minVersion: 1,
       maxVersion: 40,
       mask: -1,
+      mode: 'auto',
+      encoding: DEFAULT_ENCODING,
       ...options,
     }
   }
@@ -135,7 +183,7 @@ export class QrCore {
       throw new Error('minVersion must be less than or equal to maxVersion.')
     }
 
-    const segmentCandidates = createSegmentCandidates(this.data)
+    const segmentCandidates = createSegmentCandidates(this.data, this.options)
     const { version, segments } = this.#chooseVersion(segmentCandidates, errorCorrectionLevel, minVersion, maxVersion)
     const modules = this.#buildMatrix(segments, version, errorCorrectionLevel, this.options.mask)
 
@@ -294,16 +342,27 @@ function createCodewords(segments, version, ecl) {
   return codewords
 }
 
-function createSegmentCandidates(data) {
-  const autoSegments = createAutoSegments(data)
-  const byteSegments = [createSegment('byte', data)]
+function createSegmentCandidates(data, options = {}) {
+  if (Array.isArray(options.segments) && options.segments.length > 0) {
+    return [normalizeSegments(options.segments)]
+  }
+
+  const mode = normalizeMode(options.mode)
+  const encoding = normalizeEncoding(options.encoding)
+
+  if (mode !== 'auto') {
+    return [[createSegment(mode, data, { encoding })]]
+  }
+
+  const autoSegments = createAutoSegments(data, encoding)
+  const byteSegments = [createSegment('byte', data, { encoding })]
   if (autoSegments.length === 1 && autoSegments[0].mode === 'byte') {
     return [autoSegments]
   }
   return [autoSegments, byteSegments]
 }
 
-function createAutoSegments(data) {
+function createAutoSegments(data, encoding = DEFAULT_ENCODING) {
   if (isNumeric(data)) {
     return [createSegment('numeric', data)]
   }
@@ -318,7 +377,7 @@ function createAutoSegments(data) {
   for (const char of data) {
     const nextMode = isAlphanumeric(char) ? 'alphanumeric' : 'byte'
     if (nextMode !== currentMode && currentText) {
-      segments.push(createSegment(currentMode, currentText))
+      segments.push(createSegment(currentMode, currentText, { encoding }))
       currentText = ''
     }
     currentMode = nextMode
@@ -326,18 +385,48 @@ function createAutoSegments(data) {
   }
 
   if (currentText) {
-    segments.push(createSegment(currentMode, currentText))
+    segments.push(createSegment(currentMode, currentText, { encoding }))
   }
 
   return segments
 }
 
-function createSegment(mode, text) {
-  return {
-    mode,
-    text,
-    bytes: mode === 'byte' ? Array.from(encoder.encode(text)) : null,
+function normalizeSegments(segments) {
+  return segments.map((segment) => {
+    if (!segment || typeof segment !== 'object') {
+      throw new Error('QR segments must be objects.')
+    }
+    return createSegment(segment.mode, segment.text ?? '', {
+      bytes: segment.bytes,
+      encoding: segment.encoding,
+    })
+  })
+}
+
+function createSegment(mode, text, options = {}) {
+  const normalizedMode = normalizeMode(mode, false)
+  const normalizedText = String(text)
+
+  if (normalizedMode === 'numeric' && !isNumeric(normalizedText)) {
+    throw new Error('Numeric QR segments may only contain digits 0-9.')
   }
+  if (normalizedMode === 'alphanumeric' && !isAlphanumeric(normalizedText)) {
+    throw new Error(`Alphanumeric QR segments may only contain: ${ALPHANUMERIC_CHARSET}`)
+  }
+
+  return {
+    mode: normalizedMode,
+    text: normalizedText,
+    encoding: normalizedMode === 'byte' ? normalizeEncoding(options.encoding) : null,
+    bytes: normalizedMode === 'byte' ? normalizeByteSegmentBytes(normalizedText, options) : null,
+  }
+}
+
+function createByteArraySegment(bytes) {
+  if (!bytes || typeof bytes[Symbol.iterator] !== 'function') {
+    throw new Error('Byte QR segments require an iterable of byte values.')
+  }
+  return createSegment('byte', '', { bytes: Array.from(bytes) })
 }
 
 function appendSegments(bitBuffer, segments, version) {
@@ -410,6 +499,75 @@ function appendByteSegment(bitBuffer, bytes) {
   for (const value of bytes) {
     appendBits(bitBuffer, value, 8)
   }
+}
+
+function normalizeByteSegmentBytes(text, options) {
+  if (options.bytes !== undefined) {
+    if (!options.bytes || typeof options.bytes[Symbol.iterator] !== 'function') {
+      throw new Error('Byte QR segment bytes must be iterable.')
+    }
+    return Array.from(options.bytes, (value) => {
+      if (!Number.isInteger(value) || value < 0 || value > 255) {
+        throw new Error(`Invalid byte value for QR byte segment: ${value}`)
+      }
+      return value
+    })
+  }
+
+  return encodeText(text, options.encoding)
+}
+
+function encodeText(text, encoding = DEFAULT_ENCODING) {
+  const normalized = normalizeEncoding(encoding)
+  if (normalized === 'utf-8') {
+    return Array.from(encoder.encode(text))
+  }
+
+  const bytes = []
+  for (const char of text) {
+    const codePoint = char.codePointAt(0)
+    if (normalized === 'iso-8859-1') {
+      if (codePoint > 0xff) {
+        throw new Error(`Character "${char}" cannot be encoded as ISO-8859-1.`)
+      }
+      bytes.push(codePoint)
+    } else if (normalized === 'windows-1252') {
+      if (codePoint <= 0x7f || (codePoint >= 0xa0 && codePoint <= 0xff)) {
+        bytes.push(codePoint)
+      } else if (WINDOWS_1252_EXTENSIONS.has(codePoint)) {
+        bytes.push(WINDOWS_1252_EXTENSIONS.get(codePoint))
+      } else {
+        throw new Error(`Character "${char}" cannot be encoded as Windows-1252.`)
+      }
+    }
+  }
+  return bytes
+}
+
+function normalizeMode(mode, allowAuto = true) {
+  const normalized = String(mode ?? 'auto').toLowerCase()
+  const supported = allowAuto ? ['auto', 'byte', 'numeric', 'alphanumeric'] : ['byte', 'numeric', 'alphanumeric']
+  if (!supported.includes(normalized)) {
+    throw new Error(`Unsupported QR segment mode: ${mode}`)
+  }
+  return normalized
+}
+
+function normalizeEncoding(encoding = DEFAULT_ENCODING) {
+  const normalized = String(encoding ?? DEFAULT_ENCODING).toLowerCase().replaceAll('_', '-')
+  if (normalized === 'utf8') {
+    return 'utf-8'
+  }
+  if (normalized === 'latin1' || normalized === 'latin-1' || normalized === 'iso8859-1') {
+    return 'iso-8859-1'
+  }
+  if (normalized === 'cp1252' || normalized === 'windows1252') {
+    return 'windows-1252'
+  }
+  if (!['utf-8', 'iso-8859-1', 'windows-1252'].includes(normalized)) {
+    throw new Error(`Unsupported QR byte encoding: ${encoding}`)
+  }
+  return normalized
 }
 
 function getAlphanumericValue(char) {
