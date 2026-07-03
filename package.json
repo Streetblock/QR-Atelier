@@ -3,5 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A zero-dependency barcode atelier for QR Code and related 2D barcode work."
+  "description": "A zero-dependency barcode atelier for QR Code and related 2D barcode work.",
+  "scripts": {
+    "test": "node --test"
+  }
 }
