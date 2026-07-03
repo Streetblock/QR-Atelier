@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR low-level browser examples</title>
+  <style>
+    :root {
+      color: #191715;
+      background: #f4efe6;
+      font-family: ui-serif, Georgia, "Times New Roman", serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% 10%, rgb(255 255 255 / 92%), transparent 32rem),
+        linear-gradient(135deg, #f7f0df 0%, #e7f0ec 100%);
+    }
+
+    header {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 48px 24px 12px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2.3rem, 8vw, 5rem);
+      line-height: 0.95;
+      letter-spacing: -0.07em;
+    }
+
+    p {
+      max-width: 720px;
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 22px;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    article {
+      border: 1px solid rgb(48 43 33 / 16%);
+      border-radius: 26px;
+      background: rgb(255 255 255 / 78%);
+      box-shadow: 0 24px 65px rgb(72 55 31 / 13%);
+      padding: 18px;
+      backdrop-filter: blur(14px);
+    }
+
+    .qr {
+      display: grid;
+      place-items: center;
+      min-height: 280px;
+      border-radius: 20px;
+      background: #fff;
+    }
+
+    .qr svg {
+      width: min(100%, 320px);
+      height: auto;
+      display: block;
+    }
+
+    h2 {
+      margin: 18px 0 8px;
+      font-size: 1.15rem;
+    }
+
+    code {
+      display: block;
+      white-space: pre-wrap;
+      border-radius: 16px;
+      background: #23201c;
+      color: #f6efe2;
+      padding: 14px;
+      font: 0.86rem/1.45 ui-monospace, "SFMono-Regular", Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>QR low-level examples</h1>
+    <p>These examples are rendered directly in the browser from the repository sources. They demonstrate byte-only mode, ISO-8859-1 with ECI, and manually assembled segments.</p>
+  </header>
+  <main id="examples"></main>
+
+  <script type="module">
+    import { QrCore, QrSegment } from '../../libs/QRcore.js'
+    import { QrSvgRenderer } from '../../libs/QRsvg.js'
+
+    const latinCapitalAWithDiaeresis = '\u00C4'
+    const style = {
+      size: 360,
+      margin: 4,
+      background: '#ffffff',
+      colorStart: '#111111',
+      colorEnd: '#111111',
+      dotStyle: 'square',
+      cornerStyle: 'square',
+    }
+
+    const examples = [
+      {
+        title: 'Byte-only: HELLO 123',
+        code: "new QrCore('HELLO 123', { mode: 'byte' }).generate()",
+        qr: new QrCore('HELLO 123', { mode: 'byte' }).generate(),
+      },
+      {
+        title: 'ISO-8859-1 byte mode with ECI',
+        code: "new QrCore('\\u00C4\\u00C4\\u00C4', { mode: 'byte', encoding: 'iso-8859-1' }).generate()",
+        qr: new QrCore(latinCapitalAWithDiaeresis.repeat(3), {
+          mode: 'byte',
+          encoding: 'iso-8859-1',
+        }).generate(),
+      },
+      {
+        title: 'Manual mixed segments',
+        code: `new QrCore('', {
+  segments: [
+    QrSegment.numeric('123456'),
+    QrSegment.alphanumeric('HELLO'),
+    QrSegment.byte('\\u00C4', { encoding: 'iso-8859-1' }),
+    QrSegment.bytes([0x20, 0x41]),
+  ],
+}).generate()`,
+        qr: new QrCore('', {
+          segments: [
+            QrSegment.numeric('123456'),
+            QrSegment.alphanumeric('HELLO'),
+            QrSegment.byte(latinCapitalAWithDiaeresis, { encoding: 'iso-8859-1' }),
+            QrSegment.bytes([0x20, 0x41]),
+          ],
+        }).generate(),
+      },
+    ]
+
+    const container = document.getElementById('examples')
+    for (const example of examples) {
+      const renderer = new QrSvgRenderer(example.qr, style)
+      const article = document.createElement('article')
+      article.innerHTML = `
+        <div class="qr">${renderer.render()}</div>
+        <h2>${example.title}</h2>
+        <p>Version ${example.qr.version}, ${example.qr.size}x${example.qr.size}</p>
+        <code></code>
+      `
+      article.querySelector('code').textContent = example.code
+      container.append(article)
+    }
+  </script>
+</body>
+</html>
