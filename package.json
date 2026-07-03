@@ -2,6 +2,7 @@
   "name": "qr-atelier-maxicode-raw-mode",
   "private": true,
   "type": "module",
+  "description": "A zero-dependency barcode atelier for QR Code and related 2D barcode work.",
   "scripts": {
     "test": "node --test"
   }
