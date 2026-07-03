@@ -143,6 +143,22 @@ test('supports Latin-1 and Windows-1252 byte encodings without dependencies', ()
   assertMatrixShape(windows1252)
 })
 
+test('can disable ECI when raw byte payload compatibility is needed', () => {
+  const withEci = new QrCore('ÄÄÄ', {
+    mode: 'byte',
+    encoding: 'iso-8859-1',
+  }).generate()
+  const withoutEci = new QrCore('ÄÄÄ', {
+    mode: 'byte',
+    encoding: 'iso-8859-1',
+    eci: false,
+  }).generate()
+
+  assert.equal(withEci.version, withoutEci.version)
+  assertMatrixShape(withEci)
+  assertMatrixShape(withoutEci)
+})
+
 test('rejects characters that are not representable in the selected byte encoding', () => {
   assert.throws(
     () => new QrCore('€', { mode: 'byte', encoding: 'iso-8859-1' }).generate(),
