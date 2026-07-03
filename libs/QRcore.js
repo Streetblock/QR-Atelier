@@ -96,7 +96,12 @@ const ALIGNMENT_PATTERN_POSITIONS = {
   40: [6, 30, 58, 86, 114, 142, 170],
 }
 
-const MODE_INDICATOR = 0x4
+const MODE_INDICATORS = {
+  numeric: 0x1,
+  alphanumeric: 0x2,
+  byte: 0x4,
+}
+const ALPHANUMERIC_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
 const PAD_CODEWORDS = [0xec, 0x11]
 const encoder = new TextEncoder()
 
@@ -130,9 +135,9 @@ export class QrCore {
       throw new Error('minVersion must be less than or equal to maxVersion.')
     }
 
-    const dataBytes = Array.from(encoder.encode(this.data))
-    const version = this.#chooseVersion(dataBytes.length, errorCorrectionLevel, minVersion, maxVersion)
-    const modules = this.#buildMatrix(dataBytes, version, errorCorrectionLevel, this.options.mask)
+    const segmentCandidates = createSegmentCandidates(this.data)
+    const { version, segments } = this.#chooseVersion(segmentCandidates, errorCorrectionLevel, minVersion, maxVersion)
+    const modules = this.#buildMatrix(segments, version, errorCorrectionLevel, this.options.mask)
 
     return {
       data: this.data,
@@ -161,24 +166,27 @@ export class QrCore {
     return numeric
   }
 
-  #chooseVersion(byteLength, ecl, minVersion, maxVersion) {
+  #chooseVersion(segmentCandidates, ecl, minVersion, maxVersion) {
     for (let version = minVersion; version <= maxVersion; version += 1) {
-      const charCountBits = version < 10 ? 8 : 16
-      const neededBits = 4 + charCountBits + byteLength * 8
-      if (neededBits <= getDataCapacityBits(version, ecl)) {
-        return version
+      const dataCapacityBits = getDataCapacityBits(version, ecl)
+      const bestCandidate = segmentCandidates
+        .map((segments) => ({ segments, neededBits: getSegmentsBitLength(segments, version) }))
+        .sort((a, b) => a.neededBits - b.neededBits)[0]
+
+      if (bestCandidate.neededBits <= dataCapacityBits) {
+        return { version, segments: bestCandidate.segments }
       }
     }
     throw new Error('Input is too large for the configured QR version range.')
   }
 
-  #buildMatrix(dataBytes, version, ecl, maskPreference) {
+  #buildMatrix(segments, version, ecl, maskPreference) {
     const size = version * 4 + 17
     const modules = createSquareArray(size, null)
     const isFunction = createSquareArray(size, false)
 
     drawFunctionPatterns(modules, isFunction, version)
-    drawCodewords(modules, isFunction, createCodewords(dataBytes, version, ecl))
+    drawCodewords(modules, isFunction, createCodewords(segments, version, ecl))
 
     let selectedMask = maskPreference
     if (selectedMask < 0 || selectedMask > 7) {
@@ -231,15 +239,10 @@ function getRsBlocks(version, ecl) {
   return blocks
 }
 
-function createCodewords(dataBytes, version, ecl) {
+function createCodewords(segments, version, ecl) {
   const blocks = getRsBlocks(version, ecl)
   const bitBuffer = []
-  appendBits(bitBuffer, MODE_INDICATOR, 4)
-  appendBits(bitBuffer, dataBytes.length, version < 10 ? 8 : 16)
-
-  for (const value of dataBytes) {
-    appendBits(bitBuffer, value, 8)
-  }
+  appendSegments(bitBuffer, segments, version)
 
   const dataCapacityBits = getDataCapacityBits(version, ecl)
   appendBits(bitBuffer, 0, Math.min(4, dataCapacityBits - bitBuffer.length))
@@ -289,6 +292,136 @@ function createCodewords(dataBytes, version, ecl) {
   }
 
   return codewords
+}
+
+function createSegmentCandidates(data) {
+  const autoSegments = createAutoSegments(data)
+  const byteSegments = [createSegment('byte', data)]
+  if (autoSegments.length === 1 && autoSegments[0].mode === 'byte') {
+    return [autoSegments]
+  }
+  return [autoSegments, byteSegments]
+}
+
+function createAutoSegments(data) {
+  if (isNumeric(data)) {
+    return [createSegment('numeric', data)]
+  }
+  if (isAlphanumeric(data)) {
+    return [createSegment('alphanumeric', data)]
+  }
+
+  const segments = []
+  let currentMode = null
+  let currentText = ''
+
+  for (const char of data) {
+    const nextMode = isAlphanumeric(char) ? 'alphanumeric' : 'byte'
+    if (nextMode !== currentMode && currentText) {
+      segments.push(createSegment(currentMode, currentText))
+      currentText = ''
+    }
+    currentMode = nextMode
+    currentText += char
+  }
+
+  if (currentText) {
+    segments.push(createSegment(currentMode, currentText))
+  }
+
+  return segments
+}
+
+function createSegment(mode, text) {
+  return {
+    mode,
+    text,
+    bytes: mode === 'byte' ? Array.from(encoder.encode(text)) : null,
+  }
+}
+
+function appendSegments(bitBuffer, segments, version) {
+  for (const segment of segments) {
+    appendBits(bitBuffer, MODE_INDICATORS[segment.mode], 4)
+    appendBits(bitBuffer, getSegmentCharacterCount(segment), getCharacterCountBits(segment.mode, version))
+
+    if (segment.mode === 'numeric') {
+      appendNumericSegment(bitBuffer, segment.text)
+    } else if (segment.mode === 'alphanumeric') {
+      appendAlphanumericSegment(bitBuffer, segment.text)
+    } else {
+      appendByteSegment(bitBuffer, segment.bytes)
+    }
+  }
+}
+
+function getSegmentsBitLength(segments, version) {
+  return segments.reduce((sum, segment) => {
+    const headerBits = 4 + getCharacterCountBits(segment.mode, version)
+    return sum + headerBits + getSegmentDataBitLength(segment)
+  }, 0)
+}
+
+function getCharacterCountBits(mode, version) {
+  const group = version < 10 ? 0 : version < 27 ? 1 : 2
+  const bits = {
+    numeric: [10, 12, 14],
+    alphanumeric: [9, 11, 13],
+    byte: [8, 16, 16],
+  }
+  return bits[mode][group]
+}
+
+function getSegmentCharacterCount(segment) {
+  return segment.mode === 'byte' ? segment.bytes.length : segment.text.length
+}
+
+function getSegmentDataBitLength(segment) {
+  if (segment.mode === 'numeric') {
+    const fullGroups = Math.floor(segment.text.length / 3)
+    const remainder = segment.text.length % 3
+    return fullGroups * 10 + (remainder === 2 ? 7 : remainder === 1 ? 4 : 0)
+  }
+  if (segment.mode === 'alphanumeric') {
+    return Math.floor(segment.text.length / 2) * 11 + (segment.text.length % 2) * 6
+  }
+  return segment.bytes.length * 8
+}
+
+function appendNumericSegment(bitBuffer, text) {
+  for (let i = 0; i < text.length; i += 3) {
+    const chunk = text.slice(i, i + 3)
+    appendBits(bitBuffer, Number(chunk), chunk.length === 3 ? 10 : chunk.length === 2 ? 7 : 4)
+  }
+}
+
+function appendAlphanumericSegment(bitBuffer, text) {
+  for (let i = 0; i < text.length; i += 2) {
+    const first = getAlphanumericValue(text[i])
+    if (i + 1 < text.length) {
+      appendBits(bitBuffer, first * 45 + getAlphanumericValue(text[i + 1]), 11)
+    } else {
+      appendBits(bitBuffer, first, 6)
+    }
+  }
+}
+
+function appendByteSegment(bitBuffer, bytes) {
+  for (const value of bytes) {
+    appendBits(bitBuffer, value, 8)
+  }
+}
+
+function getAlphanumericValue(char) {
+  return ALPHANUMERIC_CHARSET.indexOf(char)
+}
+
+function isNumeric(text) {
+  return /^[0-9]+$/.test(text)
+}
+
+function isAlphanumeric(text) {
+  return /^[0-9A-Z $%*+\-./:]+$/.test(text)
 }
 
 function drawFunctionPatterns(modules, isFunction, version) {
