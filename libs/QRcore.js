@@ -100,9 +100,15 @@ const MODE_INDICATORS = {
   numeric: 0x1,
   alphanumeric: 0x2,
   byte: 0x4,
+  eci: 0x7,
 }
 const ALPHANUMERIC_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
 const DEFAULT_ENCODING = 'utf-8'
+const ECI_ASSIGNMENT_NUMBERS = {
+  'iso-8859-1': 3,
+  'windows-1252': 23,
+  'utf-8': 26,
+}
 const WINDOWS_1252_EXTENSIONS = new Map([
   [0x20ac, 0x80],
   [0x201a, 0x82],
@@ -344,22 +350,22 @@ function createCodewords(segments, version, ecl) {
 
 function createSegmentCandidates(data, options = {}) {
   if (Array.isArray(options.segments) && options.segments.length > 0) {
-    return [normalizeSegments(options.segments)]
+    return [withEciSegments(normalizeSegments(options.segments), options)]
   }
 
   const mode = normalizeMode(options.mode)
   const encoding = normalizeEncoding(options.encoding)
 
   if (mode !== 'auto') {
-    return [[createSegment(mode, data, { encoding })]]
+    return [withEciSegments([createSegment(mode, data, { encoding })], options)]
   }
 
   const autoSegments = createAutoSegments(data, encoding)
   const byteSegments = [createSegment('byte', data, { encoding })]
   if (autoSegments.length === 1 && autoSegments[0].mode === 'byte') {
-    return [autoSegments]
+    return [withEciSegments(autoSegments, options)]
   }
-  return [autoSegments, byteSegments]
+  return [withEciSegments(autoSegments, options), withEciSegments(byteSegments, options)]
 }
 
 function createAutoSegments(data, encoding = DEFAULT_ENCODING) {
@@ -406,6 +412,7 @@ function normalizeSegments(segments) {
 function createSegment(mode, text, options = {}) {
   const normalizedMode = normalizeMode(mode, false)
   const normalizedText = String(text)
+  const hasRawBytes = options.bytes !== undefined
 
   if (normalizedMode === 'numeric' && !isNumeric(normalizedText)) {
     throw new Error('Numeric QR segments may only contain digits 0-9.')
@@ -417,7 +424,7 @@ function createSegment(mode, text, options = {}) {
   return {
     mode: normalizedMode,
     text: normalizedText,
-    encoding: normalizedMode === 'byte' ? normalizeEncoding(options.encoding) : null,
+    encoding: normalizedMode === 'byte' && (!hasRawBytes || options.encoding) ? normalizeEncoding(options.encoding) : null,
     bytes: normalizedMode === 'byte' ? normalizeByteSegmentBytes(normalizedText, options) : null,
   }
 }
@@ -432,6 +439,11 @@ function createByteArraySegment(bytes) {
 function appendSegments(bitBuffer, segments, version) {
   for (const segment of segments) {
     appendBits(bitBuffer, MODE_INDICATORS[segment.mode], 4)
+    if (segment.mode === 'eci') {
+      appendEciAssignmentNumber(bitBuffer, segment.assignmentNumber)
+      continue
+    }
+
     appendBits(bitBuffer, getSegmentCharacterCount(segment), getCharacterCountBits(segment.mode, version))
 
     if (segment.mode === 'numeric') {
@@ -446,6 +458,9 @@ function appendSegments(bitBuffer, segments, version) {
 
 function getSegmentsBitLength(segments, version) {
   return segments.reduce((sum, segment) => {
+    if (segment.mode === 'eci') {
+      return sum + 4 + getEciAssignmentNumberBitLength(segment.assignmentNumber)
+    }
     const headerBits = 4 + getCharacterCountBits(segment.mode, version)
     return sum + headerBits + getSegmentDataBitLength(segment)
   }, 0)
@@ -499,6 +514,51 @@ function appendByteSegment(bitBuffer, bytes) {
   for (const value of bytes) {
     appendBits(bitBuffer, value, 8)
   }
+}
+
+function withEciSegments(segments, options = {}) {
+  const shouldUseEci = options.eci ?? true
+  if (!shouldUseEci) {
+    return segments
+  }
+
+  const result = []
+  let currentEncoding = null
+  for (const segment of segments) {
+    if (segment.mode === 'byte' && segment.encoding && segment.encoding !== currentEncoding) {
+      result.push(createEciSegment(segment.encoding))
+      currentEncoding = segment.encoding
+    }
+    result.push(segment)
+  }
+  return result
+}
+
+function createEciSegment(encoding) {
+  const normalized = normalizeEncoding(encoding)
+  return {
+    mode: 'eci',
+    assignmentNumber: ECI_ASSIGNMENT_NUMBERS[normalized],
+  }
+}
+
+function appendEciAssignmentNumber(bitBuffer, assignmentNumber) {
+  if (assignmentNumber < 0x80) {
+    appendBits(bitBuffer, assignmentNumber, 8)
+  } else if (assignmentNumber < 0x4000) {
+    appendBits(bitBuffer, 0x8000 | assignmentNumber, 16)
+  } else if (assignmentNumber < 1000000) {
+    appendBits(bitBuffer, 0xc00000 | assignmentNumber, 24)
+  } else {
+    throw new Error(`Unsupported ECI assignment number: ${assignmentNumber}`)
+  }
+}
+
+function getEciAssignmentNumberBitLength(assignmentNumber) {
+  if (assignmentNumber < 0x80) return 8
+  if (assignmentNumber < 0x4000) return 16
+  if (assignmentNumber < 1000000) return 24
+  throw new Error(`Unsupported ECI assignment number: ${assignmentNumber}`)
 }
 
 function normalizeByteSegmentBytes(text, options) {
