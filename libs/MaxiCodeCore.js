@@ -66,6 +66,7 @@ const SHIFT_CODEWORD_MAP = new Map([
 ])
 
 const MESSAGE_LENGTH = 93
+const CARRIER_MESSAGE_LENGTH = 84
 const PRIMARY_LENGTH = 10
 const PRIMARY_EC_LENGTH = 10
 const TAIL_DATA_LENGTH = 84
@@ -89,8 +90,11 @@ export class MaxiCodeCore {
 
   generate() {
     const mode = this.#normalizeMode(this.options.mode)
-    const message = this.#encodeMessage(this.data)
-    const payload = this.#buildPayload(mode, message)
+    const messageLength = mode === 2 || mode === 3 ? CARRIER_MESSAGE_LENGTH : MESSAGE_LENGTH
+    const message = this.#encodeMessage(this.data, messageLength, mode)
+    const payload = mode === 2 || mode === 3
+      ? this.#buildCarrierPayload(mode, message)
+      : this.#buildPayload(mode, message)
     const codewords = this.#buildCodewords(payload, mode)
     const modules = this.#codewordsToModules(codewords)
 
@@ -106,13 +110,13 @@ export class MaxiCodeCore {
 
   #normalizeMode(mode) {
     const numeric = Number(mode)
-    if (numeric !== 4) {
-      throw new Error('This build currently supports MaxiCode mode 4 only.')
+    if (![2, 3, 4].includes(numeric)) {
+      throw new Error('This build currently supports MaxiCode modes 2, 3 and 4.')
     }
-    return 4
+    return numeric
   }
 
-  #encodeMessage(text) {
+  #encodeMessage(text, maximumLength, mode) {
     const source = String(text)
     const normalized = this.options.preserveControls
       ? source
@@ -164,11 +168,11 @@ export class MaxiCodeCore {
       codewords.push(shiftedIndex)
     }
 
-    if (codewords.length > MESSAGE_LENGTH) {
-      throw new Error(`MaxiCode mode 4 supports up to ${MESSAGE_LENGTH} codewords of message data.`)
+    if (codewords.length > maximumLength) {
+      throw new Error(`MaxiCode mode ${mode} supports up to ${maximumLength} codewords of message data.`)
     }
 
-    while (codewords.length < MESSAGE_LENGTH) {
+    while (codewords.length < maximumLength) {
       codewords.push(PAD_CODEWORD)
     }
 
@@ -195,6 +199,72 @@ export class MaxiCodeCore {
     payload[0] = mode
     payload.set(messageCodewords, 1)
     return payload
+  }
+
+  #buildCarrierPayload(mode, messageCodewords) {
+    const payload = new Uint8Array(94)
+    payload.set(this.#buildPrimaryMessage(mode), 0)
+    payload.set(messageCodewords, 10)
+    return payload
+  }
+
+  #buildPrimaryMessage(mode) {
+    const primary = new Uint8Array(10)
+    primary[0] = mode
+
+    const countryCode = this.#parseThreeDigitField(this.options.countryCode, 'ISO country code')
+    const serviceClass = this.#parseThreeDigitField(this.options.serviceClass, 'service class')
+
+    if (mode === 2) {
+      const postalCode = String(this.options.postalCode ?? '')
+      if (!/^\d{1,9}$/.test(postalCode)) {
+        throw new Error('MaxiCode mode 2 postal code must contain 1 to 9 digits.')
+      }
+      this.#setIntAtPositions(primary, [33, 34, 35, 36, 25, 26, 27, 28, 29, 30, 19, 20, 21, 22, 23, 24, 13, 14, 15, 16, 17, 18, 7, 8, 9, 10, 11, 12, 1, 2], Number(postalCode))
+      this.#setIntAtPositions(primary, [39, 40, 41, 42, 31, 32], postalCode.length)
+    } else {
+      const postalCode = String(this.options.postalCode ?? '').toUpperCase()
+      if (!/^[A-Z0-9 ]{6}$/.test(postalCode)) {
+        throw new Error('MaxiCode mode 3 postal code must contain exactly 6 alphanumeric characters.')
+      }
+      const positions = [
+        [39, 40, 41, 42, 31, 32],
+        [33, 34, 35, 36, 25, 26],
+        [27, 28, 29, 30, 19, 20],
+        [21, 22, 23, 24, 13, 14],
+        [15, 16, 17, 18, 7, 8],
+        [9, 10, 11, 12, 1, 2],
+      ]
+      for (let index = 0; index < postalCode.length; index += 1) {
+        this.#setIntAtPositions(primary, positions[index], CHARSET_MAPS[0].get(postalCode[index]))
+      }
+    }
+
+    this.#setIntAtPositions(primary, [53, 54, 43, 44, 45, 46, 47, 48, 37, 38], countryCode)
+    this.#setIntAtPositions(primary, [55, 56, 57, 58, 59, 60, 49, 50, 51, 52], serviceClass)
+    return primary
+  }
+
+  #parseThreeDigitField(value, label) {
+    const text = String(value ?? '')
+    if (!/^\d{3}$/.test(text)) {
+      throw new Error(`MaxiCode ${label} must contain exactly 3 digits.`)
+    }
+    return Number(text)
+  }
+
+  #setIntAtPositions(bytes, positions, value) {
+    if (!Number.isSafeInteger(value) || value < 0 || value >= 2 ** positions.length) {
+      throw new Error(`Value ${value} does not fit in ${positions.length} MaxiCode bits.`)
+    }
+    for (let index = 0; index < positions.length; index += 1) {
+      const bitNumber = positions[index] - 1
+      const byteIndex = Math.floor(bitNumber / 6)
+      const bitMask = 1 << (5 - (bitNumber % 6))
+      const bit = (value >> (positions.length - index - 1)) & 1
+      if (bit) bytes[byteIndex] |= bitMask
+      else bytes[byteIndex] &= ~bitMask
+    }
   }
 
   #buildCodewords(payload) {

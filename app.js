@@ -21,6 +21,10 @@ class QRPlaygroundApp {
         wifiPassword: '',
         wifiHidden: false,
         maxiCodeInputMode: 'text',
+        maxiCodeMode: '4',
+        maxiCodePostalCode: '',
+        maxiCodeCountryCode: '840',
+        maxiCodeServiceClass: '001',
       },
       currentSvg: '',
     }
@@ -38,6 +42,13 @@ class QRPlaygroundApp {
       primaryInputField: document.getElementById('field-primary-input'),
       maxiCodeInputMode: document.getElementById('maxicode-input-mode'),
       maxiCodeInputModeField: document.getElementById('field-maxicode-input-mode'),
+      maxiCodeMode: document.getElementById('maxicode-mode'),
+      maxiCodeModeField: document.getElementById('field-maxicode-mode'),
+      maxiCodeCarrierFields: document.getElementById('field-maxicode-carrier'),
+      maxiCodePostalCode: document.getElementById('maxicode-postal-code'),
+      maxiCodePostalCodeLabel: document.getElementById('maxicode-postal-code-label'),
+      maxiCodeCountryCode: document.getElementById('maxicode-country-code'),
+      maxiCodeServiceClass: document.getElementById('maxicode-service-class'),
       dotShape: document.getElementById('dot-shape'),
       cornerShape: document.getElementById('corner-shape'),
       dotShapeField: document.getElementById('field-dot-shape'),
@@ -88,6 +99,24 @@ class QRPlaygroundApp {
     if (this.ui.maxiCodeInputMode) {
       this.ui.maxiCodeInputMode.addEventListener('change', (e) => {
         this.update({ maxiCodeInputMode: e.target.value })
+      })
+    }
+    if (this.ui.maxiCodeMode) {
+      this.ui.maxiCodeMode.addEventListener('change', (e) => this.update({ maxiCodeMode: e.target.value }))
+    }
+    if (this.ui.maxiCodePostalCode) {
+      this.ui.maxiCodePostalCode.addEventListener('input', (e) => {
+        this.update({ maxiCodePostalCode: e.target.value.toUpperCase() })
+      })
+    }
+    if (this.ui.maxiCodeCountryCode) {
+      this.ui.maxiCodeCountryCode.addEventListener('input', (e) => {
+        this.update({ maxiCodeCountryCode: e.target.value })
+      })
+    }
+    if (this.ui.maxiCodeServiceClass) {
+      this.ui.maxiCodeServiceClass.addEventListener('input', (e) => {
+        this.update({ maxiCodeServiceClass: e.target.value })
       })
     }
     this.ui.dotShape.addEventListener('change', (e) => this.update({ dotStyle: e.target.value }))
@@ -215,7 +244,13 @@ class QRPlaygroundApp {
     const payload = this.#buildPayload()
     if (this.state.options.format === 'maxi-code') {
       const preserveControls = this.state.options.maxiCodeInputMode === 'raw'
-      const maxi = new MaxiCodeCore(payload, { mode: 4, preserveControls }).generate()
+      const maxi = new MaxiCodeCore(payload, {
+        mode: this.state.options.maxiCodeMode,
+        preserveControls,
+        postalCode: this.state.options.maxiCodePostalCode,
+        countryCode: this.state.options.maxiCodeCountryCode,
+        serviceClass: this.state.options.maxiCodeServiceClass,
+      }).generate()
       return new MaxiCodeSvgRenderer(maxi, {
         size,
         colorStart: this.state.options.colorStart,
@@ -236,6 +271,7 @@ class QRPlaygroundApp {
 
     const isWifi = this.state.options.format === 'wifi'
     const isMaxi = this.state.options.format === 'maxi-code'
+    const isCarrierMaxi = isMaxi && ['2', '3'].includes(this.state.options.maxiCodeMode)
 
     if (this.ui.dotShape) this.ui.dotShape.disabled = false
     if (this.ui.cornerShape) this.ui.cornerShape.disabled = false
@@ -250,6 +286,34 @@ class QRPlaygroundApp {
       this.ui.maxiCodeInputModeField.hidden = !isMaxi
       this.ui.maxiCodeInputModeField.classList.toggle('hidden', !isMaxi)
       this.ui.maxiCodeInputModeField.style.display = isMaxi ? '' : 'none'
+    }
+    if (this.ui.maxiCodeModeField) {
+      this.ui.maxiCodeModeField.hidden = !isMaxi
+      this.ui.maxiCodeModeField.classList.toggle('hidden', !isMaxi)
+      this.ui.maxiCodeModeField.style.display = isMaxi ? '' : 'none'
+    }
+    if (this.ui.maxiCodeMode) this.ui.maxiCodeMode.value = this.state.options.maxiCodeMode
+    if (this.ui.maxiCodeCarrierFields) {
+      this.ui.maxiCodeCarrierFields.hidden = !isCarrierMaxi
+      this.ui.maxiCodeCarrierFields.classList.toggle('hidden', !isCarrierMaxi)
+      this.ui.maxiCodeCarrierFields.style.display = isCarrierMaxi ? '' : 'none'
+    }
+    if (this.ui.maxiCodePostalCodeLabel) {
+      this.ui.maxiCodePostalCodeLabel.textContent = this.state.options.maxiCodeMode === '2'
+        ? 'Postal code (1-9 digits)'
+        : 'Postal code (6 AN)'
+    }
+    if (this.ui.maxiCodePostalCode) {
+      this.ui.maxiCodePostalCode.placeholder = this.state.options.maxiCodeMode === '2'
+        ? '336091062'
+        : 'K1A0B1'
+      this.ui.maxiCodePostalCode.value = this.state.options.maxiCodePostalCode
+    }
+    if (this.ui.maxiCodeCountryCode) {
+      this.ui.maxiCodeCountryCode.value = this.state.options.maxiCodeCountryCode
+    }
+    if (this.ui.maxiCodeServiceClass) {
+      this.ui.maxiCodeServiceClass.value = this.state.options.maxiCodeServiceClass
     }
     if (this.ui.maxiCodeInputMode) {
       this.ui.maxiCodeInputMode.value = this.state.options.maxiCodeInputMode
@@ -278,7 +342,7 @@ class QRPlaygroundApp {
       this.ui.primaryInput.placeholder = isWifi
         ? 'Mein WLAN'
         : isMaxi && this.state.options.maxiCodeInputMode === 'raw'
-          ? '[)>~03001~02996...~030~004'
+          ? '[)>~03001~02996TRACKING...~030~004'
           : isMaxi
             ? 'Kurzer Text'
             : 'https://example.com'
