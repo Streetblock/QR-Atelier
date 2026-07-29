@@ -39,6 +39,16 @@ The SVG renderer. Takes the raw matrix from `QrCore` and turns it into visual ar
 * Calculates complex SVG paths for rounded corners and special "Classy" styles.
 * Draws finder patterns, places logos, and applies defined gradients.
 
+### Data Matrix ECC 200
+`DmCore` generates dependency-free Data Matrix ECC 200 symbols and `DmSvgRenderer` renders their matrices.
+
+* Supports all 24 classic square sizes from 10x10 through 144x144.
+* Supports the six classic rectangular sizes: 8x18, 8x32, 12x26, 12x36, 16x36, and 16x48.
+* Dynamically selects among ASCII, C40, Text, ANSI X12, EDIFACT, and Base256 encodation to minimize the required symbol.
+* Allows automatic, square-only, rectangle-only, constrained, or exact-size selection through `DmCore` options.
+* Uses the ECC 200 error-correction structure fixed by the selected symbol; Data Matrix does not expose a variable QR-style ECC level.
+* Currently accepts ISO-8859-1 input. GS1/FNC1, ECI, Structured Append, Macro 05/06, and DMRE sizes are not yet exposed.
+
 ### 3. `app.js` & `styles.css` (The Stage)
 The app controller and UI. Manages state, binds DOM events to the classes, and provides the modern, glassmorphism interface. The studio currently uses the core's UTF-8 default and does not expose an encoding selector. When a center logo is present, the app requests error correction level H; this is app behavior, not an automatic rule inside `QrCore`.
 

@@ -1,27 +1,51 @@
 // ==========================================
 // DMcore.js - Dependency-free Data Matrix ECC200 Generator
-// Compact square-symbol build with ASCII encoding
+// ISO/IEC 16022 ECC 200 symbols with minimal high-level encoding
 // ==========================================
+
+import { encodeMinimalDataMatrix } from './DMminimal.js'
 
 const DM_SYMBOLS = [
   { rows: 10, cols: 10, regionRows: 8, regionCols: 8, regionCountRows: 1, regionCountCols: 1, dataCodewords: 3, errorCodewords: 5, rsBlockData: 3, rsBlockError: 5 },
   { rows: 12, cols: 12, regionRows: 10, regionCols: 10, regionCountRows: 1, regionCountCols: 1, dataCodewords: 5, errorCodewords: 7, rsBlockData: 5, rsBlockError: 7 },
+  { rows: 8, cols: 18, regionRows: 6, regionCols: 16, regionCountRows: 1, regionCountCols: 1, dataCodewords: 5, errorCodewords: 7, rsBlockData: 5, rsBlockError: 7, rectangular: true },
   { rows: 14, cols: 14, regionRows: 12, regionCols: 12, regionCountRows: 1, regionCountCols: 1, dataCodewords: 8, errorCodewords: 10, rsBlockData: 8, rsBlockError: 10 },
+  { rows: 8, cols: 32, regionRows: 6, regionCols: 14, regionCountRows: 1, regionCountCols: 2, dataCodewords: 10, errorCodewords: 11, rsBlockData: 10, rsBlockError: 11, rectangular: true },
   { rows: 16, cols: 16, regionRows: 14, regionCols: 14, regionCountRows: 1, regionCountCols: 1, dataCodewords: 12, errorCodewords: 12, rsBlockData: 12, rsBlockError: 12 },
+  { rows: 12, cols: 26, regionRows: 10, regionCols: 24, regionCountRows: 1, regionCountCols: 1, dataCodewords: 16, errorCodewords: 14, rsBlockData: 16, rsBlockError: 14, rectangular: true },
   { rows: 18, cols: 18, regionRows: 16, regionCols: 16, regionCountRows: 1, regionCountCols: 1, dataCodewords: 18, errorCodewords: 14, rsBlockData: 18, rsBlockError: 14 },
   { rows: 20, cols: 20, regionRows: 18, regionCols: 18, regionCountRows: 1, regionCountCols: 1, dataCodewords: 22, errorCodewords: 18, rsBlockData: 22, rsBlockError: 18 },
+  { rows: 12, cols: 36, regionRows: 10, regionCols: 16, regionCountRows: 1, regionCountCols: 2, dataCodewords: 22, errorCodewords: 18, rsBlockData: 22, rsBlockError: 18, rectangular: true },
   { rows: 22, cols: 22, regionRows: 20, regionCols: 20, regionCountRows: 1, regionCountCols: 1, dataCodewords: 30, errorCodewords: 20, rsBlockData: 30, rsBlockError: 20 },
+  { rows: 16, cols: 36, regionRows: 14, regionCols: 16, regionCountRows: 1, regionCountCols: 2, dataCodewords: 32, errorCodewords: 24, rsBlockData: 32, rsBlockError: 24, rectangular: true },
   { rows: 24, cols: 24, regionRows: 22, regionCols: 22, regionCountRows: 1, regionCountCols: 1, dataCodewords: 36, errorCodewords: 24, rsBlockData: 36, rsBlockError: 24 },
   { rows: 26, cols: 26, regionRows: 24, regionCols: 24, regionCountRows: 1, regionCountCols: 1, dataCodewords: 44, errorCodewords: 28, rsBlockData: 44, rsBlockError: 28 },
+  { rows: 16, cols: 48, regionRows: 14, regionCols: 22, regionCountRows: 1, regionCountCols: 2, dataCodewords: 49, errorCodewords: 28, rsBlockData: 49, rsBlockError: 28, rectangular: true },
   { rows: 32, cols: 32, regionRows: 14, regionCols: 14, regionCountRows: 2, regionCountCols: 2, dataCodewords: 62, errorCodewords: 36, rsBlockData: 62, rsBlockError: 36 },
   { rows: 36, cols: 36, regionRows: 16, regionCols: 16, regionCountRows: 2, regionCountCols: 2, dataCodewords: 86, errorCodewords: 42, rsBlockData: 86, rsBlockError: 42 },
   { rows: 40, cols: 40, regionRows: 18, regionCols: 18, regionCountRows: 2, regionCountCols: 2, dataCodewords: 114, errorCodewords: 48, rsBlockData: 114, rsBlockError: 48 },
   { rows: 44, cols: 44, regionRows: 20, regionCols: 20, regionCountRows: 2, regionCountCols: 2, dataCodewords: 144, errorCodewords: 56, rsBlockData: 144, rsBlockError: 56 },
   { rows: 48, cols: 48, regionRows: 22, regionCols: 22, regionCountRows: 2, regionCountCols: 2, dataCodewords: 174, errorCodewords: 68, rsBlockData: 174, rsBlockError: 68 },
   { rows: 52, cols: 52, regionRows: 24, regionCols: 24, regionCountRows: 2, regionCountCols: 2, dataCodewords: 204, errorCodewords: 84, rsBlockData: 102, rsBlockError: 42 },
+  { rows: 64, cols: 64, regionRows: 14, regionCols: 14, regionCountRows: 4, regionCountCols: 4, dataCodewords: 280, errorCodewords: 112, rsBlockData: 140, rsBlockError: 56 },
+  { rows: 72, cols: 72, regionRows: 16, regionCols: 16, regionCountRows: 4, regionCountCols: 4, dataCodewords: 368, errorCodewords: 144, rsBlockData: 92, rsBlockError: 36 },
+  { rows: 80, cols: 80, regionRows: 18, regionCols: 18, regionCountRows: 4, regionCountCols: 4, dataCodewords: 456, errorCodewords: 192, rsBlockData: 114, rsBlockError: 48 },
+  { rows: 88, cols: 88, regionRows: 20, regionCols: 20, regionCountRows: 4, regionCountCols: 4, dataCodewords: 576, errorCodewords: 224, rsBlockData: 144, rsBlockError: 56 },
+  { rows: 96, cols: 96, regionRows: 22, regionCols: 22, regionCountRows: 4, regionCountCols: 4, dataCodewords: 696, errorCodewords: 272, rsBlockData: 174, rsBlockError: 68 },
+  { rows: 104, cols: 104, regionRows: 24, regionCols: 24, regionCountRows: 4, regionCountCols: 4, dataCodewords: 816, errorCodewords: 336, rsBlockData: 136, rsBlockError: 56 },
+  { rows: 120, cols: 120, regionRows: 18, regionCols: 18, regionCountRows: 6, regionCountCols: 6, dataCodewords: 1050, errorCodewords: 408, rsBlockData: 175, rsBlockError: 68 },
+  { rows: 132, cols: 132, regionRows: 20, regionCols: 20, regionCountRows: 6, regionCountCols: 6, dataCodewords: 1304, errorCodewords: 496, rsBlockData: 163, rsBlockError: 62 },
+  { rows: 144, cols: 144, regionRows: 22, regionCols: 22, regionCountRows: 6, regionCountCols: 6, dataCodewords: 1558, errorCodewords: 620, rsBlockData: null, rsBlockError: 62, rsBlockDataLengths: [156, 156, 156, 156, 156, 156, 156, 156, 155, 155] },
 ]
 
-const DM_PAD = 129
+export const DM_ECC200_SYMBOL_SIZES = Object.freeze(DM_SYMBOLS.map((symbol) => Object.freeze({
+  rows: symbol.rows,
+  cols: symbol.cols,
+  rectangular: Boolean(symbol.rectangular),
+  dataCodewords: symbol.dataCodewords,
+  errorCodewords: symbol.errorCodewords,
+})))
+
 const DM_PRIMITIVE = 0x12d
 const DM_FACTOR_SETS = [5, 7, 10, 11, 12, 14, 18, 20, 24, 28, 36, 42, 48, 56, 62, 68]
 const DM_FACTORS = [
@@ -54,118 +78,96 @@ export class DmCore {
 
     this.data = data
     this.options = {
-      minSize: 10,
-      maxSize: 52,
+      shape: 'auto',
+      minSize: null,
+      maxSize: null,
+      symbolSize: null,
       ...options,
     }
   }
 
   generate() {
-    const minSize = normalizeSymbolSize(this.options.minSize)
-    const maxSize = normalizeSymbolSize(this.options.maxSize)
-
-    if (minSize > maxSize) {
-      throw new Error('minSize must be less than or equal to maxSize.')
-    }
-
-    const encoded = encodeAsciiDataMatrix(this.data)
-    const symbol = chooseSymbol(encoded.length, minSize, maxSize)
-    const dataCodewords = finalizeDataCodewords(encoded, symbol.dataCodewords)
+    const constraints = normalizeSymbolConstraints(this.options)
+    const candidates = filterSymbols(constraints)
+    const capacities = [...new Set(candidates.map((symbol) => symbol.dataCodewords))]
+    if (capacities.length === 0) throw new Error('No Data Matrix symbols match the selected constraints.')
+    const encoded = encodeMinimalDataMatrix(this.data, capacities)
+    const symbol = chooseSymbol(encoded.codewords.length, constraints)
+    const dataCodewords = encoded.codewords
     const allCodewords = appendEcc200(dataCodewords, symbol)
     const modules = buildMatrix(allCodewords, symbol)
 
     return {
       data: this.data,
       format: 'datamatrix',
-      size: symbol.rows,
+      size: symbol.rows === symbol.cols ? symbol.rows : `${symbol.rows}x${symbol.cols}`,
       rows: symbol.rows,
       cols: symbol.cols,
       symbol,
+      encodedCodewords: encoded.unpaddedLength,
+      dataCodewords,
+      errorCodewords: allCodewords.slice(symbol.dataCodewords),
       modules,
     }
   }
 }
 
-function normalizeSymbolSize(value) {
-  const numeric = Number(value)
-  if (!Number.isInteger(numeric)) {
-    throw new Error('Symbol size must be an integer.')
+function normalizeSymbolConstraints(options) {
+  const shape = String(options.shape ?? 'auto').toLowerCase()
+  if (!['auto', 'square', 'rectangle'].includes(shape)) {
+    throw new Error(`Unsupported Data Matrix shape: ${options.shape}`)
   }
-  const exists = DM_SYMBOLS.some((symbol) => symbol.rows === numeric && symbol.cols === numeric)
-  if (!exists) {
-    throw new Error(`Unsupported square Data Matrix size: ${value}`)
+  const minSize = parseDimensions(options.minSize, 'minSize')
+  const maxSize = parseDimensions(options.maxSize, 'maxSize')
+  const symbolSize = parseDimensions(options.symbolSize, 'symbolSize')
+  if (minSize && maxSize && (minSize.rows > maxSize.rows || minSize.cols > maxSize.cols)) {
+    throw new Error('minSize must fit within maxSize.')
   }
-  return numeric
+  if (symbolSize && !DM_SYMBOLS.some((symbol) => symbol.rows === symbolSize.rows && symbol.cols === symbolSize.cols)) {
+    throw new Error(`Unsupported Data Matrix symbol size: ${symbolSize.rows}x${symbolSize.cols}`)
+  }
+  return { shape, minSize, maxSize, symbolSize }
 }
 
-function chooseSymbol(codewordLength, minSize, maxSize) {
-  const symbol = DM_SYMBOLS.find((candidate) => {
-    return (
-      candidate.rows >= minSize &&
-      candidate.rows <= maxSize &&
-      codewordLength <= candidate.dataCodewords
-    )
-  })
+function parseDimensions(value, optionName) {
+  if (value == null || value === '') return null
+  if (Number.isInteger(Number(value)) && !String(value).includes('x')) {
+    const size = Number(value)
+    return { rows: size, cols: size }
+  }
+  const match = typeof value === 'string' ? /^(\d+)x(\d+)$/i.exec(value.trim()) : null
+  const rows = match ? Number(match[1]) : Number(value?.rows)
+  const cols = match ? Number(match[2]) : Number(value?.cols)
+  if (!Number.isInteger(rows) || !Number.isInteger(cols) || rows < 1 || cols < 1) {
+    throw new Error(`${optionName} must be an integer, "rowsxcols", or { rows, cols }.`)
+  }
+  return { rows, cols }
+}
+
+function chooseSymbol(codewordLength, constraints) {
+  const symbol = filterSymbols(constraints).find((candidate) => codewordLength <= candidate.dataCodewords)
 
   if (!symbol) {
-    throw new Error('Input is too large for the compact Data Matrix build.')
+    throw new Error('Input does not fit the selected Data Matrix symbol constraints.')
   }
 
   return symbol
 }
 
-function encodeAsciiDataMatrix(data) {
-  const codewords = []
-  let index = 0
-
-  while (index < data.length) {
-    const first = data.charCodeAt(index)
-    const second = index + 1 < data.length ? data.charCodeAt(index + 1) : -1
-
-    if (isDigit(first) && isDigit(second)) {
-      const value = (first - 48) * 10 + (second - 48)
-      codewords.push(130 + value)
-      index += 2
-      continue
-    }
-
-    if (first >= 0 && first <= 127) {
-      codewords.push(first + 1)
-      index += 1
-      continue
-    }
-
-    if (first >= 128 && first <= 255) {
-      codewords.push(235, first - 127)
-      index += 1
-      continue
-    }
-
-    throw new Error('Compact DMcore currently supports only Latin-1 / extended ASCII input.')
-  }
-
-  return codewords
-}
-
-function finalizeDataCodewords(codewords, capacity) {
-  const result = codewords.slice()
-  if (result.length > capacity) {
-    throw new Error('Encoded data exceeds the selected symbol capacity.')
-  }
-
-  if (result.length < capacity) {
-    result.push(DM_PAD)
-  }
-
-  while (result.length < capacity) {
-    result.push(randomizePadCodeword(result.length + 1))
-  }
-
-  return result
+function filterSymbols(constraints) {
+  return DM_SYMBOLS.filter((candidate) => {
+    if (constraints.shape === 'square' && candidate.rectangular) return false
+    if (constraints.shape === 'rectangle' && !candidate.rectangular) return false
+    if (constraints.symbolSize && (candidate.rows !== constraints.symbolSize.rows || candidate.cols !== constraints.symbolSize.cols)) return false
+    return (
+      (!constraints.minSize || (candidate.rows >= constraints.minSize.rows && candidate.cols >= constraints.minSize.cols)) &&
+      (!constraints.maxSize || (candidate.rows <= constraints.maxSize.rows && candidate.cols <= constraints.maxSize.cols))
+    )
+  })
 }
 
 function appendEcc200(dataCodewords, symbol) {
-  const blockCount = symbol.dataCodewords / symbol.rsBlockData
+  const blockCount = symbol.rsBlockDataLengths?.length ?? symbol.dataCodewords / symbol.rsBlockData
   if (!Number.isInteger(blockCount) || blockCount < 1) {
     throw new Error('Invalid RS block configuration for Data Matrix symbol.')
   }
@@ -190,8 +192,9 @@ function appendEcc200(dataCodewords, symbol) {
       tempData.push(dataCodewords[d])
     }
     const ecc = createEccBlock(tempData, symbol.rsBlockError)
+    const interleavedBlock = symbol.rsBlockDataLengths ? (block + 2) % blockCount : block
     let pos = 0
-    for (let e = block; e < symbol.rsBlockError * blockCount; e += blockCount) {
+    for (let e = interleavedBlock; e < symbol.rsBlockError * blockCount; e += blockCount) {
       result[symbol.dataCodewords + e] = ecc[pos]
       pos += 1
     }
@@ -229,12 +232,6 @@ function createEccBlock(data, numEcWords) {
     reversed[i] = ecc[numEcWords - i - 1]
   }
   return reversed
-}
-
-function randomizePadCodeword(position) {
-  const pseudoRandom = ((149 * position) % 253) + 1
-  const value = DM_PAD + pseudoRandom
-  return value <= 254 ? value : value - 254
 }
 
 function buildMatrix(codewords, symbol) {
@@ -455,10 +452,6 @@ function initDmGaloisTables() {
 
 function dmMultiplyLog(a, b) {
   return DM_ALOG[(DM_LOG[a] + DM_LOG[b]) % 255]
-}
-
-function isDigit(value) {
-  return value >= 48 && value <= 57
 }
 
 function createSquareArray(rows, cols, initialValue) {
