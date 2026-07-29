@@ -25,14 +25,17 @@ jobs:
           python-version: '3.13'
 
       - name: Install JavaScript test dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
 
       - name: Install Python reference-test dependencies
-        if: ${{ hashFiles('requirements-test.txt') != '' }}
-        run: python -m pip install -r requirements-test.txt
+        if: ${{ hashFiles('requirements-test/*.txt') != '' }}
+        run: |
+          for requirements in requirements-test/*.txt; do
+            python -m pip install -r "$requirements"
+          done
 
       - name: Run unit and structure tests
         run: npm test
 
-      - name: Run reference tests when configured
-        run: npm run test:reference --if-present
+      - name: Run reference tests
+        run: npm run test:reference
