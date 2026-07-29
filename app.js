@@ -6,10 +6,10 @@ class QRPlaygroundApp {
       data: '',
       options: {
         format: 'qr',
+        contentMode: 'text',
         errorCorrectionLevel: 'Q',
         colorStart: '#0f172a',
         colorEnd: '#0ea5e9',
-        aztecStyle: 'square',
         dotStyle: 'rounded',
         cornerStyle: 'extra-rounded',
         logo: null,
@@ -36,11 +36,13 @@ class QRPlaygroundApp {
       primaryInputLabel: document.getElementById('primary-input-label'),
       primaryInputField: document.getElementById('field-primary-input'),
       dotShape: document.getElementById('dot-shape'),
-      aztecStyle: document.getElementById('aztec-style'),
       cornerShape: document.getElementById('corner-shape'),
       dotShapeField: document.getElementById('field-dot-shape'),
-      aztecStyleField: document.getElementById('field-aztec-style'),
       cornerShapeField: document.getElementById('field-corner-shape'),
+      wifiAuth: document.getElementById('wifi-auth'),
+      wifiPassword: document.getElementById('wifi-password'),
+      wifiHidden: document.getElementById('wifi-hidden'),
+      wifiSection: document.getElementById('field-wifi-options'),
       downloadSize: document.getElementById('download-size'),
       logoUpload: document.getElementById('logo-upload'),
       logoUploadField: document.getElementById('field-logo-upload'),
@@ -76,7 +78,7 @@ class QRPlaygroundApp {
   }
 
   #bindEvents() {
-    this.ui.urlInput.addEventListener('input', () => {
+    this.ui.primaryInput.addEventListener('input', () => {
       clearTimeout(this.debounceTimer)
       this.debounceTimer = setTimeout(() => {
         if (this.state.options.contentMode === 'wifi') {
@@ -108,6 +110,7 @@ class QRPlaygroundApp {
     this.ui.logoUpload.addEventListener('change', () => {
       const file = this.ui.logoUpload.files[0]
       if (!file) return
+
       const reader = new FileReader()
       reader.onload = () => {
         this.ui.logoStatus.textContent = `Logo: ${file.name}`
@@ -133,8 +136,8 @@ class QRPlaygroundApp {
   #parseUrlParams() {
     const paramUrl = new URLSearchParams(window.location.search).get('url')
     if (!paramUrl) return
-    this.ui.urlInput.value = paramUrl
-    this.ui.urlInput.dispatchEvent(new Event('input'))
+    this.ui.primaryInput.value = paramUrl
+    this.ui.primaryInput.dispatchEvent(new Event('input'))
   }
 
   update(newOptions = {}) {
@@ -174,6 +177,7 @@ class QRPlaygroundApp {
 
   async #downloadSVG() {
     if (this.isDownloading || !this.hasCode()) return
+
     this.isDownloading = true
     try {
       const size = this.getDownloadSize()
@@ -187,6 +191,7 @@ class QRPlaygroundApp {
 
   async #downloadPNG() {
     if (this.isDownloading || !this.hasCode()) return
+
     this.isDownloading = true
     try {
       const size = this.getDownloadSize()
@@ -382,22 +387,26 @@ class QRPlaygroundApp {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' }))
       const image = new Image()
+
       image.onload = () => {
         const canvas = document.createElement('canvas')
         canvas.width = size
         canvas.height = size
         const context = canvas.getContext('2d')
         context.drawImage(image, 0, 0, size, size)
+
         canvas.toBlob((blob) => {
           URL.revokeObjectURL(url)
           if (blob) resolve(blob)
           else reject(new Error('Canvas to Blob failed.'))
         }, 'image/png')
       }
+
       image.onerror = () => {
         URL.revokeObjectURL(url)
         reject(new Error('SVG konnte nicht als PNG gerendert werden.'))
       }
+
       image.src = url
     })
   }
