@@ -82,6 +82,7 @@ export class MaxiCodeCore {
     this.data = data
     this.options = {
       mode: 4,
+      preserveControls: false,
       ...options,
     }
   }
@@ -112,16 +113,19 @@ export class MaxiCodeCore {
   }
 
   #encodeMessage(text) {
-    const normalized = String(text)
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      .replace(/\n/g, ' ')
+    const source = String(text)
+    const normalized = this.options.preserveControls
+      ? source
+      : source
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(/\n/g, ' ')
 
     const codewords = []
     let currentSet = 0
 
     for (const rawChar of normalized) {
-      const char = rawChar === '\t' ? ' ' : rawChar
+      const char = !this.options.preserveControls && rawChar === '\t' ? ' ' : rawChar
       const direct = CHARSET_MAPS[currentSet].get(char)
       if (direct !== undefined) {
         codewords.push(direct)

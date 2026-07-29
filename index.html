@@ -75,6 +75,15 @@
             <input type="text" id="primary-input" class="text-input" placeholder="https://example.com" autocomplete="off">
           </div>
 
+          <div class="field hidden" id="field-maxicode-input-mode" hidden>
+            <label class="field-label" for="maxicode-input-mode">MaxiCode Input</label>
+            <select id="maxicode-input-mode" class="select-input">
+              <option value="text" selected>Text</option>
+              <option value="raw">Raw control escapes</option>
+            </select>
+            <span class="field-hint">Supports ~029 / &lt;GS&gt;, ~030 / &lt;RS&gt; and ~004 / &lt;EOT&gt;.</span>
+          </div>
+
           <div class="field" id="field-dot-shape">
             <label class="field-label" for="dot-shape">Dot Style</label>
             <select id="dot-shape" class="select-input">
