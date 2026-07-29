@@ -27,6 +27,10 @@ jobs:
       - name: Install JavaScript test dependencies
         run: npm ci --ignore-scripts
 
+      - name: Install Data Matrix reference decoder
+        if: ${{ hashFiles('reference-tests/datamatrix-roundtrip-zxing.mjs') != '' }}
+        run: npm install --no-save --ignore-scripts @zxing/library@0.23.0
+
       - name: Install Python reference-test dependencies
         if: ${{ hashFiles('requirements-test/*.txt') != '' }}
         run: |
