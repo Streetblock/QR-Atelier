@@ -87,6 +87,71 @@ test('can force byte-only mode instead of automatic alphanumeric compression', (
   assertMatrixShape(byteOnly)
 })
 
+test('selects the smallest version for mixed byte and numeric input at every error correction level', () => {
+  const cases = {
+    L: 'a12345678901234567890',
+    M: 'a1234567890123456',
+    Q: 'a12345678901',
+    H: 'a123456',
+  }
+
+  for (const [errorCorrectionLevel, data] of Object.entries(cases)) {
+    const result = new QrCore(data, { errorCorrectionLevel }).generate()
+    assert.equal(result.version, 1)
+    assertMatrixShape(result)
+  }
+})
+
+test('uses numeric segments inside otherwise alphanumeric input', () => {
+  const cases = {
+    L: 'A1234567890123456789012345',
+    M: 'A12345678901234567890',
+    Q: 'A1234567890123456',
+    H: 'A1234567890',
+  }
+
+  for (const [errorCorrectionLevel, data] of Object.entries(cases)) {
+    const automatic = new QrCore(data, { errorCorrectionLevel }).generate()
+    const alphanumericOnly = new QrCore(data, {
+      errorCorrectionLevel,
+      mode: 'alphanumeric',
+    }).generate()
+    assert.equal(automatic.version, 1)
+    assert.equal(alphanumericOnly.version, 2)
+    assertMatrixShape(automatic)
+  }
+})
+
+test('does not spend ECI bits on ASCII-only byte segments', () => {
+  const versionOneByteCapacities = { L: 17, M: 14, Q: 11, H: 7 }
+
+  for (const [errorCorrectionLevel, length] of Object.entries(versionOneByteCapacities)) {
+    const result = new QrCore('a'.repeat(length), {
+      errorCorrectionLevel,
+      mode: 'byte',
+    }).generate()
+    assert.equal(result.version, 1)
+    assertMatrixShape(result)
+  }
+})
+
+test('retains UTF-8 ECI when non-ASCII byte data needs it', () => {
+  const data = '\u00c4'.repeat(7)
+  const withEci = new QrCore(data, {
+    errorCorrectionLevel: 'M',
+    mode: 'byte',
+  }).generate()
+  const withoutEci = new QrCore(data, {
+    errorCorrectionLevel: 'M',
+    mode: 'byte',
+    eci: false,
+  }).generate()
+
+  assert.equal(withEci.version, 2)
+  assert.equal(withoutEci.version, 1)
+  assertMatrixShape(withEci)
+})
+
 test('can force low-level numeric and alphanumeric modes', () => {
   const numeric = new QrCore('123456789012345678901234567890', {
     errorCorrectionLevel: 'H',
