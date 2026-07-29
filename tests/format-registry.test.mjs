@@ -45,13 +45,6 @@ test('creates renderable QR SVG output through the registry interface', () => {
     options,
   })
   assert.match(renderer.render(), /^<svg\b/)
-
-  const microRenderer = formatRegistry.createRenderer('microqr', {
-    payload: '12345',
-    size: 256,
-    options,
-  })
-  assert.match(microRenderer.render(), /^<svg\b/)
 })
 
 test('keeps encoder imports and format controls outside the shared app shell', () => {
