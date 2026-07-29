@@ -52,7 +52,9 @@ The SVG renderer. Takes the raw matrix from `QrCore` and turns it into visual ar
 * GS1 input is expected as a raw element string; the library does not parse parenthesized human-readable notation or validate Application Identifier rules.
 * Supports Macro 05/06 through `{ macro: 5 }` or `{ macro: 6 }`; pass a complete Macro frame with `{ macro: 'auto' }` to recognize and remove its header and trailer before encoding.
 * Supports scanner configuration payloads through `{ readerProgramming: true }`, which places Reader Programming codeword 234 first.
-* Structured Append and DMRE sizes are not yet exposed.
+* Supports one symbol of a Structured Append set through `{ structuredAppend: { position, total, fileId } }`; positions are 1-based, totals range from 2 to 16, and `fileId` accepts either a number from 1 to 64516 or the exact pair of file-identification codewords.
+* Structured Append may be combined with GS1; the leading GS1 FNC1 is emitted only for the first symbol, while ASCII 29 separators remain active in every part. Splitting a message into parts is intentionally left to the caller.
+* DMRE sizes are not yet exposed.
 
 ### 3. `app.js` & `styles.css` (The Stage)
 The app controller and UI. Manages state, binds DOM events to the classes, and provides the modern, glassmorphism interface. The studio currently uses the core's UTF-8 default and does not expose an encoding selector. When a center logo is present, the app requests error correction level H; this is app behavior, not an automatic rule inside `QrCore`.
