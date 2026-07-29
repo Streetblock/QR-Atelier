@@ -354,6 +354,7 @@ body::before {
 .field {
   display: grid;
   gap: 10px;
+  align-content: start;
 }
 
 .field-wide {
@@ -429,6 +430,12 @@ body::before {
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.field-hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
 }
 
 .checkbox-row {
