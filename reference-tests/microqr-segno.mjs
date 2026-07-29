@@ -31,11 +31,11 @@ function runSegnoReference({ data, version, error, mode, mask, byteEncoding }) {
   }
 
   const input = JSON.stringify(payload)
-  const commands = ['python', 'py']
+  const commands = [...new Set([process.env.PYTHON, 'python', 'python3', 'py'].filter(Boolean))]
   let lastError = null
 
   for (const cmd of commands) {
-    const proc = spawnSync(cmd, ['tests/segno_micro_reference.py'], {
+    const proc = spawnSync(cmd, ['reference-tests/segno_micro_reference.py'], {
       input,
       encoding: 'utf8',
       cwd: process.cwd(),
