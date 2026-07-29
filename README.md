@@ -51,6 +51,7 @@ The SVG renderer. Takes the raw matrix from `QrCore` and turns it into visual ar
 * Supports GS1 Data Matrix through `{ gs1: true }`: FNC1 is placed first and ASCII 29 characters in the input become FNC1 group separators.
 * GS1 input is expected as a raw element string; the library does not parse parenthesized human-readable notation or validate Application Identifier rules.
 * Supports Macro 05/06 through `{ macro: 5 }` or `{ macro: 6 }`; pass a complete Macro frame with `{ macro: 'auto' }` to recognize and remove its header and trailer before encoding.
+* Supports scanner configuration payloads through `{ readerProgramming: true }`, which places Reader Programming codeword 234 first.
 * Structured Append and DMRE sizes are not yet exposed.
 
 ### 3. `app.js` & `styles.css` (The Stage)

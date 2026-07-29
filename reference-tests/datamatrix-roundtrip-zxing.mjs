@@ -44,6 +44,7 @@ test('Data Matrix symbols roundtrip through the ZXing decoder', async () => {
     ['A'.repeat(2300), {}],
     ['ABC123', { macro: 5 }, `[)>\x1e05\x1dABC123\x1e\x04`],
     ['ABC123', { macro: 6 }, `[)>\x1e06\x1dABC123\x1e\x04`],
+    ['READER-CONFIG', { readerProgramming: true }],
   ]
 
   for (const [payload, options, expected = payload] of cases) {
