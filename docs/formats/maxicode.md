@@ -34,10 +34,16 @@ Up to eight MaxiCode symbols can be linked with `structuredAppend: { index, coun
 
 Raw mode preserves control characters required by carrier payloads. It accepts decimal escapes and named aliases such as `~029` / `<GS>`, `~030` / `<RS>`, and `~004` / `<EOT>`. A doubled tilde represents a literal tilde.
 
+## UPS Format 07 transport
+
+`libs/UpsMaxiCode.js` adds a carrier-specific layer for Mode 2 and Mode 3. It accepts an already-compressed 32-byte Format 07 transport value or its 45-symbol base-55 representation, builds the ANSI secondary message without duplicating the postal code, country code, or service class stored in the Primary Message, and generates the complete MaxiCode symbol. A synthetic vector for the public Gymnasium Korschenbroich address whose substitutions occupy all 252 payload bits is used as a byte-exact fixture.
+
+The app exposes this as `UPS Format 07 transport`; visible `~ddd` and named control escapes remain available for the CR, FS, and GS symbols in the transport alphabet. This layer intentionally does not turn arbitrary address fields into the patent's 252 substitution bits: the published material does not fully specify the four framing/truncation bits, so the encoder requires verified precompressed bytes or symbols instead of guessing a proprietary rule.
+
 ## App integration
 
 The format adapter dynamically shows carrier fields for modes 2 and 3 and supplies valid mode-specific postal defaults when switching modes. QR-specific dot, finder, and logo styling is disabled for MaxiCode.
 
 ## Tests
 
-`npm test` covers raw escape parsing, control preservation, modes 2 through 6, carrier-field validation, Primary Message packing, optimal high-level segmentation, numeric capacity, ECI, Structured Append, rendering, and the registry adapter. `npm run test:reference` verifies modes 2 through 5 through decoding and checks Mode 6 module extraction plus both Reed-Solomon regions with the shared ZXing dependency. ZXing does not expose semantic Mode 6 decoding.
+`npm test` covers raw escape parsing, control preservation, modes 2 through 6, carrier-field validation, Primary Message packing, UPS Format 07 transport conversion, optimal high-level segmentation, numeric capacity, ECI, Structured Append, rendering, and the registry adapter. `npm run test:reference` verifies modes 2 through 5 through decoding, checks Mode 6 module extraction plus both Reed-Solomon regions, and reconstructs UPS Primary/Secondary messages with the shared ZXing dependency. ZXing does not expose semantic Mode 6 decoding.

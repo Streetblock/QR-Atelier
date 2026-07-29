@@ -86,3 +86,39 @@ test('configures Structured Append through the MaxiCode adapter', () => {
     options,
   }).render(), /^<svg\b/)
 })
+
+test('builds UPS Format 07 input through the MaxiCode adapter', () => {
+  const format = formatRegistry.get('maxi-code')
+  const inputModeField = format.fields.find((field) => field.key === 'maxiCodeInputMode')
+  assert.deepEqual(inputModeField.update('ups-format-07', {
+    maxiCodeMode: '4',
+    maxiCodePostalCode: '',
+  }), {
+    maxiCodeInputMode: 'ups-format-07',
+    maxiCodeMode: '2',
+    maxiCodePostalCode: '336091062',
+  })
+
+  const options = {
+    ...formatRegistry.defaults(),
+    maxiCodeInputMode: 'ups-format-07',
+    maxiCodeMode: '2',
+    maxiCodePostalCode: '41352',
+    maxiCodeCountryCode: '276',
+    maxiCodeServiceClass: '068',
+  }
+  const rawTransport = '684Q.0KG3Z2AQ0$$1$OIXZWA14CGIO%K FZ( GPF9VEL~013'
+  const prepared = formatRegistry.preparePayload('maxi-code', rawTransport, options)
+  assert.equal(prepared.startsWith('[)>\x1e01\x1d96'), true)
+  assert.equal(prepared.includes('\x1e07684Q.0KG3Z2AQ0$$1$OIXZWA14CGIO%K FZ( GPF9VEL\r'), true)
+  assert.match(formatRegistry.createRenderer('maxi-code', {
+    payload: prepared,
+    size: 256,
+    options,
+  }).render(), /^<svg\b/)
+
+  assert.throws(
+    () => formatRegistry.preparePayload('maxi-code', rawTransport, { ...options, maxiCodeMode: '4' }),
+    /requires MaxiCode mode 2 or mode 3/,
+  )
+})
