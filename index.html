@@ -87,6 +87,34 @@
             <span class="field-hint">Supports ~029 / &lt;GS&gt;, ~030 / &lt;RS&gt; and ~004 / &lt;EOT&gt;.</span>
           </div>
 
+          <div class="field hidden" id="field-maxicode-mode" hidden>
+            <label class="field-label" for="maxicode-mode">MaxiCode Mode</label>
+            <select id="maxicode-mode" class="select-input">
+              <option value="4" selected>Mode 4 - standard</option>
+              <option value="2">Mode 2 - numeric postal</option>
+              <option value="3">Mode 3 - alphanumeric postal</option>
+            </select>
+          </div>
+
+          <div class="field field-wide hidden" id="field-maxicode-carrier" hidden>
+            <label class="field-label">Primary Message</label>
+            <div class="editor-grid">
+              <div class="field">
+                <label class="field-label" for="maxicode-postal-code" id="maxicode-postal-code-label">Postal code</label>
+                <input type="text" id="maxicode-postal-code" class="text-input" autocomplete="off">
+              </div>
+              <div class="field">
+                <label class="field-label" for="maxicode-country-code">ISO country code</label>
+                <input type="text" id="maxicode-country-code" class="text-input" inputmode="numeric" maxlength="3" value="840" autocomplete="off">
+              </div>
+              <div class="field">
+                <label class="field-label" for="maxicode-service-class">Service class</label>
+                <input type="text" id="maxicode-service-class" class="text-input" inputmode="numeric" maxlength="3" value="001" autocomplete="off">
+              </div>
+            </div>
+            <span class="field-hint">The Primary Message is packed into the dedicated Mode 2/3 bit fields. In an ANSI UPS secondary message, continue directly from ...&lt;GS&gt;96 to the tracking field; the primary separator is reconstructed by the decoder.</span>
+          </div>
+
           <div class="field" id="field-dot-shape">
             <label class="field-label" for="dot-shape">Dot Style</label>
             <select id="dot-shape" class="select-input">
