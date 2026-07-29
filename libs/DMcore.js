@@ -5,6 +5,9 @@
 
 import { encodeMinimalDataMatrix } from './DMminimal.js'
 
+const DEFAULT_ENCODING = 'utf-8'
+const ECI_ASSIGNMENT_UTF8 = 26
+
 const DM_SYMBOLS = [
   { rows: 10, cols: 10, regionRows: 8, regionCols: 8, regionCountRows: 1, regionCountCols: 1, dataCodewords: 3, errorCodewords: 5, rsBlockData: 3, rsBlockError: 5 },
   { rows: 12, cols: 12, regionRows: 10, regionCols: 10, regionCountRows: 1, regionCountCols: 1, dataCodewords: 5, errorCodewords: 7, rsBlockData: 5, rsBlockError: 7 },
@@ -79,6 +82,7 @@ export class DmCore {
     this.data = data
     this.options = {
       shape: 'auto',
+      encoding: DEFAULT_ENCODING,
       minSize: null,
       maxSize: null,
       symbolSize: null,
@@ -91,7 +95,8 @@ export class DmCore {
     const candidates = filterSymbols(constraints)
     const capacities = [...new Set(candidates.map((symbol) => symbol.dataCodewords))]
     if (capacities.length === 0) throw new Error('No Data Matrix symbols match the selected constraints.')
-    const encoded = encodeMinimalDataMatrix(this.data, capacities)
+    const input = encodeInputBytes(this.data, this.options.encoding)
+    const encoded = encodeMinimalDataMatrix(input.bytes, capacities, input.eciCodewords)
     const symbol = chooseSymbol(encoded.codewords.length, constraints)
     const dataCodewords = encoded.codewords
     const allCodewords = appendEcc200(dataCodewords, symbol)
@@ -100,6 +105,9 @@ export class DmCore {
     return {
       data: this.data,
       format: 'datamatrix',
+      encoding: input.encoding,
+      eciAssignmentNumber: input.eciAssignmentNumber,
+      payloadBytes: input.bytes,
       size: symbol.rows === symbol.cols ? symbol.rows : `${symbol.rows}x${symbol.cols}`,
       rows: symbol.rows,
       cols: symbol.cols,
@@ -127,6 +135,33 @@ function normalizeSymbolConstraints(options) {
     throw new Error(`Unsupported Data Matrix symbol size: ${symbolSize.rows}x${symbolSize.cols}`)
   }
   return { shape, minSize, maxSize, symbolSize }
+}
+
+function encodeInputBytes(data, encoding) {
+  const normalized = normalizeEncoding(encoding)
+  if (normalized === 'utf-8') {
+    const bytes = Array.from(new TextEncoder().encode(data))
+    const needsEci = bytes.some((value) => value >= 128)
+    return {
+      encoding: normalized,
+      bytes,
+      eciAssignmentNumber: needsEci ? ECI_ASSIGNMENT_UTF8 : null,
+      eciCodewords: needsEci ? [241, ECI_ASSIGNMENT_UTF8 + 1] : [],
+    }
+  }
+
+  const bytes = Array.from(data, (character) => character.charCodeAt(0))
+  if (bytes.some((value) => value > 255)) {
+    throw new Error('Data contains characters that are not representable in ISO-8859-1.')
+  }
+  return { encoding: normalized, bytes, eciAssignmentNumber: null, eciCodewords: [] }
+}
+
+function normalizeEncoding(encoding = DEFAULT_ENCODING) {
+  const normalized = String(encoding ?? DEFAULT_ENCODING).toLowerCase().replaceAll('_', '-').replaceAll(' ', '')
+  if (['utf8', 'utf-8'].includes(normalized)) return 'utf-8'
+  if (['latin1', 'latin-1', 'iso-8859-1', 'iso8859-1', 'iso88591'].includes(normalized)) return 'iso-8859-1'
+  throw new Error(`Unsupported Data Matrix encoding: ${encoding}`)
 }
 
 function parseDimensions(value, optionName) {
