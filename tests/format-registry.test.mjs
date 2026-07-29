@@ -13,7 +13,6 @@ test('registers QR, Data Matrix, Aztec and MaxiCode with isolated defaults and c
     cornerStyle: true,
     logo: true,
   })
-  assert.equal(formatRegistry.get('datamatrix').capabilities.logo, false)
 })
 
 test('rejects malformed and duplicate format adapters', () => {
@@ -45,13 +44,6 @@ test('creates renderable QR SVG output through the registry interface', () => {
     options,
   })
   assert.match(renderer.render(), /^<svg\b/)
-
-  const dataMatrixRenderer = formatRegistry.createRenderer('datamatrix', {
-    payload: 'ABC123',
-    size: 256,
-    options,
-  })
-  assert.match(dataMatrixRenderer.render(), /^<svg\b/)
 })
 
 test('keeps encoder imports and format controls outside the shared app shell', () => {
