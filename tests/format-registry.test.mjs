@@ -5,9 +5,8 @@ import { fileURLToPath } from 'node:url'
 import { FormatRegistry } from '../formats/FormatRegistry.js'
 import { formatRegistry } from '../formats/index.js'
 
-test('registers QR and Micro QR with isolated defaults and capabilities', () => {
-  assert.deepEqual(formatRegistry.list().map((format) => format.id), ['qr', 'microqr'])
-  assert.equal(formatRegistry.defaults().microMaxVersion, 'M4')
+test('registers QR as the base format with its UI capabilities', () => {
+  assert.equal(formatRegistry.has('qr'), true)
   assert.deepEqual(formatRegistry.get('qr').capabilities, {
     dotStyle: true,
     cornerStyle: true,
@@ -44,13 +43,6 @@ test('creates renderable QR SVG output through the registry interface', () => {
     options,
   })
   assert.match(renderer.render(), /^<svg\b/)
-
-  const microRenderer = formatRegistry.createRenderer('microqr', {
-    payload: '12345',
-    size: 256,
-    options,
-  })
-  assert.match(microRenderer.render(), /^<svg\b/)
 })
 
 test('keeps encoder imports and format controls outside the shared app shell', () => {
