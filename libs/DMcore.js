@@ -92,6 +92,7 @@ export class DmCore {
       gs1: false,
       macro: null,
       readerProgramming: false,
+      structuredAppend: null,
       minSize: null,
       maxSize: null,
       symbolSize: null,
@@ -107,15 +108,24 @@ export class DmCore {
     const gs1 = normalizeGs1(this.options.gs1)
     const macroInput = normalizeMacro(this.data, this.options.macro)
     const readerProgramming = normalizeReaderProgramming(this.options.readerProgramming)
+    const structuredAppend = normalizeStructuredAppend(this.options.structuredAppend)
     if (gs1 && macroInput.macro !== null) throw new Error('Data Matrix Macro 05/06 cannot be combined with GS1 mode.')
     if (readerProgramming && (gs1 || macroInput.macro !== null)) {
       throw new Error('Data Matrix Reader Programming cannot be combined with GS1 or Macro 05/06.')
     }
+    if (structuredAppend && macroInput.macro !== null) {
+      throw new Error('Data Matrix Structured Append cannot be combined with Macro 05/06.')
+    }
+    if (structuredAppend && readerProgramming) {
+      throw new Error('Data Matrix Structured Append cannot be combined with Reader Programming.')
+    }
     const input = encodeInputBytes(macroInput.payload, this.options.encoding)
+    const leadingGs1 = gs1 && (!structuredAppend || structuredAppend.metadata.position === 1)
     const prefixCodewords = [
+      ...(structuredAppend?.codewords ?? []),
       ...(readerProgramming ? [234] : []),
       ...(macroInput.macro === null ? [] : [MACRO_CODEWORDS[macroInput.macro]]),
-      ...(gs1 ? [232] : []),
+      ...(leadingGs1 ? [232] : []),
       ...input.eciCodewords,
     ]
     const encoded = encodeMinimalDataMatrix(input.bytes, capacities, prefixCodewords, { fnc1: gs1 ? 29 : null })
@@ -131,6 +141,7 @@ export class DmCore {
       gs1,
       macro: macroInput.macro,
       readerProgramming,
+      structuredAppend: structuredAppend?.metadata ?? null,
       eciAssignmentNumber: input.eciAssignmentNumber,
       payloadBytes: input.bytes,
       size: symbol.rows === symbol.cols ? symbol.rows : `${symbol.rows}x${symbol.cols}`,
@@ -170,6 +181,48 @@ function normalizeGs1(value) {
 function normalizeReaderProgramming(value) {
   if (typeof value !== 'boolean') throw new Error('readerProgramming must be a boolean.')
   return value
+}
+
+function normalizeStructuredAppend(value) {
+  if (value == null) return null
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('structuredAppend must be null or an object with position, total, and fileId.')
+  }
+
+  const { position, total, fileId } = value
+  if (!Number.isInteger(total) || total < 2 || total > 16) {
+    throw new Error('structuredAppend.total must be an integer from 2 to 16.')
+  }
+  if (!Number.isInteger(position) || position < 1 || position > total) {
+    throw new Error('structuredAppend.position must be an integer from 1 through total.')
+  }
+
+  let fileIdCodewords
+  let normalizedFileId
+  if (Array.isArray(fileId)) {
+    if (fileId.length !== 2 || fileId.some((part) => !Number.isInteger(part) || part < 1 || part > 254)) {
+      throw new Error('structuredAppend.fileId codeword pair must contain two integers from 1 to 254.')
+    }
+    fileIdCodewords = [...fileId]
+    normalizedFileId = (fileId[0] - 1) * 254 + fileId[1]
+  } else {
+    if (!Number.isInteger(fileId) || fileId < 1 || fileId > 64516) {
+      throw new Error('structuredAppend.fileId must be an integer from 1 to 64516 or a two-codeword array.')
+    }
+    normalizedFileId = fileId
+    fileIdCodewords = [Math.floor((fileId - 1) / 254) + 1, ((fileId - 1) % 254) + 1]
+  }
+
+  const sequenceIndicator = ((position - 1) << 4) | (17 - total)
+  return {
+    codewords: [233, sequenceIndicator, ...fileIdCodewords],
+    metadata: Object.freeze({
+      position,
+      total,
+      fileId: normalizedFileId,
+      fileIdCodewords: Object.freeze(fileIdCodewords),
+    }),
+  }
 }
 
 function normalizeMacro(data, value) {
