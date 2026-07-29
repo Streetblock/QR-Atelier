@@ -21,4 +21,9 @@ result = zxingcpp.read_barcode(
 if result is None:
     raise RuntimeError("ZXing-C++ could not decode the Data Matrix symbol")
 
-print(json.dumps({"text": result.text}))
+print(json.dumps({
+    "text": result.text,
+    "bytes": list(result.bytes),
+    "symbologyIdentifier": result.symbology_identifier,
+    "contentType": str(result.content_type),
+}))

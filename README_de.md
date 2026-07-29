@@ -48,7 +48,9 @@ Der SVG-Renderer. Nimmt die rohe Matrix von `QrCore` und verwandelt sie in visue
 * Erlaubt automatische, nur quadratische, nur rechteckige, begrenzte oder exakt vorgegebene Größen über die `DmCore`-Optionen.
 * Verwendet die durch die Symbolgröße festgelegte ECC-200-Fehlerkorrektur; ein variables QR-artiges ECC-Level gibt es bei Data Matrix nicht.
 * Verwendet standardmäßig UTF-8 und setzt bei nicht-ASCII-Daten ECI-Zuweisung 26; ISO-8859-1 bleibt über die Option `encoding` verfügbar.
-* GS1/FNC1, Structured Append, Macro 05/06 und DMRE-Größen sind noch nicht verfügbar.
+* Unterstützt GS1 Data Matrix über `{ gs1: true }`: FNC1 wird an erster Stelle gesetzt und ASCII 29 in den Eingabedaten als FNC1-Gruppentrenner kodiert.
+* Erwartet GS1 als rohen Element-String; die Library interpretiert keine Schreibweise mit Klammern und validiert keine Application-Identifier-Regeln.
+* Structured Append, Macro 05/06 und DMRE-Größen sind noch nicht verfügbar.
 
 ### 3. `app.js` & `styles.css` (Die Bühne)
 Der App-Controller und das UI. Steuert den State, bindet DOM-Events an die Klassen an und sorgt für das moderne, glasartige (Glassmorphism) Interface. Das Studio nutzt derzeit den UTF-8-Standard des Kerns und bietet keine Auswahl der Kodierung an. Wenn ein Center-Logo vorhanden ist, fordert die App das Fehlerkorrektur-Level H an; dies ist App-Verhalten und keine automatische Regel innerhalb von `QrCore`.
