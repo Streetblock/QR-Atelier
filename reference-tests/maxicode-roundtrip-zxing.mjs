@@ -39,3 +39,19 @@ test('ZXing decodes MaxiCode modes 2 through 5', () => {
     assert.equal(decoded.getECLevel(), String(options.mode), `mode ${options.mode}`)
   }
 })
+
+test('ZXing decodes optimally compacted numeric and mixed-set payloads', () => {
+  const cases = [
+    { data: '1'.repeat(138), options: { mode: 4 } },
+    { data: '1'.repeat(113), options: { mode: 5 } },
+    { data: 'aBCd123456789efGHI987654321j', options: { mode: 4 } },
+    { data: 'ÀÁÂÃÄÅÆÇÈÉàáâãäåæçèé', options: { mode: 4 } },
+    { data: '\x00\x01\x02\x03\x04\x05', options: { mode: 4, preserveControls: true } },
+  ]
+
+  for (const { data, options } of cases) {
+    const generated = new MaxiCodeCore(data, options).generate()
+    const decoded = new MaxiCodeDecoder().decode(toBitMatrix(generated.modules))
+    assert.equal(decoded.getText(), data, `mode ${options.mode}`)
+  }
+})

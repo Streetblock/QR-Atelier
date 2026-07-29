@@ -38,32 +38,18 @@ const CONTROL = {
   SHIFT_3_A: '\uFFF6',
 }
 
-const PAD_CODEWORD = CHARSET_MAPS[0].get(CONTROL.PAD)
 const LATCH_TO_SET = {
   0: CONTROL.LATCH_A,
   1: CONTROL.LATCH_B,
 }
 
-const SHIFT_TO_SET = {
+const SET_TO_SHIFT = {
   0: CONTROL.SHIFT_A,
   1: CONTROL.SHIFT_B,
   2: CONTROL.SHIFT_C,
   3: CONTROL.SHIFT_D,
   4: CONTROL.SHIFT_E,
 }
-
-const SHIFT_CODEWORD_MAP = new Map([
-  [CONTROL.SHIFT_A, CHARSET_MAPS[1].get(CONTROL.SHIFT_A)],
-  [CONTROL.SHIFT_B, CHARSET_MAPS[0].get(CONTROL.SHIFT_B)],
-  [CONTROL.SHIFT_C, CHARSET_MAPS[0].get(CONTROL.SHIFT_C)],
-  [CONTROL.SHIFT_D, CHARSET_MAPS[0].get(CONTROL.SHIFT_D)],
-  [CONTROL.SHIFT_E, CHARSET_MAPS[0].get(CONTROL.SHIFT_E)],
-  [CONTROL.LATCH_A, CHARSET_MAPS[1].get(CONTROL.LATCH_A)],
-  [CONTROL.LATCH_B, CHARSET_MAPS[0].get(CONTROL.LATCH_B)],
-  [CONTROL.LATCH_LOCK, CHARSET_MAPS[1].get(CONTROL.LATCH_LOCK)],
-  [CONTROL.SHIFT_2_A, CHARSET_MAPS[1].get(CONTROL.SHIFT_2_A)],
-  [CONTROL.SHIFT_3_A, CHARSET_MAPS[1].get(CONTROL.SHIFT_3_A)],
-])
 
 const MESSAGE_LENGTH = 93
 const ENHANCED_EC_MESSAGE_LENGTH = 77
@@ -126,65 +112,133 @@ export class MaxiCodeCore {
         .replace(/\r/g, '\n')
         .replace(/\n/g, ' ')
 
-    const codewords = []
-    let currentSet = 0
-
-    for (const rawChar of normalized) {
-      const char = !this.options.preserveControls && rawChar === '\t' ? ' ' : rawChar
-      const direct = CHARSET_MAPS[currentSet].get(char)
-      if (direct !== undefined) {
-        codewords.push(direct)
-        continue
-      }
-
-      const alternativeSet = this.#findSetForChar(char)
-      if (alternativeSet === -1) {
-        throw new Error(`MaxiCode cannot encode character: ${JSON.stringify(char)}`)
-      }
-
-      if (alternativeSet === 0 || alternativeSet === 1) {
-        const latch = LATCH_TO_SET[alternativeSet]
-        if (!latch) {
-          throw new Error(`MaxiCode cannot latch to set ${alternativeSet}.`)
-        }
-        codewords.push(this.#codewordForControl(currentSet, latch))
-        currentSet = alternativeSet
-        const index = CHARSET_MAPS[currentSet].get(char)
-        if (index === undefined) {
-          throw new Error(`MaxiCode cannot encode character: ${JSON.stringify(char)}`)
-        }
-        codewords.push(index)
-        continue
-      }
-
-      const shift = SHIFT_TO_SET[alternativeSet]
-      if (!shift) {
-        throw new Error(`MaxiCode cannot shift to set ${alternativeSet}.`)
-      }
-      codewords.push(this.#codewordForControl(currentSet, shift))
-      const shiftedIndex = CHARSET_MAPS[alternativeSet].get(char)
-      if (shiftedIndex === undefined) {
-        throw new Error(`MaxiCode cannot encode character: ${JSON.stringify(char)}`)
-      }
-      codewords.push(shiftedIndex)
-    }
+    const characters = Array.from(normalized, (char) => !this.options.preserveControls && char === '\t' ? ' ' : char)
+    const { codewords, finalSet } = this.#segmentMessage(characters)
 
     if (codewords.length > maximumLength) {
       throw new Error(`MaxiCode mode ${mode} supports up to ${maximumLength} codewords of message data.`)
     }
 
+    let paddingSet = finalSet
+    if (!CHARSET_MAPS[paddingSet].has(CONTROL.PAD) && codewords.length < maximumLength) {
+      codewords.push(...this.#latchSequence(paddingSet, 0))
+      paddingSet = 0
+    }
+    if (codewords.length > maximumLength) {
+      throw new Error(`MaxiCode mode ${mode} supports up to ${maximumLength} codewords of message data.`)
+    }
+
+    const padCodeword = CHARSET_MAPS[paddingSet].get(CONTROL.PAD)
     while (codewords.length < maximumLength) {
-      codewords.push(PAD_CODEWORD)
+      codewords.push(padCodeword)
     }
 
     return codewords
   }
 
-  #findSetForChar(char) {
-    for (let set = 0; set < CHARSET_MAPS.length; set += 1) {
-      if (CHARSET_MAPS[set].has(char)) return set
+  #segmentMessage(characters) {
+    const paths = Array.from({ length: characters.length + 1 }, () => Array(CHARSET_MAPS.length).fill(null))
+    paths[0][0] = []
+
+    const update = (position, set, candidate) => {
+      const current = paths[position][set]
+      if (current === null || candidate.length < current.length) paths[position][set] = candidate
     }
-    return -1
+
+    for (let position = 0; position < characters.length; position += 1) {
+      for (let currentSet = 0; currentSet < CHARSET_MAPS.length; currentSet += 1) {
+        const path = paths[position][currentSet]
+        if (path === null) continue
+
+        if (this.#hasNineDigits(characters, position)) {
+          update(position + 9, currentSet, [...path, ...this.#numericCodewords(characters, position, currentSet)])
+        }
+
+        const char = characters[position]
+        for (let targetSet = 0; targetSet < CHARSET_MAPS.length; targetSet += 1) {
+          const charCodeword = CHARSET_MAPS[targetSet].get(char)
+          if (charCodeword === undefined) continue
+
+          if (targetSet === currentSet) {
+            update(position + 1, currentSet, [...path, charCodeword])
+          } else {
+            update(position + 1, targetSet, [
+              ...path,
+              ...this.#latchSequence(currentSet, targetSet),
+              charCodeword,
+            ])
+            const shift = SET_TO_SHIFT[targetSet]
+            if (shift && CHARSET_MAPS[currentSet].has(shift)) {
+              update(position + 1, currentSet, [
+                ...path,
+                this.#codewordForControl(currentSet, shift),
+                charCodeword,
+              ])
+            }
+          }
+        }
+
+        if (currentSet === 1) {
+          for (const length of [2, 3]) {
+            const chars = characters.slice(position, position + length)
+            if (chars.length !== length || chars.some((item) => !CHARSET_MAPS[0].has(item))) continue
+            const control = length === 2 ? CONTROL.SHIFT_2_A : CONTROL.SHIFT_3_A
+            update(position + length, currentSet, [
+              ...path,
+              this.#codewordForControl(currentSet, control),
+              ...chars.map((item) => CHARSET_MAPS[0].get(item)),
+            ])
+          }
+        }
+      }
+    }
+
+    let best = null
+    let finalSet = 0
+    for (let set = 0; set < CHARSET_MAPS.length; set += 1) {
+      const path = paths[characters.length][set]
+      if (path !== null && (best === null || path.length < best.length)) {
+        best = path
+        finalSet = set
+      }
+    }
+    if (best === null) {
+      const unsupported = characters.find((char) => !CHARSET_MAPS.some((map) => map.has(char)))
+      throw new Error(`MaxiCode cannot encode character: ${JSON.stringify(unsupported)}`)
+    }
+    return { codewords: best, finalSet }
+  }
+
+  #hasNineDigits(characters, position) {
+    if (position + 9 > characters.length) return false
+    for (let index = position; index < position + 9; index += 1) {
+      if (!/^[0-9]$/.test(characters[index])) return false
+    }
+    return true
+  }
+
+  #numericCodewords(characters, position, currentSet) {
+    const value = Number(characters.slice(position, position + 9).join(''))
+    return [
+      this.#codewordForControl(currentSet, CONTROL.NS),
+      (value >>> 24) & 0x3f,
+      (value >>> 18) & 0x3f,
+      (value >>> 12) & 0x3f,
+      (value >>> 6) & 0x3f,
+      value & 0x3f,
+    ]
+  }
+
+  #latchSequence(currentSet, targetSet) {
+    if (currentSet === targetSet) return []
+    if (targetSet === 0 || targetSet === 1) {
+      return [this.#codewordForControl(currentSet, LATCH_TO_SET[targetSet])]
+    }
+    const shift = SET_TO_SHIFT[targetSet]
+    return [
+      this.#codewordForControl(currentSet, shift),
+      this.#codewordForControl(targetSet, CONTROL.LATCH_LOCK),
+    ]
   }
 
   #codewordForControl(currentSet, controlChar) {
