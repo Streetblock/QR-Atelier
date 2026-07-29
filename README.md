@@ -15,7 +15,7 @@ A minimalist, performant, and **completely dependency-free** QR code generator. 
 * **Zero Dependencies:** No `npm`, no Webpack, no framework. Just pure ES6 Vanilla JavaScript, modern HTML, and CSS.
 * **Live Preview:** The QR code is instantly and efficiently re-rendered on every input (URL/text, colors, styles) thanks to built-in debouncing.
 * **In-depth Styling:** Choose between various dot styles (Rounded, Classy, Diamond, etc.), finder shapes, and create smooth SVG color gradients.
-* **Center Logo Support:** Upload your own logo. The system automatically switches to error correction level 'H' (High) in the background to guarantee readability.
+* **Center Logo Support:** Upload your own logo. The studio app automatically switches to error correction level H in the background.
 * **Local Export:** Direct download of the result as a vector (`SVG`) or raster image (`PNG` up to 2048x2048px).
 * **URL Parameters:** Populate the studio directly via URL parameters: `?url=https://your-link.com`.
 
@@ -25,19 +25,22 @@ A minimalist, performant, and **completely dependency-free** QR code generator. 
 
 The project is highly modular and demonstrates how far you can get with two dedicated, small plain-JS classes:
 
-### 1. `QrCore.js` (The Left Brain)
+### 1. `QRcore.js` (The Left Brain)
 The mathematical core. Generates the matrix database of the QR code.
 * Creates codewords via Reed-Solomon error correction.
+* Supports Numeric, Alphanumeric, and Byte mode plus ECI for UTF-8, ISO-8859-1, and Windows-1252. QR Kanji mode is not currently supported.
+* Uses UTF-8 as the default Byte-mode encoding; library consumers can select another supported encoding through `QrCore` options.
+* Automatically selects a bit-efficient combination of Numeric, Alphanumeric, and Byte segments for each QR version range.
 * Automatically selects the best mask pattern.
-* Supports version 1 through 10 (Byte-Mode) for compact to medium-length URLs.
+* Supports QR versions 1 through 40.
 
-### 2. `QrSvg.js` (The Right Brain)
+### 2. `QRsvg.js` (The Right Brain)
 The SVG renderer. Takes the raw matrix from `QrCore` and turns it into visual art.
 * Calculates complex SVG paths for rounded corners and special "Classy" styles.
 * Draws finder patterns, places logos, and applies defined gradients.
 
 ### 3. `app.js` & `styles.css` (The Stage)
-The app controller and UI. Manages state, binds DOM events to the classes, and provides the modern, glassmorphism interface.
+The app controller and UI. Manages state, binds DOM events to the classes, and provides the modern, glassmorphism interface. The studio currently uses the core's UTF-8 default and does not expose an encoding selector. When a center logo is present, the app requests error correction level H; this is app behavior, not an automatic rule inside `QrCore`.
 
 ---
 
@@ -72,16 +75,16 @@ QR-Atelier/
 ├── index.html       # The markup (UI)
 ├── styles.css       # The styling (Custom Properties, Gradients)
 ├── app.js           # Main App Controller (DOM Events, State, Downloads)
-└── lib/
-    ├── QrCore.js    # Logic Module: Generates the raw QR Matrix
-    └── QrSvg.js     # Render Module: Translates the matrix into SVG paths
+└── libs/
+    ├── QRcore.js    # Logic Module: Generates the raw QR Matrix
+    └── QRsvg.js     # Render Module: Translates the matrix into SVG paths
 ```
 
 ---
 
 ## 🤝 Contributing
 
-Do you have ideas for new dot styles, want to add support for higher QR versions (11-40) in `QrCore.js`, or want to improve the interface? 
+Do you have ideas for new dot styles, broader QR support, or want to improve the interface?
 Pull Requests are highly welcome!
 
 1. Fork the project
