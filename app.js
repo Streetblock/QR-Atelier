@@ -1,5 +1,7 @@
 import { QrCore } from './libs/QRcore.js'
 import { QrSvgRenderer } from './libs/QRsvg.js'
+import { DmCore } from './libs/DMcore.js'
+import { DmSvgRenderer } from './libs/DMsvg.js'
 
 class QRPlaygroundApp {
   constructor() {
