@@ -1,7 +1,4 @@
-import { QrCore } from './libs/QRcore.js'
-import { QrSvgRenderer } from './libs/QRsvg.js'
-import { AztecCore } from './libs/AztecCore.js'
-import { AztecSvgRenderer } from './libs/AztecSvg.js'
+import { formatRegistry } from './formats/index.js'
 
 class QRPlaygroundApp {
   constructor() {
@@ -21,18 +18,20 @@ class QRPlaygroundApp {
         wifiSsid: '',
         wifiPassword: '',
         wifiHidden: false,
+        ...formatRegistry.defaults(),
       },
       currentSvg: '',
     }
 
     this.isDownloading = false
     this.debounceTimer = null
-
+    this.renderedFormatId = null
     this.ui = {
       container: document.getElementById('qr-preview'),
       placeholder: document.getElementById('qr-placeholder'),
       downloadButtons: document.getElementById('download-buttons'),
       format: document.getElementById('code-format'),
+      formatOptions: document.getElementById('format-options'),
       contentMode: document.getElementById('content-mode'),
       primaryInput: document.getElementById('primary-input'),
       primaryInputLabel: document.getElementById('primary-input-label'),
@@ -62,9 +61,21 @@ class QRPlaygroundApp {
   }
 
   #init() {
+    this.#populateFormatSelect()
     this.#bindEvents()
     this.#parseUrlParams()
-    this.#syncFormatUi()
+    this.#syncUi()
+  }
+
+  #populateFormatSelect() {
+    this.ui.format.replaceChildren()
+    for (const format of formatRegistry.list()) {
+      const option = document.createElement('option')
+      option.value = format.id
+      option.textContent = format.label
+      this.ui.format.appendChild(option)
+    }
+    this.ui.format.value = this.state.options.format
   }
 
   #bindEvents() {
@@ -73,31 +84,26 @@ class QRPlaygroundApp {
       this.debounceTimer = setTimeout(() => {
         if (this.state.options.contentMode === 'wifi') {
           this.update({ wifiSsid: this.ui.primaryInput.value.trim() })
-        } else {
-          this.update({ data: this.ui.primaryInput.value.trim() })
+          return
         }
+        const format = formatRegistry.get(this.state.options.format)
+        const preserveWhitespace = format.preserveWhitespace?.(this.state.options) ?? false
+        this.update({ data: preserveWhitespace ? this.ui.primaryInput.value : this.ui.primaryInput.value.trim() })
       }, 180)
     })
 
-    if (this.ui.format) {
-      this.ui.format.addEventListener('change', (e) => this.update({ format: e.target.value }))
-    }
-    if (this.ui.contentMode) {
-      this.ui.contentMode.addEventListener('change', (e) => this.update({ contentMode: e.target.value }))
-    }
-    this.ui.dotShape.addEventListener('change', (e) => this.update({ dotStyle: e.target.value }))
-    this.ui.cornerShape.addEventListener('change', (e) => this.update({ cornerStyle: e.target.value }))
-    if (this.ui.wifiAuth) this.ui.wifiAuth.addEventListener('change', (e) => this.update({ wifiAuth: e.target.value }))
-    if (this.ui.wifiPassword) this.ui.wifiPassword.addEventListener('input', (e) => this.update({ wifiPassword: e.target.value }))
-    if (this.ui.wifiHidden) this.ui.wifiHidden.addEventListener('change', (e) => this.update({ wifiHidden: e.target.checked }))
+    this.ui.format.addEventListener('change', (event) => this.update({ format: event.target.value }))
+    this.ui.contentMode.addEventListener('change', (event) => this.update({ contentMode: event.target.value }))
+    this.ui.dotShape.addEventListener('change', (event) => this.update({ dotStyle: event.target.value }))
+    this.ui.cornerShape.addEventListener('change', (event) => this.update({ cornerStyle: event.target.value }))
+    this.ui.wifiAuth.addEventListener('change', (event) => this.update({ wifiAuth: event.target.value }))
+    this.ui.wifiPassword.addEventListener('input', (event) => this.update({ wifiPassword: event.target.value }))
+    this.ui.wifiHidden.addEventListener('change', (event) => this.update({ wifiHidden: event.target.checked }))
 
     const onColorChange = () => {
       this.ui.colorStartHex.textContent = this.ui.colorStart.value
       this.ui.colorEndHex.textContent = this.ui.colorEnd.value
-      this.update({
-        colorStart: this.ui.colorStart.value,
-        colorEnd: this.ui.colorEnd.value,
-      })
+      this.update({ colorStart: this.ui.colorStart.value, colorEnd: this.ui.colorEnd.value })
     }
     this.ui.colorStart.addEventListener('input', onColorChange)
     this.ui.colorEnd.addEventListener('input', onColorChange)
@@ -128,8 +134,7 @@ class QRPlaygroundApp {
   }
 
   #parseUrlParams() {
-    const params = new URLSearchParams(window.location.search)
-    const paramUrl = params.get('url')
+    const paramUrl = new URLSearchParams(window.location.search).get('url')
     if (!paramUrl) return
     this.ui.primaryInput.value = paramUrl
     this.ui.primaryInput.dispatchEvent(new Event('input'))
@@ -138,10 +143,9 @@ class QRPlaygroundApp {
   update(newOptions = {}) {
     this.state.options = { ...this.state.options, ...newOptions }
     if (newOptions.data !== undefined) this.state.data = newOptions.data
-    this.#syncFormatUi()
+    this.#syncUi()
 
     const payload = this.#buildPayload()
-
     if (!payload) {
       this.ui.container.innerHTML = ''
       this.ui.container.appendChild(this.ui.placeholder)
@@ -153,7 +157,6 @@ class QRPlaygroundApp {
 
     this.ui.placeholder.classList.add('hidden')
     this.ui.downloadButtons.classList.remove('hidden')
-
     try {
       const renderer = this.#createRenderer(300)
       this.state.currentSvg = renderer.render()
@@ -169,7 +172,7 @@ class QRPlaygroundApp {
   }
 
   hasCode() {
-    return !!this.state.currentSvg
+    return Boolean(this.state.currentSvg)
   }
 
   async #downloadSVG() {
@@ -177,8 +180,7 @@ class QRPlaygroundApp {
     this.isDownloading = true
     try {
       const size = this.getDownloadSize()
-      const renderer = this.#createRenderer(size)
-      const svg = renderer.render()
+      const svg = this.#createRenderer(size).render()
       const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
       this.#triggerBlobDownload(blob, this.#buildDownloadFilename('svg', size))
     } finally {
@@ -191,8 +193,7 @@ class QRPlaygroundApp {
     this.isDownloading = true
     try {
       const size = this.getDownloadSize()
-      const renderer = this.#createRenderer(size)
-      const svg = renderer.render()
+      const svg = this.#createRenderer(size).render()
       const blob = await this.#svgToPngBlob(svg, size)
       this.#triggerBlobDownload(blob, this.#buildDownloadFilename('png', size))
     } catch (error) {
@@ -204,118 +205,159 @@ class QRPlaygroundApp {
   }
 
   #createRenderer(size) {
-    const payload = this.#buildPayload()
-    const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
-    const qr = new QrCore(payload, { errorCorrectionLevel: ecl }).generate()
-    return new QrSvgRenderer(qr, { size, ...this.state.options })
+    return formatRegistry.createRenderer(this.state.options.format, {
+      payload: this.#buildPayload(),
+      size,
+      options: this.state.options,
+    })
   }
 
-  #syncFormatUi() {
-    if (!['qr'].includes(this.state.options.format)) {
-      this.state.options.format = 'qr'
-    }
-    if (!['text', 'wifi'].includes(this.state.options.contentMode)) {
-      this.state.options.contentMode = 'text'
-    }
-    if (this.ui.format) this.ui.format.value = this.state.options.format
-    if (this.ui.contentMode) this.ui.contentMode.value = this.state.options.contentMode
+  #syncUi() {
+    if (!formatRegistry.has(this.state.options.format)) this.state.options.format = 'qr'
+    if (!['text', 'wifi'].includes(this.state.options.contentMode)) this.state.options.contentMode = 'text'
 
+    const format = formatRegistry.get(this.state.options.format)
     const isWifi = this.state.options.contentMode === 'wifi'
+    this.ui.format.value = format.id
+    this.ui.contentMode.value = this.state.options.contentMode
 
-    if (this.ui.dotShape) this.ui.dotShape.disabled = false
-    if (this.ui.cornerShape) this.ui.cornerShape.disabled = false
-    if (this.ui.logoUpload) this.ui.logoUpload.disabled = false
-    if (this.ui.clearLogoBtn) this.ui.clearLogoBtn.disabled = false
-    if (this.ui.wifiPassword) this.ui.wifiPassword.disabled = isWifi && this.state.options.wifiAuth === 'nopass'
+    this.#syncCapabilityField(this.ui.dotShape, this.ui.dotShapeField, format.capabilities.dotStyle)
+    this.#syncCapabilityField(this.ui.cornerShape, this.ui.cornerShapeField, format.capabilities.cornerStyle)
+    this.#syncCapabilityField(this.ui.logoUpload, this.ui.logoUploadField, format.capabilities.logo)
+    this.ui.clearLogoBtn.disabled = !format.capabilities.logo
+    this.ui.wifiPassword.disabled = isWifi && this.state.options.wifiAuth === 'nopass'
+    this.#setVisible(this.ui.wifiSection, isWifi)
 
-    if (this.ui.dotShapeField) this.ui.dotShapeField.classList.remove('hidden')
-    if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.remove('hidden')
-    if (this.ui.logoUploadField) this.ui.logoUploadField.classList.remove('hidden')
-    if (this.ui.wifiSection) {
-      this.ui.wifiSection.hidden = !isWifi
-      this.ui.wifiSection.classList.toggle('hidden', !isWifi)
-      this.ui.wifiSection.style.display = isWifi ? '' : 'none'
-    }
+    if (this.renderedFormatId !== format.id) this.#renderFormatOptions(format)
+    this.#syncFormatOptions(format)
 
-    if (this.ui.primaryInputField) {
-      this.ui.primaryInputField.hidden = false
-      this.ui.primaryInputField.classList.remove('hidden')
-      this.ui.primaryInputField.style.display = ''
-    }
-    if (this.ui.primaryInputLabel) {
-      this.ui.primaryInputLabel.textContent = isWifi ? 'SSID' : 'URL oder Text'
-    }
-    if (this.ui.primaryInput) {
-      this.ui.primaryInput.placeholder = isWifi ? 'Mein WLAN' : 'https://example.com'
+    this.ui.primaryInputLabel.textContent = isWifi
+      ? 'SSID'
+      : resolve(format.inputLabel, this.state.options, 'URL oder Text')
+    this.ui.primaryInput.placeholder = isWifi
+      ? 'Mein WLAN'
+      : resolve(format.inputPlaceholder, this.state.options, 'https://example.com')
+    if (document.activeElement !== this.ui.primaryInput) {
       this.ui.primaryInput.value = isWifi ? (this.state.options.wifiSsid || '') : this.state.data
-      this.ui.primaryInput.autocomplete = 'off'
     }
+    this.ui.primaryInput.autocomplete = 'off'
+
+    if (!format.capabilities.logo && this.state.options.logo) {
+      this.state.options.logo = null
+      this.ui.logoUpload.value = ''
+      this.ui.logoStatus.textContent = `Logo deaktiviert fuer ${format.label}.`
+    } else if (format.capabilities.logo && this.ui.logoStatus.textContent.startsWith('Logo deaktiviert fuer')) {
+      this.ui.logoStatus.textContent = 'Kein Logo geladen.'
+    }
+  }
+
+  #syncCapabilityField(control, wrapper, enabled) {
+    control.disabled = !enabled
+    this.#setVisible(wrapper, enabled)
+  }
+
+  #renderFormatOptions(format) {
+    this.ui.formatOptions.replaceChildren()
+    for (const field of format.fields) {
+      const wrapper = document.createElement('div')
+      wrapper.className = `field${field.wide ? ' field-wide' : ''}`
+      wrapper.dataset.formatField = field.key
+
+      const label = document.createElement('label')
+      const id = `format-option-${format.id}-${field.key}`
+      label.className = 'field-label'
+      label.htmlFor = id
+      wrapper.appendChild(label)
+
+      const control = field.type === 'select' ? document.createElement('select') : document.createElement('input')
+      control.id = id
+      control.className = field.type === 'select' ? 'select-input' : 'text-input'
+      control.dataset.formatOption = field.key
+      if (field.type === 'select') {
+        for (const [value, optionLabel] of field.options) {
+          const option = document.createElement('option')
+          option.value = value
+          option.textContent = optionLabel
+          control.appendChild(option)
+        }
+      } else {
+        control.type = field.type ?? 'text'
+        for (const [name, value] of Object.entries(field.attributes ?? {})) control.setAttribute(name, value)
+      }
+      const eventName = field.event ?? (field.type === 'select' ? 'change' : 'input')
+      control.addEventListener(eventName, (event) => {
+        const value = field.normalize ? field.normalize(event.target.value) : event.target.value
+        const patch = field.update ? field.update(value, this.state.options) : { [field.key]: value }
+        this.update(patch)
+      })
+      wrapper.appendChild(control)
+
+      if (field.hint) {
+        const hint = document.createElement('span')
+        hint.className = 'field-hint'
+        hint.textContent = field.hint
+        wrapper.appendChild(hint)
+      }
+      this.ui.formatOptions.appendChild(wrapper)
+    }
+    this.renderedFormatId = format.id
+  }
+
+  #syncFormatOptions(format) {
+    for (const field of format.fields) {
+      const wrapper = this.ui.formatOptions.querySelector(`[data-format-field="${field.key}"]`)
+      const control = wrapper.querySelector(`[data-format-option="${field.key}"]`)
+      const label = wrapper.querySelector('label')
+      label.textContent = resolve(field.label, this.state.options, field.key)
+      control.placeholder = resolve(field.placeholder, this.state.options, '')
+      if (document.activeElement !== control) control.value = this.state.options[field.key] ?? ''
+      this.#setVisible(wrapper, field.visible ? field.visible(this.state.options) : true)
+    }
+  }
+
+  #setVisible(element, visible) {
+    element.hidden = !visible
+    element.classList.toggle('hidden', !visible)
+    element.style.display = visible ? '' : 'none'
   }
 
   #buildPayload() {
-    if (this.state.options.contentMode === 'wifi') {
-      return this.#buildWifiPayload()
-    }
-    return this.state.data
-  }
-
-  #filePrefix() {
-    return this.state.options.contentMode === 'wifi' ? 'wifi-qr' : 'qr-code'
+    const rawPayload = this.state.options.contentMode === 'wifi' ? this.#buildWifiPayload() : this.state.data
+    return formatRegistry.preparePayload(this.state.options.format, rawPayload, this.state.options)
   }
 
   #buildDownloadFilename(extension, size) {
-    const prefix = this.#filePrefix()
-    const dataHint = this.#dataHint()
-    const timestamp = this.#timestampForFilename()
-    return `${prefix}-${dataHint}-${size}-${timestamp}.${extension}`
+    const format = formatRegistry.get(this.state.options.format)
+    const prefix = this.state.options.contentMode === 'wifi' ? `wifi-${format.filePrefix}` : format.filePrefix
+    return `${prefix}-${this.#dataHint()}-${size}-${this.#timestampForFilename()}.${extension}`
   }
 
   #dataHint() {
     const source = this.state.options.contentMode === 'wifi' ? this.state.options.wifiSsid : this.state.data
-    const raw = (source || '').trim().replace(/^https?:\/\//i, '')
-    const ascii = raw
+    const ascii = (source || '')
+      .trim()
+      .replace(/^https?:\/\//i, '')
       .normalize('NFKD')
       .replace(/[^\x00-\x7F]/g, '')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
-
     return (ascii || 'code').slice(0, 32)
   }
 
   #timestampForFilename() {
     const now = new Date()
     const pad = (value) => String(value).padStart(2, '0')
-    const year = now.getFullYear()
-    const month = pad(now.getMonth() + 1)
-    const day = pad(now.getDate())
-    const hours = pad(now.getHours())
-    const minutes = pad(now.getMinutes())
-    const seconds = pad(now.getSeconds())
-    return `${year}${month}${day}-${hours}${minutes}${seconds}`
+    return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
   }
 
   #buildWifiPayload() {
     const ssid = (this.state.options.wifiSsid || '').trim()
     if (!ssid) return ''
-
     const auth = this.state.options.wifiAuth || 'WPA'
-    const password = this.state.options.wifiPassword || ''
-    const hidden = !!this.state.options.wifiHidden
-    const segments = [
-      'WIFI:',
-      `T:${auth};`,
-      `S:${this.#escapeWifiValue(ssid)};`,
-    ]
-
-    if (auth !== 'nopass') {
-      segments.push(`P:${this.#escapeWifiValue(password)};`)
-    }
-
-    if (hidden) {
-      segments.push('H:true;')
-    }
-
+    const segments = ['WIFI:', `T:${auth};`, `S:${this.#escapeWifiValue(ssid)};`]
+    if (auth !== 'nopass') segments.push(`P:${this.#escapeWifiValue(this.state.options.wifiPassword || '')};`)
+    if (this.state.options.wifiHidden) segments.push('H:true;')
     segments.push(';')
     return segments.join('')
   }
@@ -362,6 +404,11 @@ class QRPlaygroundApp {
       image.src = url
     })
   }
+}
+
+function resolve(value, options, fallback) {
+  if (typeof value === 'function') return value(options)
+  return value ?? fallback
 }
 
 document.addEventListener('DOMContentLoaded', () => {
