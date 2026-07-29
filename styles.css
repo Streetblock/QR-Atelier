@@ -350,6 +350,7 @@ body::before {
 .field {
   display: grid;
   gap: 10px;
+  align-content: start;
 }
 
 .field-wide {
