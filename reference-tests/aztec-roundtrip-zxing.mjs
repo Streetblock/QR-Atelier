@@ -19,25 +19,7 @@ function matrixToLuminance(modules, quietZone = 8, moduleSize = 6) {
   return { luminance, width: side, height: side }
 }
 
-test('zxing library is installed for aztec integration checks', async (t) => {
-  let zxing
-  try {
-    zxing = await import('@zxing/library')
-  } catch {
-    t.skip('@zxing/library not installed')
-    return
-  }
-  assert.ok(zxing)
-})
-
-test('aztec roundtrip decodes with zxing for multiple payloads', async (t) => {
-  let zxing
-  try {
-    zxing = await import('@zxing/library')
-  } catch {
-    t.skip('@zxing/library not installed')
-    return
-  }
+test('aztec roundtrip decodes with zxing for multiple payloads', async () => {
   const {
     MultiFormatReader,
     BarcodeFormat,
@@ -45,7 +27,7 @@ test('aztec roundtrip decodes with zxing for multiple payloads', async (t) => {
     BinaryBitmap,
     HybridBinarizer,
     RGBLuminanceSource,
-  } = zxing
+  } = await import('@zxing/library')
 
   const hints = new Map()
   hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.AZTEC])

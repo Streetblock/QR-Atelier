@@ -1,26 +1,13 @@
 {
-  "name": "qrcodegen",
-  "version": "1.0.0",
-  "description": "A zero-dependency barcode atelier for QR Code and related 2D barcode work.",
-  "main": "app.js",
-  "directories": {
-    "test": "tests"
-  },
-  "scripts": {
-    "test": "node --test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Streetblock/QR-Atelier.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "name": "qr-atelier",
+  "version": "0.1.0",
+  "private": true,
   "type": "module",
-  "bugs": {
-    "url": "https://github.com/Streetblock/QR-Atelier/issues"
+  "description": "A zero-dependency barcode atelier for QR Code and related 2D barcode work.",
+  "scripts": {
+    "test": "node --test",
+    "test:reference": "node --test reference-tests/aztec-roundtrip-zxing.mjs"
   },
-  "homepage": "https://github.com/Streetblock/QR-Atelier#readme",
   "devDependencies": {
     "@zxing/library": "^0.23.0"
   }
