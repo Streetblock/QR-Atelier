@@ -5,8 +5,9 @@ import { fileURLToPath } from 'node:url'
 import { FormatRegistry } from '../formats/FormatRegistry.js'
 import { formatRegistry } from '../formats/index.js'
 
-test('registers QR as the base format with its UI capabilities', () => {
-  assert.equal(formatRegistry.has('qr'), true)
+test('registers QR, Aztec and MaxiCode with isolated defaults and capabilities', () => {
+  assert.deepEqual(formatRegistry.list().map((format) => format.id), ['qr', 'aztec', 'maxi-code'])
+  assert.equal(formatRegistry.defaults().aztecStyle, 'square')
   assert.deepEqual(formatRegistry.get('qr').capabilities, {
     dotStyle: true,
     cornerStyle: true,
@@ -43,6 +44,13 @@ test('creates renderable QR SVG output through the registry interface', () => {
     options,
   })
   assert.match(renderer.render(), /^<svg\b/)
+
+  const aztecRenderer = formatRegistry.createRenderer('aztec', {
+    payload: 'ABC123',
+    size: 256,
+    options,
+  })
+  assert.match(aztecRenderer.render(), /^<svg\b/)
 })
 
 test('keeps encoder imports and format controls outside the shared app shell', () => {
