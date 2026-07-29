@@ -189,8 +189,13 @@ export class QrCore {
       throw new Error('minVersion must be less than or equal to maxVersion.')
     }
 
-    const segmentCandidates = createSegmentCandidates(this.data, this.options)
-    const { version, segments } = this.#chooseVersion(segmentCandidates, errorCorrectionLevel, minVersion, maxVersion)
+    const { version, segments } = this.#chooseVersion(
+      this.data,
+      this.options,
+      errorCorrectionLevel,
+      minVersion,
+      maxVersion,
+    )
     const modules = this.#buildMatrix(segments, version, errorCorrectionLevel, this.options.mask)
 
     return {
@@ -220,9 +225,16 @@ export class QrCore {
     return numeric
   }
 
-  #chooseVersion(segmentCandidates, ecl, minVersion, maxVersion) {
+  #chooseVersion(data, options, ecl, minVersion, maxVersion) {
+    const candidatesByVersionGroup = new Map()
     for (let version = minVersion; version <= maxVersion; version += 1) {
       const dataCapacityBits = getDataCapacityBits(version, ecl)
+      const versionGroup = getVersionGroup(version)
+      let segmentCandidates = candidatesByVersionGroup.get(versionGroup)
+      if (!segmentCandidates) {
+        segmentCandidates = createSegmentCandidates(data, options, version)
+        candidatesByVersionGroup.set(versionGroup, segmentCandidates)
+      }
       const bestCandidate = segmentCandidates
         .map((segments) => ({ segments, neededBits: getSegmentsBitLength(segments, version) }))
         .sort((a, b) => a.neededBits - b.neededBits)[0]
@@ -348,7 +360,7 @@ function createCodewords(segments, version, ecl) {
   return codewords
 }
 
-function createSegmentCandidates(data, options = {}) {
+function createSegmentCandidates(data, options = {}, version = 1) {
   if (Array.isArray(options.segments) && options.segments.length > 0) {
     return [withEciSegments(normalizeSegments(options.segments), options)]
   }
@@ -360,41 +372,114 @@ function createSegmentCandidates(data, options = {}) {
     return [withEciSegments([createSegment(mode, data, { encoding })], options)]
   }
 
-  const autoSegments = createAutoSegments(data, encoding)
-  const byteSegments = [createSegment('byte', data, { encoding })]
-  if (autoSegments.length === 1 && autoSegments[0].mode === 'byte') {
-    return [withEciSegments(autoSegments, options)]
-  }
-  return [withEciSegments(autoSegments, options), withEciSegments(byteSegments, options)]
+  return [withEciSegments(createOptimalSegments(data, encoding, version), options)]
 }
 
-function createAutoSegments(data, encoding = DEFAULT_ENCODING) {
+function createOptimalSegments(data, encoding, version) {
   if (isNumeric(data)) {
     return [createSegment('numeric', data)]
   }
-  if (isAlphanumeric(data)) {
-    return [createSegment('alphanumeric', data)]
+
+  const characters = Array.from(data)
+  if (!characters.some((char) => isAlphanumeric(char))) {
+    return [createSegment('byte', data, { encoding })]
+  }
+
+  let states = new Map()
+
+  for (let index = 0; index < characters.length; index += 1) {
+    const char = characters[index]
+    const nextStates = new Map()
+    const supportedModes = getSupportedModes(char)
+
+    if (states.size === 0) {
+      for (const mode of supportedModes) {
+        addOptimalState(nextStates, startSegmentState(mode, char, encoding, version, index))
+      }
+    } else {
+      for (const state of states.values()) {
+        for (const mode of supportedModes) {
+          const nextState = mode === state.mode
+            ? continueSegmentState(state, char, encoding, index)
+            : startSegmentState(mode, char, encoding, version, index, state)
+          addOptimalState(nextStates, nextState)
+        }
+      }
+    }
+
+    states = nextStates
+  }
+
+  const bestState = [...states.values()].sort((a, b) => a.bitLength - b.bitLength)[0]
+  const modes = new Array(characters.length)
+  let state = bestState
+  while (state) {
+    modes[state.index] = state.mode
+    state = state.previous
   }
 
   const segments = []
-  let currentMode = null
-  let currentText = ''
-
-  for (const char of data) {
-    const nextMode = isAlphanumeric(char) ? 'alphanumeric' : 'byte'
-    if (nextMode !== currentMode && currentText) {
-      segments.push(createSegment(currentMode, currentText, { encoding }))
-      currentText = ''
+  let start = 0
+  for (let index = 1; index <= characters.length; index += 1) {
+    if (index === characters.length || modes[index] !== modes[start]) {
+      segments.push(createSegment(modes[start], characters.slice(start, index).join(''), { encoding }))
+      start = index
     }
-    currentMode = nextMode
-    currentText += char
   }
-
-  if (currentText) {
-    segments.push(createSegment(currentMode, currentText, { encoding }))
-  }
-
   return segments
+}
+
+function getSupportedModes(char) {
+  const modes = ['byte']
+  if (isAlphanumeric(char)) modes.unshift('alphanumeric')
+  if (isNumeric(char)) modes.unshift('numeric')
+  return modes
+}
+
+function startSegmentState(mode, char, encoding, version, index, previous = null) {
+  return {
+    mode,
+    remainder: getNextRemainder(mode, 0),
+    bitLength:
+      (previous?.bitLength ?? 0) +
+      4 +
+      getCharacterCountBits(mode, version) +
+      getCharacterDataIncrement(mode, 0, char, encoding),
+    index,
+    previous,
+  }
+}
+
+function continueSegmentState(previous, char, encoding, index) {
+  return {
+    mode: previous.mode,
+    remainder: getNextRemainder(previous.mode, previous.remainder),
+    bitLength:
+      previous.bitLength +
+      getCharacterDataIncrement(previous.mode, previous.remainder, char, encoding),
+    index,
+    previous,
+  }
+}
+
+function addOptimalState(states, candidate) {
+  const key = `${candidate.mode}:${candidate.remainder}`
+  const current = states.get(key)
+  if (!current || candidate.bitLength < current.bitLength) {
+    states.set(key, candidate)
+  }
+}
+
+function getNextRemainder(mode, remainder) {
+  if (mode === 'numeric') return (remainder + 1) % 3
+  if (mode === 'alphanumeric') return (remainder + 1) % 2
+  return 0
+}
+
+function getCharacterDataIncrement(mode, remainder, char, encoding) {
+  if (mode === 'numeric') return remainder === 0 ? 4 : 3
+  if (mode === 'alphanumeric') return remainder === 0 ? 6 : 5
+  return encodeText(char, encoding).length * 8
 }
 
 function normalizeSegments(segments) {
@@ -467,13 +552,17 @@ function getSegmentsBitLength(segments, version) {
 }
 
 function getCharacterCountBits(mode, version) {
-  const group = version < 10 ? 0 : version < 27 ? 1 : 2
+  const group = getVersionGroup(version)
   const bits = {
     numeric: [10, 12, 14],
     alphanumeric: [9, 11, 13],
     byte: [8, 16, 16],
   }
   return bits[mode][group]
+}
+
+function getVersionGroup(version) {
+  return version < 10 ? 0 : version < 27 ? 1 : 2
 }
 
 function getSegmentCharacterCount(segment) {
@@ -523,9 +612,14 @@ function withEciSegments(segments, options = {}) {
   }
 
   const result = []
-  let currentEncoding = null
+  let currentEncoding = 'iso-8859-1'
   for (const segment of segments) {
-    if (segment.mode === 'byte' && segment.encoding && segment.encoding !== currentEncoding) {
+    const needsEncodingSwitch =
+      segment.mode === 'byte' &&
+      segment.encoding &&
+      segment.bytes.some((value) => value > 0x7f) &&
+      segment.encoding !== currentEncoding
+    if (needsEncodingSwitch) {
       result.push(createEciSegment(segment.encoding))
       currentEncoding = segment.encoding
     }
