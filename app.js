@@ -1,5 +1,7 @@
 import { QrCore } from './libs/QRcore.js'
 import { QrSvgRenderer } from './libs/QRsvg.js'
+import { MaxiCodeCore } from './libs/MaxiCodeCore.js'
+import { MaxiCodeSvgRenderer } from './libs/MaxiCodeSvg.js'
 
 class QRPlaygroundApp {
   constructor() {
@@ -205,6 +207,15 @@ class QRPlaygroundApp {
 
   #createRenderer(size) {
     const payload = this.#buildPayload()
+    if (this.state.options.format === 'maxi-code') {
+      const maxi = new MaxiCodeCore(payload, { mode: 4 }).generate()
+      return new MaxiCodeSvgRenderer(maxi, {
+        size,
+        colorStart: this.state.options.colorStart,
+        colorEnd: this.state.options.colorEnd,
+      })
+    }
+
     const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
     const qr = new QrCore(payload, { errorCorrectionLevel: ecl }).generate()
     return new QrSvgRenderer(qr, { size, ...this.state.options })
@@ -243,10 +254,10 @@ class QRPlaygroundApp {
       this.ui.primaryInputField.style.display = ''
     }
     if (this.ui.primaryInputLabel) {
-      this.ui.primaryInputLabel.textContent = isWifi ? 'SSID' : 'URL oder Text'
+      this.ui.primaryInputLabel.textContent = isWifi ? 'SSID' : isMaxi ? 'Text' : 'URL oder Text'
     }
     if (this.ui.primaryInput) {
-      this.ui.primaryInput.placeholder = isWifi ? 'Mein WLAN' : 'https://example.com'
+      this.ui.primaryInput.placeholder = isWifi ? 'Mein WLAN' : isMaxi ? 'Kurzer Text' : 'https://example.com'
       this.ui.primaryInput.value = isWifi ? (this.state.options.wifiSsid || '') : this.state.data
       this.ui.primaryInput.autocomplete = 'off'
     }
