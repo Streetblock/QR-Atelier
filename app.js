@@ -1,5 +1,7 @@
 import { QrCore } from './libs/QRcore.js'
 import { QrSvgRenderer } from './libs/QRsvg.js'
+import { MicroQrCore } from './libs/MicroQRcore.js'
+import { MicroQrSvgRenderer } from './libs/MicroQRsvg.js'
 
 class QRPlaygroundApp {
   constructor() {
@@ -51,6 +53,12 @@ class QRPlaygroundApp {
       colorEnd: document.getElementById('color-end'),
       colorStartHex: document.getElementById('color-start-hex'),
       colorEndHex: document.getElementById('color-end-hex'),
+      microEcl: document.getElementById('micro-ecl'),
+      microMinVersion: document.getElementById('micro-min-version'),
+      microMaxVersion: document.getElementById('micro-max-version'),
+      microByteEncoding: document.getElementById('micro-byte-encoding'),
+      microPreferredMode: document.getElementById('micro-preferred-mode'),
+      microOptions: document.getElementById('micro-options'),
       btnSVG: document.getElementById('btn-download-svg'),
       btnPNG: document.getElementById('btn-download-png'),
     }
@@ -87,6 +95,12 @@ class QRPlaygroundApp {
     if (this.ui.wifiAuth) this.ui.wifiAuth.addEventListener('change', (e) => this.update({ wifiAuth: e.target.value }))
     if (this.ui.wifiPassword) this.ui.wifiPassword.addEventListener('input', (e) => this.update({ wifiPassword: e.target.value }))
     if (this.ui.wifiHidden) this.ui.wifiHidden.addEventListener('change', (e) => this.update({ wifiHidden: e.target.checked }))
+
+    this.ui.microEcl.addEventListener('change', (e) => this.update({ microErrorCorrectionLevel: e.target.value }))
+    this.ui.microMinVersion.addEventListener('change', (e) => this.update({ microMinVersion: e.target.value }))
+    this.ui.microMaxVersion.addEventListener('change', (e) => this.update({ microMaxVersion: e.target.value }))
+    this.ui.microByteEncoding.addEventListener('change', (e) => this.update({ microByteEncoding: e.target.value }))
+    this.ui.microPreferredMode.addEventListener('change', (e) => this.update({ microPreferredMode: e.target.value }))
 
     const onColorChange = () => {
       this.ui.colorStartHex.textContent = this.ui.colorStart.value
