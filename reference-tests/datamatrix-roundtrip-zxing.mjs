@@ -39,7 +39,7 @@ test('Data Matrix symbols roundtrip through the ZXing decoder', async () => {
     ['abcdefghijklmnopqrstuvwxyz', {}],
     ['ABC>123*XYZ', {}],
     ['^^^^^^^^^^^^', {}],
-    ['Grüße aus Köln', {}],
+    ['Grüße aus Köln', { encoding: 'iso-8859-1' }],
     ['A'.repeat(400), {}],
     ['A'.repeat(2300), {}],
   ]

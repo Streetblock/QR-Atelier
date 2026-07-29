@@ -7,8 +7,8 @@ const BASE256 = 5
 
 const SHIFT2 = new Set(Array.from('!"#$%&\'()*+,-./:;<=>?@[\\]^_').map((character) => character.charCodeAt(0)))
 
-export function encodeMinimalDataMatrix(data, capacities) {
-  const input = new DmInput(data, capacities)
+export function encodeMinimalDataMatrix(bytes, capacities, prefixCodewords = []) {
+  const input = new DmInput(bytes, capacities, prefixCodewords)
   const edges = Array.from({ length: input.length + 1 }, () => new Array(6).fill(null))
   addEdges(input, edges, 0, null)
 
@@ -88,13 +88,13 @@ function c40SegmentLength(input, from, c40) {
 }
 
 class DmInput {
-  constructor(data, capacities) {
-    this.characters = Array.from(data, (character) => character.charCodeAt(0))
-    const unsupported = this.characters.find((character) => character > 255)
-    if (unsupported !== undefined) {
-      throw new Error('DmCore currently supports ISO-8859-1 input only.')
+  constructor(bytes, capacities, prefixCodewords) {
+    this.characters = Array.from(bytes)
+    if (!this.characters.every((value) => Number.isInteger(value) && value >= 0 && value <= 255)) {
+      throw new Error('Data Matrix input must be a byte sequence.')
     }
     this.capacities = capacities
+    this.prefixCodewords = prefixCodewords
     this.length = this.characters.length
   }
 
@@ -121,7 +121,7 @@ class Edge {
     this.c40Words = c40Words
 
     const previousMode = this.previousMode()
-    let size = previous?.totalSize ?? 0
+    let size = previous?.totalSize ?? input.prefixCodewords.length
     if (mode === ASCII) {
       size += isExtended(input.at(from)) ? 2 : 1
       if ([C40, TEXT, X12].includes(previousMode)) size += 1
@@ -258,6 +258,8 @@ function buildResult(solution) {
       segmentSize = 0
     }
   }
+
+  prepend(bytes, solution.input.prefixCodewords)
 
   for (const segment of base256Segments) {
     randomizeBase256(bytes, bytes.length - segment.postfix, segment.length)
