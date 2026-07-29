@@ -66,13 +66,12 @@ const SHIFT_CODEWORD_MAP = new Map([
 ])
 
 const MESSAGE_LENGTH = 93
+const ENHANCED_EC_MESSAGE_LENGTH = 77
 const CARRIER_MESSAGE_LENGTH = 84
 const PRIMARY_LENGTH = 10
 const PRIMARY_EC_LENGTH = 10
-const TAIL_DATA_LENGTH = 84
-const TAIL_EC_LENGTH = 40
-const TAIL_STREAM_DATA_LENGTH = 42
-const TAIL_STREAM_EC_LENGTH = 20
+const STANDARD_TAIL_PROFILE = Object.freeze({ dataLength: 84, ecLength: 40 })
+const ENHANCED_TAIL_PROFILE = Object.freeze({ dataLength: 68, ecLength: 56 })
 
 export class MaxiCodeCore {
   constructor(data, options = {}) {
@@ -90,7 +89,9 @@ export class MaxiCodeCore {
 
   generate() {
     const mode = this.#normalizeMode(this.options.mode)
-    const messageLength = mode === 2 || mode === 3 ? CARRIER_MESSAGE_LENGTH : MESSAGE_LENGTH
+    const messageLength = mode === 2 || mode === 3
+      ? CARRIER_MESSAGE_LENGTH
+      : mode === 5 ? ENHANCED_EC_MESSAGE_LENGTH : MESSAGE_LENGTH
     const message = this.#encodeMessage(this.data, messageLength, mode)
     const payload = mode === 2 || mode === 3
       ? this.#buildCarrierPayload(mode, message)
@@ -110,8 +111,8 @@ export class MaxiCodeCore {
 
   #normalizeMode(mode) {
     const numeric = Number(mode)
-    if (![2, 3, 4].includes(numeric)) {
-      throw new Error('This build currently supports MaxiCode modes 2, 3 and 4.')
+    if (![2, 3, 4, 5].includes(numeric)) {
+      throw new Error('This build currently supports MaxiCode modes 2, 3, 4 and 5.')
     }
     return numeric
   }
@@ -267,16 +268,19 @@ export class MaxiCodeCore {
     }
   }
 
-  #buildCodewords(payload) {
+  #buildCodewords(payload, mode) {
+    const tailProfile = mode === 5 ? ENHANCED_TAIL_PROFILE : STANDARD_TAIL_PROFILE
+    const streamDataLength = tailProfile.dataLength / 2
+    const streamEcLength = tailProfile.ecLength / 2
     const codewords = new Uint8Array(144)
     codewords.set(payload.slice(0, PRIMARY_LENGTH), 0)
-    codewords.set(payload.slice(PRIMARY_LENGTH), 20)
+    codewords.set(payload.slice(PRIMARY_LENGTH, PRIMARY_LENGTH + tailProfile.dataLength), 20)
 
     this.#encodeReedSolomon(codewords.subarray(0, PRIMARY_LENGTH + PRIMARY_EC_LENGTH), PRIMARY_EC_LENGTH)
 
-    const evenData = new Array(TAIL_STREAM_DATA_LENGTH)
-    const oddData = new Array(TAIL_STREAM_DATA_LENGTH)
-    for (let i = 0; i < TAIL_DATA_LENGTH; i += 1) {
+    const evenData = new Array(streamDataLength)
+    const oddData = new Array(streamDataLength)
+    for (let i = 0; i < tailProfile.dataLength; i += 1) {
       const value = codewords[20 + i]
       if (i % 2 === 0) {
         evenData[i / 2] = value
@@ -285,14 +289,14 @@ export class MaxiCodeCore {
       }
     }
 
-    const evenStream = new Uint8Array(TAIL_STREAM_DATA_LENGTH + TAIL_STREAM_EC_LENGTH)
-    const oddStream = new Uint8Array(TAIL_STREAM_DATA_LENGTH + TAIL_STREAM_EC_LENGTH)
+    const evenStream = new Uint8Array(streamDataLength + streamEcLength)
+    const oddStream = new Uint8Array(streamDataLength + streamEcLength)
     evenStream.set(evenData, 0)
     oddStream.set(oddData, 0)
-    this.#encodeReedSolomon(evenStream, TAIL_STREAM_EC_LENGTH)
-    this.#encodeReedSolomon(oddStream, TAIL_STREAM_EC_LENGTH)
+    this.#encodeReedSolomon(evenStream, streamEcLength)
+    this.#encodeReedSolomon(oddStream, streamEcLength)
 
-    for (let i = 0; i < TAIL_STREAM_DATA_LENGTH + TAIL_STREAM_EC_LENGTH; i += 1) {
+    for (let i = 0; i < streamDataLength + streamEcLength; i += 1) {
       codewords[20 + i * 2] = evenStream[i]
       codewords[21 + i * 2] = oddStream[i]
     }

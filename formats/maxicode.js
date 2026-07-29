@@ -27,7 +27,7 @@ export const maxiCodeFormat = {
       key: 'maxiCodeMode',
       label: 'MaxiCode Mode',
       type: 'select',
-      options: [['4', 'Mode 4 - standard'], ['2', 'Mode 2 - numeric postal'], ['3', 'Mode 3 - alphanumeric postal']],
+      options: [['4', 'Mode 4 - standard ECC'], ['5', 'Mode 5 - enhanced ECC'], ['2', 'Mode 2 - numeric postal'], ['3', 'Mode 3 - alphanumeric postal']],
       update(value, options) {
         let postalCode = options.maxiCodePostalCode
         if (value === '2' && !/^\d{1,9}$/.test(postalCode)) postalCode = '336091062'

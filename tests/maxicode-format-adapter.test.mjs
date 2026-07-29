@@ -20,6 +20,7 @@ test('registers and renders MaxiCode through its format adapter', () => {
 
 test('supplies valid mode-specific MaxiCode postal defaults', () => {
   const modeField = formatRegistry.get('maxi-code').fields.find((field) => field.key === 'maxiCodeMode')
+  assert.deepEqual(modeField.options.map(([value]) => value), ['4', '5', '2', '3'])
   assert.deepEqual(modeField.update('2', { maxiCodePostalCode: '' }), {
     maxiCodeMode: '2',
     maxiCodePostalCode: '336091062',
