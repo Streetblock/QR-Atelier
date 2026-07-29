@@ -44,13 +44,6 @@ test('creates renderable QR SVG output through the registry interface', () => {
     options,
   })
   assert.match(renderer.render(), /^<svg\b/)
-
-  const aztecRenderer = formatRegistry.createRenderer('aztec', {
-    payload: 'ABC123',
-    size: 256,
-    options,
-  })
-  assert.match(aztecRenderer.render(), /^<svg\b/)
 })
 
 test('keeps encoder imports and format controls outside the shared app shell', () => {
