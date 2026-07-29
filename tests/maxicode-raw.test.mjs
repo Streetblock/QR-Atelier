@@ -41,6 +41,52 @@ test('mode 5 uses enhanced error correction and accepts 77 message codewords', (
   );
 });
 
+test('compacts each nine-digit run into an NS block and five value codewords', () => {
+  const result = new MaxiCodeCore('123456789', { mode: 4 }).generate();
+  const value = 123456789;
+
+  assert.deepEqual(Array.from(result.codewords.slice(1, 7)), [
+    31,
+    (value >>> 24) & 0x3f,
+    (value >>> 18) & 0x3f,
+    (value >>> 12) & 0x3f,
+    (value >>> 6) & 0x3f,
+    value & 0x3f,
+  ]);
+});
+
+test('uses shortest-path shifts for short Code Set A runs inside Code Set B', () => {
+  const result = new MaxiCodeCore('abcBCdef', { mode: 4 }).generate();
+
+  const messagePrefix = [...result.codewords.slice(1, 10), result.codewords[20]];
+  assert.deepEqual(messagePrefix, [63, 1, 2, 3, 56, 2, 3, 4, 5, 6]);
+});
+
+test('reaches numeric capacity limits after optimal compaction', () => {
+  const limits = [
+    { options: { mode: 4 }, fits: 138, overflows: 139 },
+    { options: { mode: 5 }, fits: 113, overflows: 114 },
+    {
+      options: { mode: 2, postalCode: '336091062', countryCode: '840', serviceClass: '002' },
+      fits: 123,
+      overflows: 124,
+    },
+    {
+      options: { mode: 3, postalCode: 'K1A0B1', countryCode: '124', serviceClass: '001' },
+      fits: 123,
+      overflows: 124,
+    },
+  ];
+
+  for (const { options, fits, overflows } of limits) {
+    assert.doesNotThrow(() => new MaxiCodeCore('1'.repeat(fits), options).generate());
+    assert.throws(
+      () => new MaxiCodeCore('1'.repeat(overflows), options).generate(),
+      /supports up to \d+ codewords/,
+    );
+  }
+});
+
 test('rejects unsupported MaxiCode modes', () => {
   assert.throws(() => new MaxiCodeCore('A', { mode: 1 }).generate(), /modes 2, 3, 4 and 5/);
   assert.throws(() => new MaxiCodeCore('A', { mode: 6 }).generate(), /modes 2, 3, 4 and 5/);

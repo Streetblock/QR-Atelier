@@ -19,6 +19,8 @@ The MaxiCode feature branch adds a native encoder, raw-control parser, and SVG r
 
 Modes 2 through 4 use 84 Secondary Message data codewords and 40 error-correction codewords. Mode 5 instead uses 68 Secondary Message data codewords and 56 error-correction codewords. The encoder validates mode-specific primary fields and packs them into the dedicated Primary Message. Secondary Message compaction and error correction are handled by the core.
 
+The high-level encoder selects a minimum-codeword path across all five MaxiCode character sets. It considers single-character shifts, the two- and three-character shifts from Set B to Set A, persistent latches, and Numeric Shift blocks that compact each run of nine digits into six codewords.
+
 ## Raw control input
 
 Raw mode preserves control characters required by carrier payloads. It accepts decimal escapes and named aliases such as `~029` / `<GS>`, `~030` / `<RS>`, and `~004` / `<EOT>`. A doubled tilde represents a literal tilde.
@@ -29,4 +31,4 @@ The format adapter dynamically shows carrier fields for modes 2 and 3 and suppli
 
 ## Tests
 
-`npm test` covers raw escape parsing, control preservation, modes 2 through 5, carrier-field validation, Primary Message packing, payload capacity, rendering, and the registry adapter. `npm run test:reference` verifies all supported modes with the shared ZXing decoder dependency.
+`npm test` covers raw escape parsing, control preservation, modes 2 through 5, carrier-field validation, Primary Message packing, optimal high-level segmentation, numeric capacity, rendering, and the registry adapter. `npm run test:reference` verifies all supported modes and compacted payloads with the shared ZXing decoder dependency.
