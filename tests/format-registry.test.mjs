@@ -1,0 +1,77 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { FormatRegistry } from '../formats/FormatRegistry.js'
+import { formatRegistry } from '../formats/index.js'
+
+test('registers QR and MaxiCode with isolated defaults and capabilities', () => {
+  assert.deepEqual(formatRegistry.list().map((format) => format.id), ['qr', 'maxi-code'])
+  assert.equal(formatRegistry.defaults().maxiCodeMode, '4')
+  assert.deepEqual(formatRegistry.get('qr').capabilities, {
+    dotStyle: true,
+    cornerStyle: true,
+    logo: true,
+  })
+})
+
+test('rejects malformed and duplicate format adapters', () => {
+  const createRenderer = () => ({ render: () => '<svg></svg>' })
+  assert.throws(() => new FormatRegistry([]), /at least one/)
+  assert.throws(
+    () => new FormatRegistry([{ id: 'Bad ID', label: 'Bad', filePrefix: 'bad', createRenderer }]),
+    /lowercase id/,
+  )
+  assert.throws(() => new FormatRegistry([
+    { id: 'demo', label: 'Demo', filePrefix: 'demo', createRenderer },
+    { id: 'demo', label: 'Duplicate', filePrefix: 'duplicate', createRenderer },
+  ]), /Duplicate/)
+})
+
+test('creates renderable QR SVG output through the registry interface', () => {
+  const options = {
+    errorCorrectionLevel: 'Q',
+    colorStart: '#0f172a',
+    colorEnd: '#0ea5e9',
+    dotStyle: 'square',
+    cornerStyle: 'square',
+    logo: null,
+    ...formatRegistry.defaults(),
+  }
+  const renderer = formatRegistry.createRenderer('qr', {
+    payload: 'ABC123',
+    size: 256,
+    options,
+  })
+  assert.match(renderer.render(), /^<svg\b/)
+
+  const maxiCodeRenderer = formatRegistry.createRenderer('maxi-code', {
+    payload: 'ABC123',
+    size: 256,
+    options,
+  })
+  assert.match(maxiCodeRenderer.render(), /^<svg\b/)
+})
+
+test('MaxiCode carrier-mode field supplies a valid mode-specific postal default', () => {
+  const modeField = formatRegistry.get('maxi-code').fields.find((field) => field.key === 'maxiCodeMode')
+  assert.deepEqual(modeField.update('2', { maxiCodePostalCode: '' }), {
+    maxiCodeMode: '2',
+    maxiCodePostalCode: '336091062',
+  })
+  assert.deepEqual(modeField.update('3', { maxiCodePostalCode: '123' }), {
+    maxiCodeMode: '3',
+    maxiCodePostalCode: 'K1A0B1',
+  })
+})
+
+test('keeps encoder imports and format controls outside the shared app shell', () => {
+  const root = new URL('../', import.meta.url)
+  const app = readFileSync(fileURLToPath(new URL('app.js', root)), 'utf8')
+  const html = readFileSync(fileURLToPath(new URL('index.html', root)), 'utf8')
+
+  assert.match(app, /formats\/index\.js/)
+  assert.doesNotMatch(app, /libs\/(?:QR|MicroQR|DM|Aztec|MaxiCode)/)
+  assert.match(html, /id="format-options"/)
+  assert.doesNotMatch(html, /<option value="qr"/)
+})
