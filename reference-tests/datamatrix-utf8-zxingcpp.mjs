@@ -90,3 +90,30 @@ test('GS1 FNC1 and group separators roundtrip through ZXing-C++', () => {
     rmSync(directory, { recursive: true, force: true })
   }
 })
+
+test('Structured Append and its GS1 combination roundtrip through ZXing-C++', () => {
+  const python = findPython()
+  const decoder = fileURLToPath(new URL('./decode-datamatrix-zxingcpp.py', import.meta.url))
+  const directory = mkdtempSync(join(tmpdir(), 'qr-atelier-dm-structured-append-'))
+  const payload = 'PART THREE'
+
+  try {
+    const { generated, decoded } = decodeWithZxingCpp(python, decoder, directory, payload, {
+      structuredAppend: { position: 3, total: 7, fileId: [1, 15] },
+    }, 'structured-append.gray')
+    assert.deepEqual(generated.dataCodewords.slice(0, 4), [233, 42, 1, 15])
+    assert.equal(decoded.text, payload)
+    assert.deepEqual(decoded.bytes, Array.from(new TextEncoder().encode(payload)))
+
+    const gs1Payload = '010950110153000317271231'
+    const { generated: gs1Generated, decoded: gs1Decoded } = decodeWithZxingCpp(python, decoder, directory, gs1Payload, {
+      gs1: true,
+      structuredAppend: { position: 1, total: 2, fileId: 15 },
+    }, 'structured-append-gs1.gray')
+    assert.deepEqual(gs1Generated.dataCodewords.slice(0, 5), [233, 15, 1, 15, 232])
+    assert.equal(gs1Decoded.symbologyIdentifier, ']d2')
+    assert.deepEqual(gs1Decoded.bytes, Array.from(new TextEncoder().encode(gs1Payload)))
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
+})
