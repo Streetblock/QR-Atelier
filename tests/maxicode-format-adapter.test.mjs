@@ -1,0 +1,31 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { formatRegistry } from '../formats/index.js'
+
+test('registers and renders MaxiCode through its format adapter', () => {
+  assert.equal(formatRegistry.has('maxi-code'), true)
+  const options = {
+    colorStart: '#0f172a',
+    colorEnd: '#0ea5e9',
+    ...formatRegistry.defaults(),
+  }
+  assert.equal(options.maxiCodeMode, '4')
+  const renderer = formatRegistry.createRenderer('maxi-code', {
+    payload: 'ABC123',
+    size: 256,
+    options,
+  })
+  assert.match(renderer.render(), /^<svg\b/)
+})
+
+test('supplies valid mode-specific MaxiCode postal defaults', () => {
+  const modeField = formatRegistry.get('maxi-code').fields.find((field) => field.key === 'maxiCodeMode')
+  assert.deepEqual(modeField.update('2', { maxiCodePostalCode: '' }), {
+    maxiCodeMode: '2',
+    maxiCodePostalCode: '336091062',
+  })
+  assert.deepEqual(modeField.update('3', { maxiCodePostalCode: '123' }), {
+    maxiCodeMode: '3',
+    maxiCodePostalCode: 'K1A0B1',
+  })
+})
