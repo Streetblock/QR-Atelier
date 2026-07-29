@@ -347,6 +347,10 @@ body::before {
   margin-top: 28px;
 }
 
+.format-options {
+  display: contents;
+}
+
 .field {
   display: grid;
   gap: 10px;
