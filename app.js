@@ -6,6 +6,7 @@ class QRPlaygroundApp {
       data: '',
       options: {
         format: 'qr',
+        contentMode: 'text',
         errorCorrectionLevel: 'Q',
         colorStart: '#0f172a',
         colorEnd: '#0ea5e9',
@@ -35,11 +36,13 @@ class QRPlaygroundApp {
       primaryInputLabel: document.getElementById('primary-input-label'),
       primaryInputField: document.getElementById('field-primary-input'),
       dotShape: document.getElementById('dot-shape'),
-      aztecStyle: document.getElementById('aztec-style'),
       cornerShape: document.getElementById('corner-shape'),
       dotShapeField: document.getElementById('field-dot-shape'),
-      aztecStyleField: document.getElementById('field-aztec-style'),
       cornerShapeField: document.getElementById('field-corner-shape'),
+      wifiAuth: document.getElementById('wifi-auth'),
+      wifiPassword: document.getElementById('wifi-password'),
+      wifiHidden: document.getElementById('wifi-hidden'),
+      wifiSection: document.getElementById('field-wifi-options'),
       downloadSize: document.getElementById('download-size'),
       logoUpload: document.getElementById('logo-upload'),
       logoUploadField: document.getElementById('field-logo-upload'),
@@ -49,12 +52,6 @@ class QRPlaygroundApp {
       colorEnd: document.getElementById('color-end'),
       colorStartHex: document.getElementById('color-start-hex'),
       colorEndHex: document.getElementById('color-end-hex'),
-      microEcl: document.getElementById('micro-ecl'),
-      microMinVersion: document.getElementById('micro-min-version'),
-      microMaxVersion: document.getElementById('micro-max-version'),
-      microByteEncoding: document.getElementById('micro-byte-encoding'),
-      microPreferredMode: document.getElementById('micro-preferred-mode'),
-      microOptions: document.getElementById('micro-options'),
       btnSVG: document.getElementById('btn-download-svg'),
       btnPNG: document.getElementById('btn-download-png'),
     }
@@ -81,7 +78,7 @@ class QRPlaygroundApp {
   }
 
   #bindEvents() {
-    this.ui.urlInput.addEventListener('input', () => {
+    this.ui.primaryInput.addEventListener('input', () => {
       clearTimeout(this.debounceTimer)
       this.debounceTimer = setTimeout(() => {
         if (this.state.options.contentMode === 'wifi') {
@@ -139,8 +136,8 @@ class QRPlaygroundApp {
   #parseUrlParams() {
     const paramUrl = new URLSearchParams(window.location.search).get('url')
     if (!paramUrl) return
-    this.ui.urlInput.value = paramUrl
-    this.ui.urlInput.dispatchEvent(new Event('input'))
+    this.ui.primaryInput.value = paramUrl
+    this.ui.primaryInput.dispatchEvent(new Event('input'))
   }
 
   update(newOptions = {}) {
