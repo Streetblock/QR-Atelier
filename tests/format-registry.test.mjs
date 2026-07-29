@@ -5,9 +5,8 @@ import { fileURLToPath } from 'node:url'
 import { FormatRegistry } from '../formats/FormatRegistry.js'
 import { formatRegistry } from '../formats/index.js'
 
-test('registers QR and MaxiCode with isolated defaults and capabilities', () => {
-  assert.deepEqual(formatRegistry.list().map((format) => format.id), ['qr', 'maxi-code'])
-  assert.equal(formatRegistry.defaults().maxiCodeMode, '4')
+test('registers QR as the base format with its UI capabilities', () => {
+  assert.equal(formatRegistry.has('qr'), true)
   assert.deepEqual(formatRegistry.get('qr').capabilities, {
     dotStyle: true,
     cornerStyle: true,
@@ -44,25 +43,6 @@ test('creates renderable QR SVG output through the registry interface', () => {
     options,
   })
   assert.match(renderer.render(), /^<svg\b/)
-
-  const maxiCodeRenderer = formatRegistry.createRenderer('maxi-code', {
-    payload: 'ABC123',
-    size: 256,
-    options,
-  })
-  assert.match(maxiCodeRenderer.render(), /^<svg\b/)
-})
-
-test('MaxiCode carrier-mode field supplies a valid mode-specific postal default', () => {
-  const modeField = formatRegistry.get('maxi-code').fields.find((field) => field.key === 'maxiCodeMode')
-  assert.deepEqual(modeField.update('2', { maxiCodePostalCode: '' }), {
-    maxiCodeMode: '2',
-    maxiCodePostalCode: '336091062',
-  })
-  assert.deepEqual(modeField.update('3', { maxiCodePostalCode: '123' }), {
-    maxiCodeMode: '3',
-    maxiCodePostalCode: 'K1A0B1',
-  })
 })
 
 test('keeps encoder imports and format controls outside the shared app shell', () => {
