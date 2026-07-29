@@ -1,5 +1,5 @@
 // ==========================================
-// AztecCore.js - Dependency-free Aztec Code generator (foundation)
+// AztecCore.js - Dependency-free Aztec Code generator
 // ==========================================
 
 const DEFAULT_OPTIONS = {
@@ -7,8 +7,32 @@ const DEFAULT_OPTIONS = {
   mode: 'auto', // auto|compact|full
   minLayers: 1,
   maxLayers: 32,
-  errorCorrectionPercent: 23,
+  errorCorrectionPercent: 33,
 }
+
+const MODE_UPPER = 0
+const MODE_LOWER = 1
+const MODE_DIGIT = 2
+const MODE_MIXED = 3
+const MODE_PUNCT = 4
+
+const LATCH_TABLE = [
+  [0, (5 << 16) | 28, (5 << 16) | 30, (5 << 16) | 29, (10 << 16) | (29 << 5) | 30],
+  [(9 << 16) | (30 << 4) | 14, 0, (5 << 16) | 30, (5 << 16) | 29, (10 << 16) | (29 << 5) | 30],
+  [(4 << 16) | 14, (9 << 16) | (14 << 5) | 28, 0, (9 << 16) | (14 << 5) | 29, (14 << 16) | (14 << 10) | (29 << 5) | 30],
+  [(5 << 16) | 29, (5 << 16) | 28, (10 << 16) | (29 << 5) | 30, 0, (5 << 16) | 30],
+  [(5 << 16) | 31, (10 << 16) | (31 << 5) | 28, (10 << 16) | (31 << 5) | 30, (10 << 16) | (31 << 5) | 29, 0],
+]
+
+const SHIFT_TABLE = Array.from({ length: 5 }, () => new Array(5).fill(-1))
+SHIFT_TABLE[MODE_UPPER][MODE_PUNCT] = 0
+SHIFT_TABLE[MODE_LOWER][MODE_PUNCT] = 0
+SHIFT_TABLE[MODE_LOWER][MODE_UPPER] = 28
+SHIFT_TABLE[MODE_MIXED][MODE_PUNCT] = 0
+SHIFT_TABLE[MODE_DIGIT][MODE_PUNCT] = 0
+SHIFT_TABLE[MODE_DIGIT][MODE_UPPER] = 15
+
+const CHAR_MAP = createAztecCharMap()
 
 export class AztecCore {
   constructor(data, options = {}) {
@@ -23,26 +47,24 @@ export class AztecCore {
   generate() {
     const normalized = normalizeOptions(this.options)
     const payloadBytes = encodeUtf8Bytes(this.data)
-    const payloadBitsArray = encodeBinaryShiftBits(payloadBytes)
+    const payloadBitsArray = encodeHighLevelBits(payloadBytes)
     const payloadBits = payloadBitsArray.length
-    const layerPlan = chooseLayerPlan(payloadBits, normalized)
-    const stuffedBits = bitStuff(payloadBitsArray, layerPlan.wordSize)
+    const layerPlan = chooseLayerPlan(payloadBitsArray, normalized)
+    const stuffedBits = layerPlan.stuffedBits
     const messageWords = bitsToWords(stuffedBits, layerPlan.wordSize)
     const totalWords = Math.floor(layerPlan.usableBits / layerPlan.wordSize)
     const eccWords = totalWords - messageWords.length
     if (eccWords <= 0) {
       throw new Error('Aztec planning produced non-positive ECC word count.')
     }
+    const checkWords = reedSolomonCheckWords(messageWords, eccWords, layerPlan.wordSize)
     const messageBits = generateCheckWordsFromBits(stuffedBits, layerPlan.capacityBits, layerPlan.wordSize)
     const modeMessageBits = generateModeMessage(layerPlan.compact, layerPlan.layers, messageWords.length)
     const { modules, isFunction, matrixSize } = buildAztecMatrix(layerPlan, messageBits, modeMessageBits)
 
-    // Current scope:
-    // 1) simple binary payload sizing
-    // 2) layer selection + compact/full decision
-    // Next steps:
-    // 3) mode message + bullseye + data ring placement
-    // 4) mode message + bullseye + data ring placement
+    const actualEccBits = checkWords.length * layerPlan.wordSize
+    const actualErrorCorrectionPercent = (actualEccBits * 100) / payloadBits
+
     return {
       format: 'aztec',
       data: this.data,
@@ -54,10 +76,12 @@ export class AztecCore {
       payloadBits,
       stuffedBits,
       messageWords,
-      checkWords: bitsToWords(messageBits.slice(messageWords.length * layerPlan.wordSize), layerPlan.wordSize),
+      checkWords,
       modeMessageBits,
       placedDataBits: messageBits.length,
-      eccBits: layerPlan.eccBits,
+      minimumEccBits: layerPlan.minimumEccBits,
+      eccBits: actualEccBits,
+      actualErrorCorrectionPercent,
       codewordSize: layerPlan.wordSize,
       capacityBits: layerPlan.capacityBits,
       usableBits: layerPlan.usableBits,
@@ -106,30 +130,251 @@ function encodeUtf8Bytes(data) {
   return Array.from(new TextEncoder().encode(data))
 }
 
-function encodeBinaryShiftBits(bytes) {
-  const bits = []
-  let offset = 0
-  while (offset < bytes.length) {
-    const remaining = bytes.length - offset
-    const run = Math.min(remaining, 2047 + 31)
-    bits.push(...toBits(31, 5)) // B/S in UPPER mode
-    if (run <= 31) {
-      bits.push(...toBits(run, 5))
+function createAztecCharMap() {
+  const maps = Array.from({ length: 5 }, () => new Array(256).fill(0))
+
+  maps[MODE_UPPER][32] = 1
+  maps[MODE_LOWER][32] = 1
+  maps[MODE_DIGIT][32] = 1
+  for (let value = 0; value < 26; value += 1) {
+    maps[MODE_UPPER][65 + value] = value + 2
+    maps[MODE_LOWER][97 + value] = value + 2
+  }
+  for (let value = 0; value < 10; value += 1) {
+    maps[MODE_DIGIT][48 + value] = value + 2
+  }
+  maps[MODE_DIGIT][44] = 12
+  maps[MODE_DIGIT][46] = 13
+
+  const mixed = [
+    0, 32, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+    27, 28, 29, 30, 31, 64, 92, 94, 95, 96, 124, 126, 127,
+  ]
+  const punct = [
+    0, 13, 0, 0, 0, 0, 33, 39, 35, 36, 37, 38, 39, 40, 41, 42,
+    43, 44, 45, 46, 47, 58, 59, 60, 61, 62, 63, 91, 93, 123, 125,
+  ]
+  mixed.forEach((character, value) => {
+    if (character !== 0) maps[MODE_MIXED][character] = value
+  })
+  punct.forEach((character, value) => {
+    if (character !== 0) maps[MODE_PUNCT][character] = value
+  })
+  return maps
+}
+
+function encodeHighLevelBits(bytes) {
+  let states = [{ token: null, mode: MODE_UPPER, binaryShiftByteCount: 0, bitCount: 0 }]
+
+  for (let index = 0; index < bytes.length; index += 1) {
+    const current = bytes[index]
+    const next = bytes[index + 1]
+    const pairCode = current === 13 && next === 10
+      ? 2
+      : current === 46 && next === 32
+        ? 3
+        : current === 44 && next === 32
+          ? 4
+          : current === 58 && next === 32
+            ? 5
+            : 0
+
+    if (pairCode > 0) {
+      states = updateStatesForPair(states, index, pairCode)
+      index += 1
     } else {
-      bits.push(...toBits(0, 5))
-      bits.push(...toBits(run - 31, 11))
+      states = updateStatesForCharacter(states, bytes, index)
     }
-    for (let i = 0; i < run; i += 1) {
-      bits.push(...toBits(bytes[offset + i], 8))
+  }
+
+  const best = states.reduce((shortest, state) => state.bitCount < shortest.bitCount ? state : shortest)
+  return stateToBits(endBinaryShift(best, bytes.length), bytes)
+}
+
+function updateStatesForCharacter(states, bytes, index) {
+  const result = []
+  for (const state of states) {
+    const character = bytes[index] & 0xff
+    const inCurrentMode = CHAR_MAP[state.mode][character] > 0
+    let stateWithoutBinary = null
+
+    for (let mode = MODE_UPPER; mode <= MODE_PUNCT; mode += 1) {
+      const value = CHAR_MAP[mode][character]
+      if (value === 0) continue
+      stateWithoutBinary ??= endBinaryShift(state, index)
+
+      if (!inCurrentMode || mode === state.mode || mode === MODE_DIGIT) {
+        result.push(latchAndAppend(stateWithoutBinary, mode, value))
+      }
+      if (!inCurrentMode && SHIFT_TABLE[state.mode][mode] >= 0) {
+        result.push(shiftAndAppend(stateWithoutBinary, mode, value))
+      }
     }
-    offset += run
+
+    if (state.binaryShiftByteCount > 0 || !inCurrentMode) {
+      result.push(addBinaryShiftCharacter(state, index))
+    }
+  }
+  return simplifyStates(result)
+}
+
+function updateStatesForPair(states, index, pairCode) {
+  const result = []
+  for (const state of states) {
+    const stateWithoutBinary = endBinaryShift(state, index)
+    result.push(latchAndAppend(stateWithoutBinary, MODE_PUNCT, pairCode))
+    if (state.mode !== MODE_PUNCT) {
+      result.push(shiftAndAppend(stateWithoutBinary, MODE_PUNCT, pairCode))
+    }
+    if (pairCode === 3 || pairCode === 4) {
+      const digitState = latchAndAppend(stateWithoutBinary, MODE_DIGIT, 16 - pairCode)
+      result.push(latchAndAppend(digitState, MODE_DIGIT, 1))
+    }
+    if (state.binaryShiftByteCount > 0) {
+      result.push(addBinaryShiftCharacter(addBinaryShiftCharacter(state, index), index + 1))
+    }
+  }
+  return simplifyStates(result)
+}
+
+function latchAndAppend(state, mode, value) {
+  let token = state.token
+  let bitCount = state.bitCount
+  if (mode !== state.mode) {
+    const latch = LATCH_TABLE[state.mode][mode]
+    const latchBits = latch >>> 16
+    token = addSimpleToken(token, latch & 0xffff, latchBits)
+    bitCount += latchBits
+  }
+  const characterBits = mode === MODE_DIGIT ? 4 : 5
+  token = addSimpleToken(token, value, characterBits)
+  return { token, mode, binaryShiftByteCount: 0, bitCount: bitCount + characterBits }
+}
+
+function shiftAndAppend(state, mode, value) {
+  const shiftBits = state.mode === MODE_DIGIT ? 4 : 5
+  let token = addSimpleToken(state.token, SHIFT_TABLE[state.mode][mode], shiftBits)
+  token = addSimpleToken(token, value, 5)
+  return {
+    token,
+    mode: state.mode,
+    binaryShiftByteCount: 0,
+    bitCount: state.bitCount + shiftBits + 5,
+  }
+}
+
+function addBinaryShiftCharacter(state, index) {
+  let token = state.token
+  let mode = state.mode
+  let bitCount = state.bitCount
+  if (mode === MODE_PUNCT || mode === MODE_DIGIT) {
+    const latch = LATCH_TABLE[mode][MODE_UPPER]
+    const latchBits = latch >>> 16
+    token = addSimpleToken(token, latch & 0xffff, latchBits)
+    bitCount += latchBits
+    mode = MODE_UPPER
+  }
+
+  const count = state.binaryShiftByteCount
+  const additionalBits = count === 0 || count === 31 ? 18 : count === 62 ? 9 : 8
+  let result = {
+    token,
+    mode,
+    binaryShiftByteCount: count + 1,
+    bitCount: bitCount + additionalBits,
+  }
+  if (result.binaryShiftByteCount === 2078) {
+    result = endBinaryShift(result, index + 1)
+  }
+  return result
+}
+
+function endBinaryShift(state, index) {
+  if (state.binaryShiftByteCount === 0) return state
+  return {
+    token: {
+      previous: state.token,
+      type: 'binary',
+      start: index - state.binaryShiftByteCount,
+      count: state.binaryShiftByteCount,
+    },
+    mode: state.mode,
+    binaryShiftByteCount: 0,
+    bitCount: state.bitCount,
+  }
+}
+
+function addSimpleToken(previous, value, bitCount) {
+  return { previous, type: 'simple', value, bitCount }
+}
+
+function binaryShiftCost(state) {
+  if (state.binaryShiftByteCount > 62) return 21
+  if (state.binaryShiftByteCount > 31) return 20
+  if (state.binaryShiftByteCount > 0) return 10
+  return 0
+}
+
+function isBetterThanOrEqualTo(state, other) {
+  let projectedBits = state.bitCount + (LATCH_TABLE[state.mode][other.mode] >>> 16)
+  if (state.binaryShiftByteCount < other.binaryShiftByteCount) {
+    projectedBits += binaryShiftCost(other) - binaryShiftCost(state)
+  } else if (state.binaryShiftByteCount > other.binaryShiftByteCount && other.binaryShiftByteCount > 0) {
+    projectedBits += 10
+  }
+  return projectedBits <= other.bitCount
+}
+
+function simplifyStates(states) {
+  const result = []
+  for (const candidate of states) {
+    let keep = true
+    for (let index = result.length - 1; index >= 0; index -= 1) {
+      const existing = result[index]
+      if (isBetterThanOrEqualTo(existing, candidate)) {
+        keep = false
+        break
+      }
+      if (isBetterThanOrEqualTo(candidate, existing)) {
+        result.splice(index, 1)
+      }
+    }
+    if (keep) result.push(candidate)
+  }
+  return result
+}
+
+function stateToBits(state, bytes) {
+  const tokens = []
+  for (let token = state.token; token !== null; token = token.previous) {
+    tokens.unshift(token)
+  }
+
+  const bits = []
+  for (const token of tokens) {
+    if (token.type === 'simple') {
+      bits.push(...toBits(token.value, token.bitCount))
+      continue
+    }
+    for (let offset = 0; offset < token.count; offset += 1) {
+      if (offset === 0 || (offset === 31 && token.count <= 62)) {
+        bits.push(...toBits(31, 5))
+        if (token.count > 62) {
+          bits.push(...toBits(token.count - 31, 16))
+        } else if (offset === 0) {
+          bits.push(...toBits(Math.min(token.count, 31), 5))
+        } else {
+          bits.push(...toBits(token.count - 31, 5))
+        }
+      }
+      bits.push(...toBits(bytes[token.start + offset], 8))
+    }
   }
   return bits
 }
 
 function chooseLayerPlan(payloadBits, options) {
-  const eccBits = Math.max(11, Math.ceil((payloadBits * options.errorCorrectionPercent) / 100))
-  const requiredBits = payloadBits + eccBits
+  const minimumEccBits = Math.floor((payloadBits.length * options.errorCorrectionPercent) / 100) + 11
   const compactModeForced = options.mode === 'compact'
   const fullModeForced = options.mode === 'full'
 
@@ -145,20 +390,34 @@ function chooseLayerPlan(payloadBits, options) {
     }
   }
 
-  const candidates = options.mode === 'auto' ? [...tryCompactFirst, ...tryFullAfter] : options.mode === 'compact' ? tryCompactFirst : tryFullAfter
+  const candidates = options.mode === 'auto'
+    ? [...tryCompactFirst, ...tryFullAfter]
+    : options.mode === 'compact'
+      ? tryCompactFirst
+      : tryFullAfter
 
   for (const candidate of candidates) {
     const wordSize = getAztecWordSize(candidate.layers)
     const capacityBits = totalBitsInLayer(candidate.layers, candidate.compact)
     const usableBits = capacityBits - (capacityBits % wordSize)
-    if (requiredBits <= usableBits) {
+    if (payloadBits.length + minimumEccBits > capacityBits) {
+      continue
+    }
+
+    const stuffedBits = bitStuff(payloadBits, wordSize)
+    if (candidate.compact && stuffedBits.length > wordSize * 64) {
+      continue
+    }
+
+    if (stuffedBits.length + minimumEccBits <= usableBits) {
       return {
         layers: candidate.layers,
         compact: candidate.compact,
         wordSize,
         capacityBits,
         usableBits,
-        eccBits,
+        minimumEccBits,
+        stuffedBits,
       }
     }
   }

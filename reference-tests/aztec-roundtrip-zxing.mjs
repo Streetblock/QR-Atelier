@@ -48,3 +48,35 @@ test('aztec roundtrip decodes with zxing for multiple payloads', async () => {
     assert.equal(result.getText(), payload)
   }
 })
+
+test('aztec matrices match the ZXing encoder across modes and ECC levels', async () => {
+  const { AztecEncoder } = await import('@zxing/library')
+  const payloads = [
+    'HELLO',
+    'HELLO AZTEC',
+    'Hello, World! 1234',
+    'https://example.com/path?a=1&b=2',
+    'A'.repeat(100),
+    'Grüße aus Köln',
+    '\0'.repeat(63),
+    '🙂'.repeat(20),
+  ]
+
+  for (const errorCorrectionPercent of [5, 23, 33, 50, 95]) {
+    for (const payload of payloads) {
+      const ours = new AztecCore(payload, { errorCorrectionPercent }).generate()
+      const bytes = Int8Array.from(new TextEncoder().encode(payload))
+      const reference = AztecEncoder.encode(bytes, errorCorrectionPercent, 0)
+      const referenceMatrix = reference.getMatrix()
+
+      assert.equal(ours.compact, reference.isCompact(), `${payload}: compact flag`)
+      assert.equal(ours.layers, reference.getLayers(), `${payload}: layer count`)
+      assert.equal(ours.size, reference.getSize(), `${payload}: matrix size`)
+      for (let y = 0; y < ours.size; y += 1) {
+        for (let x = 0; x < ours.size; x += 1) {
+          assert.equal(ours.modules[y][x], referenceMatrix.get(x, y), `${payload}: module ${x},${y}`)
+        }
+      }
+    }
+  }
+})
