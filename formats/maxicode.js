@@ -1,9 +1,11 @@
 import { MaxiCodeCore } from '../libs/MaxiCodeCore.js'
 import { parseMaxiCodeRawInput } from '../libs/MaxiCodeRaw.js'
 import { MaxiCodeSvgRenderer } from '../libs/MaxiCodeSvg.js'
+import { buildUpsMaxiCodeSecondary } from '../libs/UpsMaxiCode.js'
 
 const isCarrierMode = (options) => ['2', '3'].includes(options.maxiCodeMode)
 const usesStructuredAppend = (options) => Number(options.maxiCodeStructuredAppendCount) > 1
+const isUpsFormat07 = (options) => options.maxiCodeInputMode === 'ups-format-07'
 
 export const maxiCodeFormat = {
   id: 'maxi-code',
@@ -18,14 +20,25 @@ export const maxiCodeFormat = {
     maxiCodePostalCode: '',
     maxiCodeCountryCode: '840',
     maxiCodeServiceClass: '001',
+    maxiCodeUpsTrackingNumber: '1Z50147020',
+    maxiCodeUpsScac: 'UPSN',
+    maxiCodeUpsShipperId: '123A7V',
   },
   fields: [
     {
       key: 'maxiCodeInputMode',
       label: 'MaxiCode Input',
       type: 'select',
-      options: [['text', 'Text'], ['raw', 'Raw control escapes']],
+      options: [['text', 'Text'], ['raw', 'Raw control escapes'], ['ups-format-07', 'UPS Format 07 transport']],
       hint: 'Supports ~029 / <GS>, ~030 / <RS> and ~004 / <EOT>.',
+      update(value, options) {
+        if (value !== 'ups-format-07' || isCarrierMode(options)) return { maxiCodeInputMode: value }
+        return {
+          maxiCodeInputMode: value,
+          maxiCodeMode: '2',
+          maxiCodePostalCode: /^\d{1,9}$/.test(options.maxiCodePostalCode) ? options.maxiCodePostalCode : '336091062',
+        }
+      },
     },
     {
       key: 'maxiCodeMode',
@@ -101,14 +114,53 @@ export const maxiCodeFormat = {
         }
       },
     },
+    {
+      key: 'maxiCodeUpsTrackingNumber',
+      label: 'UPS tracking fragment',
+      type: 'text',
+      visible: isUpsFormat07,
+      normalize: (value) => value.toUpperCase(),
+      attributes: { maxlength: '10' },
+    },
+    {
+      key: 'maxiCodeUpsScac',
+      label: 'Carrier SCAC',
+      type: 'text',
+      visible: isUpsFormat07,
+      normalize: (value) => value.toUpperCase(),
+      attributes: { maxlength: '4' },
+    },
+    {
+      key: 'maxiCodeUpsShipperId',
+      label: 'UPS shipper ID',
+      type: 'text',
+      visible: isUpsFormat07,
+      normalize: (value) => value.toUpperCase(),
+      attributes: { maxlength: '6' },
+      hint: 'Postal code, country and service class remain in the MaxiCode Primary Message.',
+    },
   ],
-  preserveWhitespace: (options) => options.maxiCodeInputMode === 'raw',
-  inputLabel: (options) => options.maxiCodeInputMode === 'raw' ? 'Raw MaxiCode data' : 'Text',
+  preserveWhitespace: (options) => options.maxiCodeInputMode !== 'text',
+  inputLabel: (options) => options.maxiCodeInputMode === 'raw'
+    ? 'Raw MaxiCode data'
+    : options.maxiCodeInputMode === 'ups-format-07' ? 'Format 07 transport (45 symbols)' : 'Text',
   inputPlaceholder: (options) => options.maxiCodeInputMode === 'raw'
     ? '[)>~03001~02996TRACKING...~030~004'
-    : 'Kurzer Text',
+    : options.maxiCodeInputMode === 'ups-format-07'
+      ? '684Q.0KG3Z2AQ0$$1$OIXZWA14CGIO%K FZ( GPF9VEL~013'
+      : 'Kurzer Text',
   preparePayload(payload, options) {
-    return options.maxiCodeInputMode === 'raw' ? parseMaxiCodeRawInput(payload) : payload
+    if (options.maxiCodeInputMode === 'raw') return parseMaxiCodeRawInput(payload)
+    if (options.maxiCodeInputMode === 'ups-format-07') {
+      if (!isCarrierMode(options)) throw new Error('UPS Format 07 requires MaxiCode mode 2 or mode 3.')
+      return buildUpsMaxiCodeSecondary({
+        format07Payload: parseMaxiCodeRawInput(payload),
+        trackingNumber: options.maxiCodeUpsTrackingNumber,
+        scac: options.maxiCodeUpsScac,
+        shipperId: options.maxiCodeUpsShipperId,
+      })
+    }
+    return payload
   },
   createRenderer({ payload, size, options }) {
     const maxi = new MaxiCodeCore(payload, {
@@ -118,7 +170,7 @@ export const maxiCodeFormat = {
         index: options.maxiCodeStructuredAppendIndex,
         count: options.maxiCodeStructuredAppendCount,
       } : undefined,
-      preserveControls: options.maxiCodeInputMode === 'raw',
+      preserveControls: options.maxiCodeInputMode !== 'text',
       postalCode: options.maxiCodePostalCode,
       countryCode: options.maxiCodeCountryCode,
       serviceClass: options.maxiCodeServiceClass,

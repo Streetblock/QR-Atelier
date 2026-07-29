@@ -4,6 +4,7 @@ import { BitMatrix } from '@zxing/library'
 import decoderModule from '@zxing/library/cjs/core/maxicode/decoder/Decoder.js'
 import parserModule from '@zxing/library/cjs/core/maxicode/decoder/BitMatrixParser.js'
 import { MaxiCodeCore } from '../libs/MaxiCodeCore.js'
+import { UpsMaxiCodeEncoder } from '../libs/UpsMaxiCode.js'
 
 const MaxiCodeDecoder = decoderModule.default
 const MaxiCodeBitMatrixParser = parserModule.default
@@ -100,4 +101,30 @@ test('ZXing independently extracts and verifies Mode 6 codewords and ECC', () =>
     () => decoder.decode(toBitMatrix(generated.modules)),
     /FormatException/,
   )
+})
+
+test('ZXing reconstructs complete UPS Format 07 messages from Mode 2 and Mode 3 primary fields', () => {
+  const payload = '684Q.0KG3Z2AQ0$$1$OIXZWA14CGIO%K FZ( GPF9VEL\r'
+  const cases = [
+    { mode: 2, postalCode: '41352' },
+    { mode: 3, postalCode: 'K1A0B1' },
+  ]
+
+  for (const options of cases) {
+    const generated = new UpsMaxiCodeEncoder({
+      ...options,
+      countryCode: '276',
+      serviceClass: '068',
+      trackingNumber: '1Z50147020',
+      scac: 'UPSN',
+      shipperId: '123A7V',
+      format07Payload: payload,
+    }).generate()
+    const decoded = new MaxiCodeDecoder().decode(toBitMatrix(generated.modules))
+    assert.equal(
+      decoded.getText(),
+      `[)>\x1e01\x1d96${options.postalCode}\x1d276\x1d068\x1d1Z50147020\x1dUPSN\x1d123A7V\x1e07${payload}\x1e\x04`,
+      `mode ${options.mode}`,
+    )
+  }
 })
