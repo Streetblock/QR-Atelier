@@ -32,7 +32,7 @@ test('Data Matrix symbols roundtrip through the ZXing decoder', async () => {
   } = await import('@zxing/library')
   const hints = new Map([[DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.DATA_MATRIX]]])
   const cases = [
-    ['ABC', {}],
+    ['ABC', {}, 'ABC'],
     ['ABC', { shape: 'rectangle' }],
     ['1234567890', { symbolSize: '8x32' }],
     ['ABCDEFGHIJKLMNOPQRSTUVWXYZ', {}],
@@ -42,13 +42,15 @@ test('Data Matrix symbols roundtrip through the ZXing decoder', async () => {
     ['Grüße aus Köln', { encoding: 'iso-8859-1' }],
     ['A'.repeat(400), {}],
     ['A'.repeat(2300), {}],
+    ['ABC123', { macro: 5 }, `[)>\x1e05\x1dABC123\x1e\x04`],
+    ['ABC123', { macro: 6 }, `[)>\x1e06\x1dABC123\x1e\x04`],
   ]
 
-  for (const [payload, options] of cases) {
+  for (const [payload, options, expected = payload] of cases) {
     const generated = new DmCore(payload, options).generate()
     const { luminance, width, height } = matrixToLuminance(generated)
     const bitmap = new BinaryBitmap(new HybridBinarizer(new RGBLuminanceSource(luminance, width, height)))
     const decoded = new MultiFormatReader().decode(bitmap, hints)
-    assert.equal(decoded.getText(), payload, `${generated.rows}x${generated.cols}`)
+    assert.equal(decoded.getText(), expected, `${generated.rows}x${generated.cols}`)
   }
 })

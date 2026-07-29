@@ -7,6 +7,12 @@ import { encodeMinimalDataMatrix } from './DMminimal.js'
 
 const DEFAULT_ENCODING = 'utf-8'
 const ECI_ASSIGNMENT_UTF8 = 26
+const MACRO_TRAILER = '\x1e\x04'
+const MACRO_HEADERS = Object.freeze({
+  5: '[)>\x1e05\x1d',
+  6: '[)>\x1e06\x1d',
+})
+const MACRO_CODEWORDS = Object.freeze({ 5: 236, 6: 237 })
 
 const DM_SYMBOLS = [
   { rows: 10, cols: 10, regionRows: 8, regionCols: 8, regionCountRows: 1, regionCountCols: 1, dataCodewords: 3, errorCodewords: 5, rsBlockData: 3, rsBlockError: 5 },
@@ -84,6 +90,7 @@ export class DmCore {
       shape: 'auto',
       encoding: DEFAULT_ENCODING,
       gs1: false,
+      macro: null,
       minSize: null,
       maxSize: null,
       symbolSize: null,
@@ -97,8 +104,14 @@ export class DmCore {
     const capacities = [...new Set(candidates.map((symbol) => symbol.dataCodewords))]
     if (capacities.length === 0) throw new Error('No Data Matrix symbols match the selected constraints.')
     const gs1 = normalizeGs1(this.options.gs1)
-    const input = encodeInputBytes(this.data, this.options.encoding)
-    const prefixCodewords = [...(gs1 ? [232] : []), ...input.eciCodewords]
+    const macroInput = normalizeMacro(this.data, this.options.macro)
+    if (gs1 && macroInput.macro !== null) throw new Error('Data Matrix Macro 05/06 cannot be combined with GS1 mode.')
+    const input = encodeInputBytes(macroInput.payload, this.options.encoding)
+    const prefixCodewords = [
+      ...(macroInput.macro === null ? [] : [MACRO_CODEWORDS[macroInput.macro]]),
+      ...(gs1 ? [232] : []),
+      ...input.eciCodewords,
+    ]
     const encoded = encodeMinimalDataMatrix(input.bytes, capacities, prefixCodewords, { fnc1: gs1 ? 29 : null })
     const symbol = chooseSymbol(encoded.codewords.length, constraints)
     const dataCodewords = encoded.codewords
@@ -110,6 +123,7 @@ export class DmCore {
       format: 'datamatrix',
       encoding: input.encoding,
       gs1,
+      macro: macroInput.macro,
       eciAssignmentNumber: input.eciAssignmentNumber,
       payloadBytes: input.bytes,
       size: symbol.rows === symbol.cols ? symbol.rows : `${symbol.rows}x${symbol.cols}`,
@@ -144,6 +158,37 @@ function normalizeSymbolConstraints(options) {
 function normalizeGs1(value) {
   if (typeof value !== 'boolean') throw new Error('gs1 must be a boolean.')
   return value
+}
+
+function normalizeMacro(data, value) {
+  if (value !== null && value !== 'auto' && value !== 5 && value !== 6) {
+    throw new Error("macro must be null, 'auto', 5, or 6.")
+  }
+
+  const framedMacro = detectMacroFrame(data)
+  if (value === null) return { macro: null, payload: data }
+  if (value === 'auto' && framedMacro === null) return { macro: null, payload: data }
+  if (value === 5 || value === 6) {
+    if (framedMacro !== null && framedMacro.macro !== value) {
+      throw new Error(`Input contains a Macro ${String(framedMacro.macro).padStart(2, '0')} frame but macro ${String(value).padStart(2, '0')} was requested.`)
+    }
+    const payload = framedMacro?.payload ?? data
+    if (payload.length === 0) throw new Error('Data Matrix Macro payload must be non-empty.')
+    return { macro: value, payload }
+  }
+
+  if (framedMacro.payload.length === 0) throw new Error('Data Matrix Macro payload must be non-empty.')
+  return framedMacro
+}
+
+function detectMacroFrame(data) {
+  for (const macro of [5, 6]) {
+    const header = MACRO_HEADERS[macro]
+    if (data.startsWith(header) && data.endsWith(MACRO_TRAILER)) {
+      return { macro, payload: data.slice(header.length, -MACRO_TRAILER.length) }
+    }
+  }
+  return null
 }
 
 function encodeInputBytes(data, encoding) {
