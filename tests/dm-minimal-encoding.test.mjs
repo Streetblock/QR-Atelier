@@ -16,7 +16,7 @@ test('uses ASCII digit pairs and switches among compact modes', () => {
   const digits = new DmCore('1234567890').generate()
   const x12 = new DmCore('ABC>123*XYZ').generate()
   const edifact = new DmCore('^^^^^^^^^^^^').generate()
-  const base256 = new DmCore('é'.repeat(20)).generate()
+  const base256 = new DmCore('é'.repeat(20), { encoding: 'iso-8859-1' }).generate()
 
   assert.deepEqual(digits.dataCodewords, [142, 164, 186, 208, 220])
   assert.ok(x12.encodedCodewords < 11)
@@ -37,7 +37,27 @@ test('keeps all generated data and ECC codewords in byte range', () => {
   }
 })
 
-test('accepts ISO-8859-1 and rejects unrepresentable Unicode', () => {
-  assert.doesNotThrow(() => new DmCore('Grüße').generate())
-  assert.throws(() => new DmCore('Emoji 🙂').generate(), /ISO-8859-1/)
+test('uses UTF-8 with ECI by default and keeps ISO-8859-1 optional', () => {
+  const ascii = new DmCore('ASCII only').generate()
+  const unicode = new DmCore('Grüße 🙂').generate()
+  const latin1 = new DmCore('Grüße', { encoding: 'iso-8859-1' }).generate()
+
+  assert.equal(ascii.encoding, 'utf-8')
+  assert.equal(ascii.eciAssignmentNumber, null)
+  assert.equal(unicode.encoding, 'utf-8')
+  assert.equal(unicode.eciAssignmentNumber, 26)
+  assert.deepEqual(unicode.dataCodewords.slice(0, 2), [241, 27])
+  assert.deepEqual(unicode.payloadBytes, Array.from(new TextEncoder().encode('Grüße 🙂')))
+  assert.equal(latin1.encoding, 'iso-8859-1')
+  assert.equal(latin1.eciAssignmentNumber, null)
+  assert.deepEqual(latin1.payloadBytes, [71, 114, 252, 223, 101])
+  assert.throws(() => new DmCore('Emoji 🙂', { encoding: 'iso-8859-1' }).generate(), /ISO-8859-1/)
+  assert.throws(() => new DmCore('ABC', { encoding: 'shift-jis' }).generate(), /Unsupported/)
+})
+
+test('includes the ECI overhead in minimal symbol selection', () => {
+  const result = new DmCore('é').generate()
+  assert.equal(result.encodedCodewords, 6)
+  assert.deepEqual(result.dataCodewords.slice(0, 2), [241, 27])
+  assert.equal(`${result.rows}x${result.cols}`, '14x14')
 })

@@ -185,7 +185,7 @@ class QRPlaygroundApp {
 
   #createRenderer(size) {
     if (this.state.options.format === 'datamatrix') {
-      const dmMatrix = new DmCore(this.state.data).generate()
+      const dmMatrix = new DmCore(this.state.data, { encoding: 'utf-8' }).generate()
       return new DmSvgRenderer(dmMatrix, {
         size,
         margin: 8,

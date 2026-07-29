@@ -47,7 +47,8 @@ The SVG renderer. Takes the raw matrix from `QrCore` and turns it into visual ar
 * Dynamically selects among ASCII, C40, Text, ANSI X12, EDIFACT, and Base256 encodation to minimize the required symbol.
 * Allows automatic, square-only, rectangle-only, constrained, or exact-size selection through `DmCore` options.
 * Uses the ECC 200 error-correction structure fixed by the selected symbol; Data Matrix does not expose a variable QR-style ECC level.
-* Currently accepts ISO-8859-1 input. GS1/FNC1, ECI, Structured Append, Macro 05/06, and DMRE sizes are not yet exposed.
+* Uses UTF-8 by default and emits ECI assignment 26 when non-ASCII bytes require it; ISO-8859-1 remains available through the `encoding` option.
+* GS1/FNC1, Structured Append, Macro 05/06, and DMRE sizes are not yet exposed.
 
 ### 3. `app.js` & `styles.css` (The Stage)
 The app controller and UI. Manages state, binds DOM events to the classes, and provides the modern, glassmorphism interface. The studio currently uses the core's UTF-8 default and does not expose an encoding selector. When a center logo is present, the app requests error correction level H; this is app behavior, not an automatic rule inside `QrCore`.
