@@ -1,5 +1,7 @@
 import { QrCore } from './libs/QRcore.js'
 import { QrSvgRenderer } from './libs/QRsvg.js'
+import { AztecCore } from './libs/AztecCore.js'
+import { AztecSvgRenderer } from './libs/AztecSvg.js'
 
 class QRPlaygroundApp {
   constructor() {
@@ -11,6 +13,7 @@ class QRPlaygroundApp {
         errorCorrectionLevel: 'Q',
         colorStart: '#0f172a',
         colorEnd: '#0ea5e9',
+        aztecStyle: 'square',
         dotStyle: 'rounded',
         cornerStyle: 'extra-rounded',
         logo: null,
@@ -102,7 +105,6 @@ class QRPlaygroundApp {
     this.ui.logoUpload.addEventListener('change', () => {
       const file = this.ui.logoUpload.files[0]
       if (!file) return
-
       const reader = new FileReader()
       reader.onload = () => {
         this.ui.logoStatus.textContent = `Logo: ${file.name}`
@@ -172,7 +174,6 @@ class QRPlaygroundApp {
 
   async #downloadSVG() {
     if (this.isDownloading || !this.hasCode()) return
-
     this.isDownloading = true
     try {
       const size = this.getDownloadSize()
@@ -187,7 +188,6 @@ class QRPlaygroundApp {
 
   async #downloadPNG() {
     if (this.isDownloading || !this.hasCode()) return
-
     this.isDownloading = true
     try {
       const size = this.getDownloadSize()
@@ -343,26 +343,22 @@ class QRPlaygroundApp {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' }))
       const image = new Image()
-
       image.onload = () => {
         const canvas = document.createElement('canvas')
         canvas.width = size
         canvas.height = size
         const context = canvas.getContext('2d')
         context.drawImage(image, 0, 0, size, size)
-
         canvas.toBlob((blob) => {
           URL.revokeObjectURL(url)
           if (blob) resolve(blob)
           else reject(new Error('Canvas to Blob failed.'))
         }, 'image/png')
       }
-
       image.onerror = () => {
         URL.revokeObjectURL(url)
         reject(new Error('SVG konnte nicht als PNG gerendert werden.'))
       }
-
       image.src = url
     })
   }
