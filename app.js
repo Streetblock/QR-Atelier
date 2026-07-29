@@ -6,6 +6,7 @@ import { AztecCore } from './libs/AztecCore.js'
 import { AztecSvgRenderer } from './libs/AztecSvg.js'
 import { MaxiCodeCore } from './libs/MaxiCodeCore.js'
 import { MaxiCodeSvgRenderer } from './libs/MaxiCodeSvg.js'
+import { parseMaxiCodeRawInput } from './libs/MaxiCodeRaw.js'
 
 class QRPlaygroundApp {
   constructor() {
@@ -25,6 +26,7 @@ class QRPlaygroundApp {
         wifiSsid: '',
         wifiPassword: '',
         wifiHidden: false,
+        maxiCodeInputMode: 'text',
       },
       currentSvg: '',
     }
@@ -41,6 +43,8 @@ class QRPlaygroundApp {
       primaryInput: document.getElementById('primary-input'),
       primaryInputLabel: document.getElementById('primary-input-label'),
       primaryInputField: document.getElementById('field-primary-input'),
+      maxiCodeInputMode: document.getElementById('maxicode-input-mode'),
+      maxiCodeInputModeField: document.getElementById('field-maxicode-input-mode'),
       dotShape: document.getElementById('dot-shape'),
       cornerShape: document.getElementById('corner-shape'),
       dotShapeField: document.getElementById('field-dot-shape'),
@@ -78,7 +82,9 @@ class QRPlaygroundApp {
         if (this.state.options.contentMode === 'wifi') {
           this.update({ wifiSsid: this.ui.primaryInput.value.trim() })
         } else {
-          this.update({ data: this.ui.primaryInput.value.trim() })
+          const preserveInput = this.state.options.format === 'maxi-code'
+            && this.state.options.maxiCodeInputMode === 'raw'
+          this.update({ data: preserveInput ? this.ui.primaryInput.value : this.ui.primaryInput.value.trim() })
         }
       }, 180)
     })
@@ -210,7 +216,8 @@ class QRPlaygroundApp {
   #createRenderer(size) {
     const payload = this.#buildPayload()
     if (this.state.options.format === 'maxi-code') {
-      const maxi = new MaxiCodeCore(payload, { mode: 4 }).generate()
+      const preserveControls = this.state.options.maxiCodeInputMode === 'raw'
+      const maxi = new MaxiCodeCore(payload, { mode: 4, preserveControls }).generate()
       return new MaxiCodeSvgRenderer(maxi, {
         size,
         colorStart: this.state.options.colorStart,
@@ -261,10 +268,22 @@ class QRPlaygroundApp {
       this.ui.primaryInputField.style.display = ''
     }
     if (this.ui.primaryInputLabel) {
-      this.ui.primaryInputLabel.textContent = isWifi ? 'SSID' : isMaxi ? 'Text' : 'URL oder Text'
+      this.ui.primaryInputLabel.textContent = isWifi
+        ? 'SSID'
+        : isMaxi && this.state.options.maxiCodeInputMode === 'raw'
+          ? 'Raw MaxiCode data'
+          : isMaxi
+            ? 'Text'
+            : 'URL oder Text'
     }
     if (this.ui.primaryInput) {
-      this.ui.primaryInput.placeholder = isWifi ? 'Mein WLAN' : isMaxi ? 'Kurzer Text' : 'https://example.com'
+      this.ui.primaryInput.placeholder = isWifi
+        ? 'Mein WLAN'
+        : isMaxi && this.state.options.maxiCodeInputMode === 'raw'
+          ? '[)>~03001~02996...~030~004'
+          : isMaxi
+            ? 'Kurzer Text'
+            : 'https://example.com'
       this.ui.primaryInput.value = isWifi ? (this.state.options.wifiSsid || '') : this.state.data
       this.ui.primaryInput.autocomplete = 'off'
     }
@@ -273,6 +292,9 @@ class QRPlaygroundApp {
   #buildPayload() {
     if (this.state.options.contentMode === 'wifi') {
       return this.#buildWifiPayload()
+    }
+    if (this.state.options.format === 'maxi-code' && this.state.options.maxiCodeInputMode === 'raw') {
+      return parseMaxiCodeRawInput(this.state.data)
     }
     return this.state.data
   }
