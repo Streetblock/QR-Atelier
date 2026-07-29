@@ -369,12 +369,6 @@ body::before {
   color: rgba(30, 27, 24, 0.58);
 }
 
-.field-hint {
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.4;
-}
-
 .text-input,
 .select-input,
 .upload-input {
@@ -436,6 +430,12 @@ body::before {
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.field-hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
 }
 
 .checkbox-row {
