@@ -6,6 +6,7 @@ class QRPlaygroundApp {
       data: '',
       options: {
         format: 'qr',
+        contentMode: 'text',
         errorCorrectionLevel: 'Q',
         colorStart: '#0f172a',
         colorEnd: '#0ea5e9',
@@ -34,15 +35,6 @@ class QRPlaygroundApp {
       primaryInput: document.getElementById('primary-input'),
       primaryInputLabel: document.getElementById('primary-input-label'),
       primaryInputField: document.getElementById('field-primary-input'),
-      maxiCodeInputMode: document.getElementById('maxicode-input-mode'),
-      maxiCodeInputModeField: document.getElementById('field-maxicode-input-mode'),
-      maxiCodeMode: document.getElementById('maxicode-mode'),
-      maxiCodeModeField: document.getElementById('field-maxicode-mode'),
-      maxiCodeCarrierFields: document.getElementById('field-maxicode-carrier'),
-      maxiCodePostalCode: document.getElementById('maxicode-postal-code'),
-      maxiCodePostalCodeLabel: document.getElementById('maxicode-postal-code-label'),
-      maxiCodeCountryCode: document.getElementById('maxicode-country-code'),
-      maxiCodeServiceClass: document.getElementById('maxicode-service-class'),
       dotShape: document.getElementById('dot-shape'),
       cornerShape: document.getElementById('corner-shape'),
       dotShapeField: document.getElementById('field-dot-shape'),
@@ -89,7 +81,7 @@ class QRPlaygroundApp {
     this.ui.primaryInput.addEventListener('input', () => {
       clearTimeout(this.debounceTimer)
       this.debounceTimer = setTimeout(() => {
-        if (this.state.options.format === 'wifi') {
+        if (this.state.options.contentMode === 'wifi') {
           this.update({ wifiSsid: this.ui.primaryInput.value.trim() })
           return
         }
