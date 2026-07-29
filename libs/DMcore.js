@@ -91,6 +91,7 @@ export class DmCore {
       encoding: DEFAULT_ENCODING,
       gs1: false,
       macro: null,
+      readerProgramming: false,
       minSize: null,
       maxSize: null,
       symbolSize: null,
@@ -105,9 +106,14 @@ export class DmCore {
     if (capacities.length === 0) throw new Error('No Data Matrix symbols match the selected constraints.')
     const gs1 = normalizeGs1(this.options.gs1)
     const macroInput = normalizeMacro(this.data, this.options.macro)
+    const readerProgramming = normalizeReaderProgramming(this.options.readerProgramming)
     if (gs1 && macroInput.macro !== null) throw new Error('Data Matrix Macro 05/06 cannot be combined with GS1 mode.')
+    if (readerProgramming && (gs1 || macroInput.macro !== null)) {
+      throw new Error('Data Matrix Reader Programming cannot be combined with GS1 or Macro 05/06.')
+    }
     const input = encodeInputBytes(macroInput.payload, this.options.encoding)
     const prefixCodewords = [
+      ...(readerProgramming ? [234] : []),
       ...(macroInput.macro === null ? [] : [MACRO_CODEWORDS[macroInput.macro]]),
       ...(gs1 ? [232] : []),
       ...input.eciCodewords,
@@ -124,6 +130,7 @@ export class DmCore {
       encoding: input.encoding,
       gs1,
       macro: macroInput.macro,
+      readerProgramming,
       eciAssignmentNumber: input.eciAssignmentNumber,
       payloadBytes: input.bytes,
       size: symbol.rows === symbol.cols ? symbol.rows : `${symbol.rows}x${symbol.cols}`,
@@ -157,6 +164,11 @@ function normalizeSymbolConstraints(options) {
 
 function normalizeGs1(value) {
   if (typeof value !== 'boolean') throw new Error('gs1 must be a boolean.')
+  return value
+}
+
+function normalizeReaderProgramming(value) {
+  if (typeof value !== 'boolean') throw new Error('readerProgramming must be a boolean.')
   return value
 }
 
