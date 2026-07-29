@@ -27,6 +27,25 @@ test('mode 4 preserves raw CR, GS, RS and EOT controls', () => {
   assert.equal(result.codewords.length, 144);
 });
 
+test('mode 5 uses enhanced error correction and accepts 77 message codewords', () => {
+  const result = new MaxiCodeCore('A'.repeat(77), { mode: 5 }).generate();
+
+  assert.equal(result.mode, 5);
+  assert.equal(result.codewords[0] & 0x0f, 5);
+  assert.equal(result.codewords.length, 144);
+  assert.deepEqual(Array.from(result.codewords.slice(1, 10)), new Array(9).fill(1));
+  assert.deepEqual(Array.from(result.codewords.slice(20, 88)), new Array(68).fill(1));
+  assert.throws(
+    () => new MaxiCodeCore('A'.repeat(78), { mode: 5 }).generate(),
+    /up to 77 codewords/,
+  );
+});
+
+test('rejects unsupported MaxiCode modes', () => {
+  assert.throws(() => new MaxiCodeCore('A', { mode: 1 }).generate(), /modes 2, 3, 4 and 5/);
+  assert.throws(() => new MaxiCodeCore('A', { mode: 6 }).generate(), /modes 2, 3, 4 and 5/);
+});
+
 const getIntAtPositions = (bytes, positions) => positions.reduce((value, position) => {
   const bitNumber = position - 1;
   const bit = (bytes[Math.floor(bitNumber / 6)] >> (5 - (bitNumber % 6))) & 1;

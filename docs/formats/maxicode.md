@@ -12,11 +12,12 @@ The MaxiCode feature branch adds a native encoder, raw-control parser, and SVG r
 ## Supported modes
 
 - Mode 4 for general-purpose data.
+- Mode 5 for general-purpose data with enhanced error correction and a reduced capacity of 77 message codewords.
 - Mode 2 with a numeric postal code of 1 through 9 digits.
 - Mode 3 with a six-character alphanumeric postal code.
 - Carrier-mode Primary Messages include the postal code, three-digit ISO country code, and three-digit service class.
 
-The encoder validates mode-specific primary fields and packs them into the dedicated Primary Message. Secondary Message compaction and error correction are handled by the core.
+Modes 2 through 4 use 84 Secondary Message data codewords and 40 error-correction codewords. Mode 5 instead uses 68 Secondary Message data codewords and 56 error-correction codewords. The encoder validates mode-specific primary fields and packs them into the dedicated Primary Message. Secondary Message compaction and error correction are handled by the core.
 
 ## Raw control input
 
@@ -28,4 +29,4 @@ The format adapter dynamically shows carrier fields for modes 2 and 3 and suppli
 
 ## Tests
 
-`npm test` covers raw escape parsing, control preservation, modes 2 through 4, carrier-field validation, Primary Message packing, payload capacity, rendering, and the registry adapter. No external reference decoder is currently required by this branch.
+`npm test` covers raw escape parsing, control preservation, modes 2 through 5, carrier-field validation, Primary Message packing, payload capacity, rendering, and the registry adapter. `npm run test:reference` verifies all supported modes with the shared ZXing decoder dependency.

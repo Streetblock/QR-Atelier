@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import { BitMatrix } from '@zxing/library'
+import decoderModule from '@zxing/library/cjs/core/maxicode/decoder/Decoder.js'
+import { MaxiCodeCore } from '../libs/MaxiCodeCore.js'
+
+const MaxiCodeDecoder = decoderModule.default
+
+function toBitMatrix(modules) {
+  const matrix = new BitMatrix(modules[0].length, modules.length)
+  for (let y = 0; y < modules.length; y += 1) {
+    for (let x = 0; x < modules[y].length; x += 1) {
+      if (modules[y][x]) matrix.set(x, y)
+    }
+  }
+  return matrix
+}
+
+test('ZXing decodes MaxiCode modes 2 through 5', () => {
+  const cases = [
+    {
+      data: 'CARRIER MODE TWO',
+      options: { mode: 2, postalCode: '336091062', countryCode: '840', serviceClass: '002' },
+      expected: '336091062\x1d840\x1d002\x1dCARRIER MODE TWO',
+    },
+    {
+      data: 'CARRIER MODE THREE',
+      options: { mode: 3, postalCode: 'K1A0B1', countryCode: '124', serviceClass: '001' },
+      expected: 'K1A0B1\x1d124\x1d001\x1dCARRIER MODE THREE',
+    },
+    { data: 'GENERAL MODE FOUR 123', options: { mode: 4 } },
+    { data: 'ENHANCED MODE FIVE 123', options: { mode: 5 } },
+  ]
+
+  for (const { data, options, expected = data } of cases) {
+    const generated = new MaxiCodeCore(data, options).generate()
+    const decoded = new MaxiCodeDecoder().decode(toBitMatrix(generated.modules))
+    assert.equal(decoded.getText(), expected, `mode ${options.mode}`)
+    assert.equal(decoded.getECLevel(), String(options.mode), `mode ${options.mode}`)
+  }
+})
