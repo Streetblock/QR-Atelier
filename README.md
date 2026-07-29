@@ -20,7 +20,7 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 * Live Preview: The selected barcode is instantly and efficiently re-rendered on every input thanks to built-in debouncing.
 * QR Code Studio: The main branch ships the QR Code experience.
 * In-depth Styling: Choose between different dot styles, finder shapes, and smooth SVG color gradients.
-* Center Logo Support: Upload your own logo for QR Code. The system automatically switches to error correction level H in the background.
+* Center Logo Support: Upload your own logo for QR Code. The studio app automatically switches to error correction level H in the background.
 * Local Export: Direct download of the result as a vector (`SVG`) or raster image (`PNG` up to 2048x2048px).
 * URL Parameters: Populate the studio directly via URL parameters: `?url=https://your-link.com`.
 
@@ -28,14 +28,17 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 
 The project stays intentionally small and uses one core and one renderer per barcode family:
 
-### 1. `QrCore.js` and `QrSvg.js`
+### 1. `QRcore.js` and `QRsvg.js`
 The QR Code core and renderer.
 * Generates QR matrices with Reed-Solomon error correction.
+* Supports Numeric, Alphanumeric, and Byte mode plus ECI for UTF-8, ISO-8859-1, and Windows-1252. QR Kanji mode is not currently supported.
+* Uses UTF-8 as the default Byte-mode encoding; library consumers can select another supported encoding through `QrCore` options.
+* Automatically selects a bit-efficient combination of Numeric, Alphanumeric, and Byte segments for each QR version range.
 * Automatically selects the best mask pattern.
 * Renders the QR matrix in the chosen visual style.
 
 ### 2. `app.js` and `styles.css`
-The app controller and UI. Manages state, binds DOM events, and provides the interface.
+The app controller and UI. Manages state, binds DOM events, and provides the interface. The studio currently uses the core's UTF-8 default and does not expose an encoding selector. When a center logo is present, the app requests error correction level H; this is app behavior, not an automatic rule inside `QrCore`.
 
 ## Installation & Usage
 
@@ -59,8 +62,8 @@ The app controller and UI. Manages state, binds DOM events, and provides the int
 3. Use the libs from Node.js
    With the repo's ESM setup, the barcode libraries can also be imported from Node:
    ```js
-   import { QrCore } from './libs/QrCore.js'
-   import { QrSvgRenderer } from './libs/QrSvg.js'
+   import { QrCore } from './libs/QRcore.js'
+   import { QrSvgRenderer } from './libs/QRsvg.js'
 
    const data = new QrCore('https://example.com').generate()
    const svg = new QrSvgRenderer(data).render()
@@ -75,8 +78,8 @@ QR-Atelier/
 |-- styles.css
 |-- app.js
 `-- libs/
-    |-- QrCore.js
-    `-- QrSvg.js
+    |-- QRcore.js
+    `-- QRsvg.js
 ```
 
 ## Contributing
