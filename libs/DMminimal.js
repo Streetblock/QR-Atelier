@@ -7,8 +7,8 @@ const BASE256 = 5
 
 const SHIFT2 = new Set(Array.from('!"#$%&\'()*+,-./:;<=>?@[\\]^_').map((character) => character.charCodeAt(0)))
 
-export function encodeMinimalDataMatrix(bytes, capacities, prefixCodewords = []) {
-  const input = new DmInput(bytes, capacities, prefixCodewords)
+export function encodeMinimalDataMatrix(bytes, capacities, prefixCodewords = [], options = {}) {
+  const input = new DmInput(bytes, capacities, prefixCodewords, options.fnc1 ?? null)
   const edges = Array.from({ length: input.length + 1 }, () => new Array(6).fill(null))
   addEdges(input, edges, 0, null)
 
@@ -49,7 +49,7 @@ function addEdges(input, edges, from, previous) {
     if (input.has(from, 3) && [0, 1, 2].every((offset) => isNativeX12(input.at(from + offset)))) {
       addEdge(edges, new Edge(input, X12, from, 3, previous))
     }
-    addEdge(edges, new Edge(input, BASE256, from, 1, previous))
+    if (!input.isFnc1(from)) addEdge(edges, new Edge(input, BASE256, from, 1, previous))
   }
 
   let length = 0
@@ -72,7 +72,9 @@ function c40SegmentLength(input, from, c40) {
   let valueCount = 0
   for (let index = from; index < input.length; index += 1) {
     const character = input.at(index)
-    if ((c40 && isNativeC40(character)) || (!c40 && isNativeText(character))) {
+    if (input.isFnc1(index)) {
+      valueCount += 2
+    } else if ((c40 && isNativeC40(character)) || (!c40 && isNativeText(character))) {
       valueCount += 1
     } else if (!isExtended(character)) {
       valueCount += 2
@@ -88,13 +90,14 @@ function c40SegmentLength(input, from, c40) {
 }
 
 class DmInput {
-  constructor(bytes, capacities, prefixCodewords) {
+  constructor(bytes, capacities, prefixCodewords, fnc1) {
     this.characters = Array.from(bytes)
     if (!this.characters.every((value) => Number.isInteger(value) && value >= 0 && value <= 255)) {
       throw new Error('Data Matrix input must be a byte sequence.')
     }
     this.capacities = capacities
     this.prefixCodewords = prefixCodewords
+    this.fnc1 = fnc1
     this.length = this.characters.length
   }
 
@@ -104,6 +107,10 @@ class DmInput {
 
   has(position, count) {
     return position >= 0 && position + count <= this.length
+  }
+
+  isFnc1(position) {
+    return this.fnc1 !== null && this.at(position) === this.fnc1
   }
 
   capacityFor(minimum) {
@@ -220,6 +227,7 @@ class Edge {
   dataBytes() {
     const character = this.input.at(this.from)
     if (this.mode === ASCII) {
+      if (this.input.isFnc1(this.from)) return [232]
       if (isExtended(character)) return [235, character - 127]
       if (this.length === 2) {
         return [(character - 48) * 10 + (this.input.at(this.from + 1) - 48) + 130]
@@ -278,7 +286,10 @@ function prepend(target, values) {
 
 function c40Bytes(input, from, length, c40) {
   const values = []
-  for (let offset = 0; offset < length; offset += 1) appendC40Values(values, input.at(from + offset), c40)
+  for (let offset = 0; offset < length; offset += 1) {
+    if (input.isFnc1(from + offset)) values.push(1, 27)
+    else appendC40Values(values, input.at(from + offset), c40)
+  }
   if (values.length % 3 === 2) values.push(0)
   if (values.length % 3 !== 0) throw new Error('Invalid C40/Text segment.')
   const result = []

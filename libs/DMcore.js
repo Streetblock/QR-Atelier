@@ -83,6 +83,7 @@ export class DmCore {
     this.options = {
       shape: 'auto',
       encoding: DEFAULT_ENCODING,
+      gs1: false,
       minSize: null,
       maxSize: null,
       symbolSize: null,
@@ -95,8 +96,10 @@ export class DmCore {
     const candidates = filterSymbols(constraints)
     const capacities = [...new Set(candidates.map((symbol) => symbol.dataCodewords))]
     if (capacities.length === 0) throw new Error('No Data Matrix symbols match the selected constraints.')
+    const gs1 = normalizeGs1(this.options.gs1)
     const input = encodeInputBytes(this.data, this.options.encoding)
-    const encoded = encodeMinimalDataMatrix(input.bytes, capacities, input.eciCodewords)
+    const prefixCodewords = [...(gs1 ? [232] : []), ...input.eciCodewords]
+    const encoded = encodeMinimalDataMatrix(input.bytes, capacities, prefixCodewords, { fnc1: gs1 ? 29 : null })
     const symbol = chooseSymbol(encoded.codewords.length, constraints)
     const dataCodewords = encoded.codewords
     const allCodewords = appendEcc200(dataCodewords, symbol)
@@ -106,6 +109,7 @@ export class DmCore {
       data: this.data,
       format: 'datamatrix',
       encoding: input.encoding,
+      gs1,
       eciAssignmentNumber: input.eciAssignmentNumber,
       payloadBytes: input.bytes,
       size: symbol.rows === symbol.cols ? symbol.rows : `${symbol.rows}x${symbol.cols}`,
@@ -135,6 +139,11 @@ function normalizeSymbolConstraints(options) {
     throw new Error(`Unsupported Data Matrix symbol size: ${symbolSize.rows}x${symbolSize.cols}`)
   }
   return { shape, minSize, maxSize, symbolSize }
+}
+
+function normalizeGs1(value) {
+  if (typeof value !== 'boolean') throw new Error('gs1 must be a boolean.')
+  return value
 }
 
 function encodeInputBytes(data, encoding) {
