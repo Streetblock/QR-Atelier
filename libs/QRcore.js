@@ -325,8 +325,10 @@ function createCodewords(segments, version, ecl) {
     dataCodewords.push(value)
   }
 
+  let padIndex = 0
   while (dataCodewords.length < dataCapacityBits / 8) {
-    dataCodewords.push(PAD_CODEWORDS[dataCodewords.length % 2])
+    dataCodewords.push(PAD_CODEWORDS[padIndex % 2])
+    padIndex += 1
   }
 
   const dataBlocks = []

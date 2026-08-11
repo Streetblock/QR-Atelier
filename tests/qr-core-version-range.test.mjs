@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import test from 'node:test'
 
 import { QrCore, QrSegment } from '../libs/QRcore.js'
@@ -256,4 +257,13 @@ test('reports overflow against the configured version range', () => {
 test('rejects invalid QR versions outside the standard range', () => {
   assert.throws(() => new QrCore('payload', { maxVersion: 41 }).generate(), /between 1 and 40/)
   assert.throws(() => new QrCore('payload', { minVersion: 0 }).generate(), /between 1 and 40/)
+})
+
+test('starts QR padding with 0xEC independently of the current data length', () => {
+  const result = new QrCore('https://example.com', { errorCorrectionLevel: 'Q' }).generate()
+  const bits = result.modules.map((row) => row.map(Number).join('')).join('')
+  const fingerprint = createHash('sha256').update(bits).digest('hex')
+
+  assert.equal(result.version, 2)
+  assert.equal(fingerprint, 'f58680ccc546ffba8dcd24339afa4d9fc3cf3732f92fb2fdf1e6bccc59de287d')
 })
