@@ -71,3 +71,15 @@ test('ZXing structurally decodes a MaxiCode carrying ECI 26', () => {
   assert.equal(decoded.getText(), '\uFFFAZABC')
   assert.equal(decoded.getECLevel(), '4')
 })
+
+test('ZXing structurally decodes a Structured Append MaxiCode', () => {
+  const generated = new MaxiCodeCore('ABC', {
+    mode: 4,
+    structuredAppend: { index: 3, count: 7 },
+  }).generate()
+  const decoded = new MaxiCodeDecoder().decode(toBitMatrix(generated.modules))
+
+  // ZXing exposes the Structured Append header as ordinary Code Set A data.
+  assert.equal(decoded.getText(), '\uFFFCVABC')
+  assert.equal(decoded.getECLevel(), '4')
+})

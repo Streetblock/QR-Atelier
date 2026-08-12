@@ -76,6 +76,22 @@ export function encodeMaxiCodeEci(assignmentNumber) {
   return [27, 0x38 | ((eci >> 18) & 0x03), (eci >> 12) & 0x3f, (eci >> 6) & 0x3f, eci & 0x3f]
 }
 
+export function encodeMaxiCodeStructuredAppend(structuredAppend) {
+  if (structuredAppend === undefined || structuredAppend === null || structuredAppend === false) return []
+  if (typeof structuredAppend !== 'object') {
+    throw new Error('MaxiCode Structured Append must specify an index and count.')
+  }
+  const index = Number(structuredAppend.index)
+  const count = Number(structuredAppend.count)
+  if (!Number.isInteger(count) || count < 2 || count > 8) {
+    throw new Error('MaxiCode Structured Append count must be an integer from 2 to 8.')
+  }
+  if (!Number.isInteger(index) || index < 1 || index > count) {
+    throw new Error(`MaxiCode Structured Append index must be an integer from 1 to ${count}.`)
+  }
+  return [33, ((index - 1) << 3) | (count - 1)]
+}
+
 export class MaxiCodeCore {
   constructor(data, options = {}) {
     if (typeof data !== 'string') {
@@ -131,6 +147,7 @@ export class MaxiCodeCore {
         .replace(/\n/g, ' ')
 
     const characters = this.#encodeCharacters(normalized)
+    const structuredAppendCodewords = encodeMaxiCodeStructuredAppend(this.options.structuredAppend)
     const eciCodewords = this.#eciCodewords()
     let segmented
     if (eciCodewords.length > 0 && this.#structuredCarrierHeaderLength(characters) > 0) {
@@ -138,13 +155,13 @@ export class MaxiCodeCore {
       const header = this.#segmentMessage(characters.slice(0, headerLength))
       const body = this.#segmentMessage(characters.slice(headerLength))
       segmented = {
-        codewords: [...header.codewords, ...eciCodewords, ...body.codewords],
+        codewords: [...structuredAppendCodewords, ...header.codewords, ...eciCodewords, ...body.codewords],
         finalSet: body.finalSet,
       }
     } else {
       const message = this.#segmentMessage(characters)
       segmented = {
-        codewords: [...eciCodewords, ...message.codewords],
+        codewords: [...structuredAppendCodewords, ...eciCodewords, ...message.codewords],
         finalSet: message.finalSet,
       }
     }

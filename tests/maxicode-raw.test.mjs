@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { encodeMaxiCodeEci, MaxiCodeCore } from '../libs/MaxiCodeCore.js';
+import { encodeMaxiCodeEci, encodeMaxiCodeStructuredAppend, MaxiCodeCore } from '../libs/MaxiCodeCore.js';
 import { parseMaxiCodeRawInput } from '../libs/MaxiCodeRaw.js';
 
 test('parses bcgen decimal escapes and named control aliases', () => {
@@ -76,6 +76,62 @@ test('validates MaxiCode ECI and text encoding combinations', () => {
     () => new MaxiCodeCore('A'.repeat(92), { mode: 4, eci: 26 }).generate(),
     /up to 93 codewords/,
   );
+});
+
+test('packs MaxiCode Structured Append positions and counts', () => {
+  assert.deepEqual(encodeMaxiCodeStructuredAppend({ index: 1, count: 2 }), [33, 1]);
+  assert.deepEqual(encodeMaxiCodeStructuredAppend({ index: 3, count: 7 }), [33, 22]);
+  assert.deepEqual(encodeMaxiCodeStructuredAppend({ index: 8, count: 8 }), [33, 63]);
+  assert.throws(() => encodeMaxiCodeStructuredAppend({ index: 1, count: 1 }), /count.*2 to 8/);
+  assert.throws(() => encodeMaxiCodeStructuredAppend({ index: 4, count: 3 }), /index.*1 to 3/);
+});
+
+test('places Structured Append before general and carrier messages', () => {
+  const general = new MaxiCodeCore('ABC', {
+    mode: 4,
+    structuredAppend: { index: 3, count: 7 },
+  }).generate();
+  const carrier = new MaxiCodeCore('ABC', {
+    mode: 2,
+    structuredAppend: { index: 3, count: 7 },
+    postalCode: '12345',
+    countryCode: '840',
+    serviceClass: '001',
+  }).generate();
+
+  assert.deepEqual(Array.from(general.codewords.slice(1, 6)), [33, 22, 1, 2, 3]);
+  assert.deepEqual(Array.from(carrier.codewords.slice(20, 25)), [33, 22, 1, 2, 3]);
+});
+
+test('keeps Structured Append first when combined with ECI', () => {
+  const result = new MaxiCodeCore('ABC', {
+    mode: 4,
+    eci: 26,
+    structuredAppend: { index: 3, count: 7 },
+  }).generate();
+
+  assert.deepEqual(Array.from(result.codewords.slice(1, 8)), [33, 22, 27, 26, 1, 2, 3]);
+  assert.doesNotThrow(() => new MaxiCodeCore('A'.repeat(91), {
+    mode: 4,
+    structuredAppend: { index: 1, count: 2 },
+  }).generate());
+  assert.throws(() => new MaxiCodeCore('A'.repeat(92), {
+    mode: 4,
+    structuredAppend: { index: 1, count: 2 },
+  }).generate(), /up to 93 codewords/);
+
+  const carrier = new MaxiCodeCore('[)>\x1e01\x1d96ABC', {
+    mode: 2,
+    preserveControls: true,
+    encoding: 'utf-8',
+    structuredAppend: { index: 3, count: 7 },
+    postalCode: '12345',
+    countryCode: '840',
+    serviceClass: '001',
+  }).generate();
+  assert.deepEqual(Array.from(carrier.codewords.slice(20, 35)), [
+    33, 22, 59, 42, 41, 59, 40, 30, 48, 49, 29, 57, 54, 27, 26,
+  ]);
 });
 
 test('mode 5 uses enhanced error correction and accepts 77 message codewords', () => {

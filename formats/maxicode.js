@@ -3,6 +3,7 @@ import { parseMaxiCodeRawInput } from '../libs/MaxiCodeRaw.js'
 import { MaxiCodeSvgRenderer } from '../libs/MaxiCodeSvg.js'
 
 const isCarrierMode = (options) => ['2', '3'].includes(options.maxiCodeMode)
+const usesStructuredAppend = (options) => Number(options.maxiCodeStructuredAppendCount) > 1
 
 export const maxiCodeFormat = {
   id: 'maxi-code',
@@ -12,6 +13,8 @@ export const maxiCodeFormat = {
     maxiCodeInputMode: 'text',
     maxiCodeMode: '4',
     maxiCodeEncoding: 'iso-8859-1',
+    maxiCodeStructuredAppendCount: '1',
+    maxiCodeStructuredAppendIndex: '1',
     maxiCodePostalCode: '',
     maxiCodeCountryCode: '840',
     maxiCodeServiceClass: '001',
@@ -66,6 +69,37 @@ export const maxiCodeFormat = {
       options: [['iso-8859-1', 'ISO-8859-1 (default ECI)'], ['utf-8', 'UTF-8 (ECI 26)']],
       hint: 'UTF-8 adds ECI 26 and encodes the input as UTF-8 bytes.',
     },
+    {
+      key: 'maxiCodeStructuredAppendCount',
+      label: 'Structured Append symbols',
+      type: 'select',
+      options: [['1', 'Single symbol'], ...Array.from({ length: 7 }, (_, index) => {
+        const count = String(index + 2)
+        return [count, `${count} symbols`]
+      })],
+      update(value, options) {
+        return {
+          maxiCodeStructuredAppendCount: value,
+          maxiCodeStructuredAppendIndex: String(Math.min(Number(options.maxiCodeStructuredAppendIndex), Number(value))),
+        }
+      },
+    },
+    {
+      key: 'maxiCodeStructuredAppendIndex',
+      label: 'Symbol position',
+      type: 'select',
+      visible: usesStructuredAppend,
+      options: Array.from({ length: 8 }, (_, index) => {
+        const position = String(index + 1)
+        return [position, position]
+      }),
+      hint: 'Positions are numbered from 1; the position cannot exceed the symbol count.',
+      update(value, options) {
+        return {
+          maxiCodeStructuredAppendIndex: String(Math.min(Number(value), Number(options.maxiCodeStructuredAppendCount))),
+        }
+      },
+    },
   ],
   preserveWhitespace: (options) => options.maxiCodeInputMode === 'raw',
   inputLabel: (options) => options.maxiCodeInputMode === 'raw' ? 'Raw MaxiCode data' : 'Text',
@@ -79,6 +113,10 @@ export const maxiCodeFormat = {
     const maxi = new MaxiCodeCore(payload, {
       mode: options.maxiCodeMode,
       encoding: options.maxiCodeEncoding,
+      structuredAppend: usesStructuredAppend(options) ? {
+        index: options.maxiCodeStructuredAppendIndex,
+        count: options.maxiCodeStructuredAppendCount,
+      } : undefined,
       preserveControls: options.maxiCodeInputMode === 'raw',
       postalCode: options.maxiCodePostalCode,
       countryCode: options.maxiCodeCountryCode,
