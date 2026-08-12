@@ -271,10 +271,13 @@ export class MaxiCodeCore {
     const serviceClass = this.#parseThreeDigitField(this.options.serviceClass, 'service class')
 
     if (mode === 2) {
-      const postalCode = String(this.options.postalCode ?? '')
+      let postalCode = String(this.options.postalCode ?? '')
       if (!/^\d{1,9}$/.test(postalCode)) {
         throw new Error('MaxiCode mode 2 postal code must contain 1 to 9 digits.')
       }
+      // ISO/IEC 16023 Annex B.1: for country code 840, an unknown ZIP+4
+      // extension is represented by four trailing zeroes.
+      if (countryCode === 840 && postalCode.length === 5) postalCode += '0000'
       this.#setIntAtPositions(primary, [33, 34, 35, 36, 25, 26, 27, 28, 29, 30, 19, 20, 21, 22, 23, 24, 13, 14, 15, 16, 17, 18, 7, 8, 9, 10, 11, 12, 1, 2], Number(postalCode))
       this.#setIntAtPositions(primary, [39, 40, 41, 42, 31, 32], postalCode.length)
     } else {
