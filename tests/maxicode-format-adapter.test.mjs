@@ -46,3 +46,29 @@ test('offers UTF-8 with ECI 26 through the MaxiCode adapter', () => {
 
   assert.match(renderer.render(), /^<svg\b/)
 })
+
+test('configures Structured Append through the MaxiCode adapter', () => {
+  const format = formatRegistry.get('maxi-code')
+  const countField = format.fields.find((field) => field.key === 'maxiCodeStructuredAppendCount')
+  assert.deepEqual(countField.update('3', { maxiCodeStructuredAppendIndex: '8' }), {
+    maxiCodeStructuredAppendCount: '3',
+    maxiCodeStructuredAppendIndex: '3',
+  })
+  const indexField = format.fields.find((field) => field.key === 'maxiCodeStructuredAppendIndex')
+  assert.deepEqual(indexField.update('8', { maxiCodeStructuredAppendCount: '3' }), {
+    maxiCodeStructuredAppendIndex: '3',
+  })
+
+  const options = {
+    colorStart: '#0f172a',
+    colorEnd: '#0ea5e9',
+    ...formatRegistry.defaults(),
+    maxiCodeStructuredAppendCount: '3',
+    maxiCodeStructuredAppendIndex: '2',
+  }
+  assert.match(formatRegistry.createRenderer('maxi-code', {
+    payload: 'ABC',
+    size: 256,
+    options,
+  }).render(), /^<svg\b/)
+})

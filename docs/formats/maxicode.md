@@ -25,6 +25,10 @@ The high-level encoder selects a minimum-codeword path across all five MaxiCode 
 
 The library encodes ISO-8859-1 by default, matching MaxiCode's default interpretation. UTF-8 is available with `encoding: 'utf-8'`; the encoder converts the input to UTF-8 bytes and emits ECI assignment number 26. Low-level callers may supply any ECI assignment number from 0 through 999999. ECI overhead participates in capacity validation, and Structured Carrier Message headers keep their required leading position by placing ECI immediately after the header and its two-digit version.
 
+## Structured Append
+
+Up to eight MaxiCode symbols can be linked with `structuredAppend: { index, count }`. Both values use the standard's 1-based numbering. The encoder emits the two-codeword Structured Append header at the beginning of the message, validates that the position does not exceed the symbol count, and includes both header codewords in capacity checks. The app exposes the same symbol count and position controls.
+
 ## Raw control input
 
 Raw mode preserves control characters required by carrier payloads. It accepts decimal escapes and named aliases such as `~029` / `<GS>`, `~030` / `<RS>`, and `~004` / `<EOT>`. A doubled tilde represents a literal tilde.
