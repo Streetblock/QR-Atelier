@@ -115,6 +115,29 @@ test('packs a numeric postal code into a Mode 2 Primary Message', () => {
   assert.deepEqual(Array.from(result.codewords.slice(20, 23)), [1, 2, 3]);
 });
 
+test('zero-fills an unknown US ZIP+4 extension in a Mode 2 Primary Message', () => {
+  const postalPositions = [33, 34, 35, 36, 25, 26, 27, 28, 29, 30, 19, 20, 21, 22, 23, 24, 13, 14, 15, 16, 17, 18, 7, 8, 9, 10, 11, 12, 1, 2];
+  const lengthPositions = [39, 40, 41, 42, 31, 32];
+  const generatePrimary = (postalCode, countryCode) => new MaxiCodeCore('A', {
+    mode: 2,
+    postalCode,
+    countryCode,
+    serviceClass: '001',
+  }).generate().codewords.slice(0, 10);
+
+  const unknownZip4 = generatePrimary('12345', '840');
+  assert.equal(getIntAtPositions(unknownZip4, postalPositions), 123450000);
+  assert.equal(getIntAtPositions(unknownZip4, lengthPositions), 9);
+
+  const completeZip4 = generatePrimary('123456789', '840');
+  assert.equal(getIntAtPositions(completeZip4, postalPositions), 123456789);
+  assert.equal(getIntAtPositions(completeZip4, lengthPositions), 9);
+
+  const nonUsPostalCode = generatePrimary('12345', '276');
+  assert.equal(getIntAtPositions(nonUsPostalCode, postalPositions), 12345);
+  assert.equal(getIntAtPositions(nonUsPostalCode, lengthPositions), 5);
+});
+
 test('packs six alphanumeric postal characters into a Mode 3 Primary Message', () => {
   const result = new MaxiCodeCore('ABC', {
     mode: 3,
