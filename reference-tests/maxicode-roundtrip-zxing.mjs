@@ -60,3 +60,14 @@ test('ZXing decodes optimally compacted numeric and mixed-set payloads', () => {
     assert.equal(decoded.getText(), data, `mode ${options.mode}`)
   }
 })
+
+test('ZXing structurally decodes a MaxiCode carrying ECI 26', () => {
+  const generated = new MaxiCodeCore('ABC', { mode: 4, eci: 26 }).generate()
+  const decoded = new MaxiCodeDecoder().decode(toBitMatrix(generated.modules))
+
+  // ZXing's MaxiCode parser exposes ECI as its internal marker plus the
+  // assignment codeword instead of interpreting it. This still independently
+  // verifies placement, error correction, and module mapping.
+  assert.equal(decoded.getText(), '\uFFFAZABC')
+  assert.equal(decoded.getECLevel(), '4')
+})

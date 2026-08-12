@@ -21,6 +21,10 @@ Modes 2 through 4 use 84 Secondary Message data codewords and 40 error-correctio
 
 The high-level encoder selects a minimum-codeword path across all five MaxiCode character sets. It considers single-character shifts, the two- and three-character shifts from Set B to Set A, persistent latches, and Numeric Shift blocks that compact each run of nine digits into six codewords.
 
+## ECI and text encodings
+
+The library encodes ISO-8859-1 by default, matching MaxiCode's default interpretation. UTF-8 is available with `encoding: 'utf-8'`; the encoder converts the input to UTF-8 bytes and emits ECI assignment number 26. Low-level callers may supply any ECI assignment number from 0 through 999999. ECI overhead participates in capacity validation, and Structured Carrier Message headers keep their required leading position by placing ECI immediately after the header and its two-digit version.
+
 ## Raw control input
 
 Raw mode preserves control characters required by carrier payloads. It accepts decimal escapes and named aliases such as `~029` / `<GS>`, `~030` / `<RS>`, and `~004` / `<EOT>`. A doubled tilde represents a literal tilde.

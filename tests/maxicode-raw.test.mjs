@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MaxiCodeCore } from '../libs/MaxiCodeCore.js';
+import { encodeMaxiCodeEci, MaxiCodeCore } from '../libs/MaxiCodeCore.js';
 import { parseMaxiCodeRawInput } from '../libs/MaxiCodeRaw.js';
 
 test('parses bcgen decimal escapes and named control aliases', () => {
@@ -25,6 +25,57 @@ test('mode 4 preserves raw CR, GS, RS and EOT controls', () => {
   assert.equal(result.mode, 4);
   assert.equal(result.data, 'A\rB\x1dC\x1eD\x04');
   assert.equal(result.codewords.length, 144);
+});
+
+test('encodes every MaxiCode ECI assignment-number width at its boundaries', () => {
+  assert.deepEqual(encodeMaxiCodeEci(0), [27, 0]);
+  assert.deepEqual(encodeMaxiCodeEci(31), [27, 31]);
+  assert.deepEqual(encodeMaxiCodeEci(32), [27, 32, 32]);
+  assert.deepEqual(encodeMaxiCodeEci(1023), [27, 47, 63]);
+  assert.deepEqual(encodeMaxiCodeEci(1024), [27, 48, 16, 0]);
+  assert.deepEqual(encodeMaxiCodeEci(32767), [27, 55, 63, 63]);
+  assert.deepEqual(encodeMaxiCodeEci(32768), [27, 56, 8, 0, 0]);
+  assert.deepEqual(encodeMaxiCodeEci(999999), [27, 59, 52, 8, 63]);
+  assert.throws(() => encodeMaxiCodeEci(1000000), /0 to 999999/);
+});
+
+test('uses ECI 26 and UTF-8 bytes for Unicode text', () => {
+  const text = 'Gr\u00fc\u00dfe';
+  const result = new MaxiCodeCore(text, { mode: 4, encoding: 'utf-8' }).generate();
+  const utf8Bytes = String.fromCharCode(...new TextEncoder().encode(text));
+  const rawBytes = new MaxiCodeCore(utf8Bytes, { mode: 4, eci: 26 }).generate();
+
+  assert.deepEqual(Array.from(result.codewords.slice(1, 3)), [27, 26]);
+  assert.deepEqual(result.codewords, rawBytes.codewords);
+});
+
+test('places ECI after a structured carrier message header', () => {
+  const result = new MaxiCodeCore('[)>\x1e01\x1d96ABC', {
+    mode: 2,
+    preserveControls: true,
+    encoding: 'utf-8',
+    postalCode: '12345',
+    countryCode: '840',
+    serviceClass: '001',
+  }).generate();
+
+  assert.deepEqual(Array.from(result.codewords.slice(20, 33)), [59, 42, 41, 59, 40, 30, 48, 49, 29, 57, 54, 27, 26]);
+});
+
+test('validates MaxiCode ECI and text encoding combinations', () => {
+  assert.throws(
+    () => new MaxiCodeCore('€', { mode: 4 }).generate(),
+    /cannot be encoded as ISO-8859-1/,
+  );
+  assert.throws(
+    () => new MaxiCodeCore('A', { mode: 4, encoding: 'utf-8', eci: 3 }).generate(),
+    /requires ECI assignment number 26/,
+  );
+  assert.doesNotThrow(() => new MaxiCodeCore('A'.repeat(91), { mode: 4, eci: 26 }).generate());
+  assert.throws(
+    () => new MaxiCodeCore('A'.repeat(92), { mode: 4, eci: 26 }).generate(),
+    /up to 93 codewords/,
+  );
 });
 
 test('mode 5 uses enhanced error correction and accepts 77 message codewords', () => {

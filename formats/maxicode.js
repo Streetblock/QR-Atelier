@@ -11,6 +11,7 @@ export const maxiCodeFormat = {
   defaults: {
     maxiCodeInputMode: 'text',
     maxiCodeMode: '4',
+    maxiCodeEncoding: 'iso-8859-1',
     maxiCodePostalCode: '',
     maxiCodeCountryCode: '840',
     maxiCodeServiceClass: '001',
@@ -58,6 +59,13 @@ export const maxiCodeFormat = {
       attributes: { inputmode: 'numeric', maxlength: '3' },
       hint: 'Mode 2/3 primary fields are packed into the dedicated Primary Message.',
     },
+    {
+      key: 'maxiCodeEncoding',
+      label: 'Text encoding',
+      type: 'select',
+      options: [['iso-8859-1', 'ISO-8859-1 (default ECI)'], ['utf-8', 'UTF-8 (ECI 26)']],
+      hint: 'UTF-8 adds ECI 26 and encodes the input as UTF-8 bytes.',
+    },
   ],
   preserveWhitespace: (options) => options.maxiCodeInputMode === 'raw',
   inputLabel: (options) => options.maxiCodeInputMode === 'raw' ? 'Raw MaxiCode data' : 'Text',
@@ -70,6 +78,7 @@ export const maxiCodeFormat = {
   createRenderer({ payload, size, options }) {
     const maxi = new MaxiCodeCore(payload, {
       mode: options.maxiCodeMode,
+      encoding: options.maxiCodeEncoding,
       preserveControls: options.maxiCodeInputMode === 'raw',
       postalCode: options.maxiCodePostalCode,
       countryCode: options.maxiCodeCountryCode,
