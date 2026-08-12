@@ -2,9 +2,11 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { BitMatrix } from '@zxing/library'
 import decoderModule from '@zxing/library/cjs/core/maxicode/decoder/Decoder.js'
+import parserModule from '@zxing/library/cjs/core/maxicode/decoder/BitMatrixParser.js'
 import { MaxiCodeCore } from '../libs/MaxiCodeCore.js'
 
 const MaxiCodeDecoder = decoderModule.default
+const MaxiCodeBitMatrixParser = parserModule.default
 
 function toBitMatrix(modules) {
   const matrix = new BitMatrix(modules[0].length, modules.length)
@@ -82,4 +84,20 @@ test('ZXing structurally decodes a Structured Append MaxiCode', () => {
   // ZXing exposes the Structured Append header as ordinary Code Set A data.
   assert.equal(decoded.getText(), '\uFFFCVABC')
   assert.equal(decoded.getECLevel(), '4')
+})
+
+test('ZXing independently extracts and verifies Mode 6 codewords and ECC', () => {
+  const generated = new MaxiCodeCore('READER CONFIGURATION', { mode: 6 }).generate()
+  const extracted = new MaxiCodeBitMatrixParser(toBitMatrix(generated.modules)).readCodewords()
+  const decoder = new MaxiCodeDecoder()
+
+  assert.deepEqual(extracted, generated.codewords)
+  assert.equal(extracted[0] & 0x0f, 6)
+  assert.equal(decoder.correctErrors(extracted, 0, 10, 10, MaxiCodeDecoder.ALL), 0)
+  assert.equal(decoder.correctErrors(extracted, 20, 84, 40, MaxiCodeDecoder.EVEN), 0)
+  assert.equal(decoder.correctErrors(extracted, 20, 84, 40, MaxiCodeDecoder.ODD), 0)
+  assert.throws(
+    () => decoder.decode(toBitMatrix(generated.modules)),
+    /FormatException/,
+  )
 })

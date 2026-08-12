@@ -148,6 +148,39 @@ test('mode 5 uses enhanced error correction and accepts 77 message codewords', (
   );
 });
 
+test('mode 6 uses the standard ECC layout for reader programming', () => {
+  const readerProgramming = new MaxiCodeCore('ABC', { mode: 6 }).generate();
+  const generalPurpose = new MaxiCodeCore('ABC', { mode: 4 }).generate();
+
+  assert.equal(readerProgramming.mode, 6);
+  assert.equal(readerProgramming.codewords[0] & 0x0f, 6);
+  assert.deepEqual(
+    Array.from(readerProgramming.codewords.slice(1, 10)),
+    Array.from(generalPurpose.codewords.slice(1, 10)),
+  );
+  assert.notDeepEqual(
+    Array.from(readerProgramming.codewords.slice(10, 20)),
+    Array.from(generalPurpose.codewords.slice(10, 20)),
+  );
+  assert.deepEqual(
+    Array.from(readerProgramming.codewords.slice(20)),
+    Array.from(generalPurpose.codewords.slice(20)),
+  );
+});
+
+test('mode 6 supports 93 message codewords and all message controls', () => {
+  assert.doesNotThrow(() => new MaxiCodeCore('A'.repeat(93), { mode: 6 }).generate());
+  assert.throws(
+    () => new MaxiCodeCore('A'.repeat(94), { mode: 6 }).generate(),
+    /up to 93 codewords/,
+  );
+  assert.doesNotThrow(() => new MaxiCodeCore('ABC', {
+    mode: 6,
+    encoding: 'utf-8',
+    structuredAppend: { index: 2, count: 3 },
+  }).generate());
+});
+
 test('compacts each nine-digit run into an NS block and five value codewords', () => {
   const result = new MaxiCodeCore('123456789', { mode: 4 }).generate();
   const value = 123456789;
@@ -173,6 +206,7 @@ test('reaches numeric capacity limits after optimal compaction', () => {
   const limits = [
     { options: { mode: 4 }, fits: 138, overflows: 139 },
     { options: { mode: 5 }, fits: 113, overflows: 114 },
+    { options: { mode: 6 }, fits: 138, overflows: 139 },
     {
       options: { mode: 2, postalCode: '336091062', countryCode: '840', serviceClass: '002' },
       fits: 123,
@@ -195,8 +229,8 @@ test('reaches numeric capacity limits after optimal compaction', () => {
 });
 
 test('rejects unsupported MaxiCode modes', () => {
-  assert.throws(() => new MaxiCodeCore('A', { mode: 1 }).generate(), /modes 2, 3, 4 and 5/);
-  assert.throws(() => new MaxiCodeCore('A', { mode: 6 }).generate(), /modes 2, 3, 4 and 5/);
+  assert.throws(() => new MaxiCodeCore('A', { mode: 1 }).generate(), /modes 2, 3, 4, 5 and 6/);
+  assert.throws(() => new MaxiCodeCore('A', { mode: 7 }).generate(), /modes 2, 3, 4, 5 and 6/);
 });
 
 const getIntAtPositions = (bytes, positions) => positions.reduce((value, position) => {

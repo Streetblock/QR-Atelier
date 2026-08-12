@@ -131,8 +131,8 @@ export class MaxiCodeCore {
 
   #normalizeMode(mode) {
     const numeric = Number(mode)
-    if (![2, 3, 4, 5].includes(numeric)) {
-      throw new Error('This build currently supports MaxiCode modes 2, 3, 4 and 5.')
+    if (![2, 3, 4, 5, 6].includes(numeric)) {
+      throw new Error('This build currently supports MaxiCode modes 2, 3, 4, 5 and 6.')
     }
     return numeric
   }
