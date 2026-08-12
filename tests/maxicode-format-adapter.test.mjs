@@ -10,6 +10,7 @@ test('registers and renders MaxiCode through its format adapter', () => {
     ...formatRegistry.defaults(),
   }
   assert.equal(options.maxiCodeMode, '4')
+  assert.equal(options.maxiCodeEncoding, 'iso-8859-1')
   const renderer = formatRegistry.createRenderer('maxi-code', {
     payload: 'ABC123',
     size: 256,
@@ -29,4 +30,19 @@ test('supplies valid mode-specific MaxiCode postal defaults', () => {
     maxiCodeMode: '3',
     maxiCodePostalCode: 'K1A0B1',
   })
+})
+test('offers UTF-8 with ECI 26 through the MaxiCode adapter', () => {
+  const options = {
+    colorStart: '#0f172a',
+    colorEnd: '#0ea5e9',
+    ...formatRegistry.defaults(),
+    maxiCodeEncoding: 'utf-8',
+  }
+  const renderer = formatRegistry.createRenderer('maxi-code', {
+    payload: 'Gr\u00fc\u00dfe',
+    size: 256,
+    options,
+  })
+
+  assert.match(renderer.render(), /^<svg\b/)
 })

@@ -59,6 +59,23 @@ const PRIMARY_EC_LENGTH = 10
 const STANDARD_TAIL_PROFILE = Object.freeze({ dataLength: 84, ecLength: 40 })
 const ENHANCED_TAIL_PROFILE = Object.freeze({ dataLength: 68, ecLength: 56 })
 
+const ECI_ASSIGNMENTS = Object.freeze({
+  'iso-8859-1': 3,
+  'utf-8': 26,
+})
+
+export function encodeMaxiCodeEci(assignmentNumber) {
+  const eci = Number(assignmentNumber)
+  if (!Number.isInteger(eci) || eci < 0 || eci > 999999) {
+    throw new Error('MaxiCode ECI assignment number must be an integer from 0 to 999999.')
+  }
+
+  if (eci <= 31) return [27, eci]
+  if (eci <= 1023) return [27, 0x20 | ((eci >> 6) & 0x0f), eci & 0x3f]
+  if (eci <= 32767) return [27, 0x30 | ((eci >> 12) & 0x07), (eci >> 6) & 0x3f, eci & 0x3f]
+  return [27, 0x38 | ((eci >> 18) & 0x03), (eci >> 12) & 0x3f, (eci >> 6) & 0x3f, eci & 0x3f]
+}
+
 export class MaxiCodeCore {
   constructor(data, options = {}) {
     if (typeof data !== 'string') {
@@ -69,6 +86,7 @@ export class MaxiCodeCore {
     this.options = {
       mode: 4,
       preserveControls: false,
+      encoding: 'iso-8859-1',
       ...options,
     }
   }
@@ -112,8 +130,25 @@ export class MaxiCodeCore {
         .replace(/\r/g, '\n')
         .replace(/\n/g, ' ')
 
-    const characters = Array.from(normalized, (char) => !this.options.preserveControls && char === '\t' ? ' ' : char)
-    const { codewords, finalSet } = this.#segmentMessage(characters)
+    const characters = this.#encodeCharacters(normalized)
+    const eciCodewords = this.#eciCodewords()
+    let segmented
+    if (eciCodewords.length > 0 && this.#structuredCarrierHeaderLength(characters) > 0) {
+      const headerLength = this.#structuredCarrierHeaderLength(characters)
+      const header = this.#segmentMessage(characters.slice(0, headerLength))
+      const body = this.#segmentMessage(characters.slice(headerLength))
+      segmented = {
+        codewords: [...header.codewords, ...eciCodewords, ...body.codewords],
+        finalSet: body.finalSet,
+      }
+    } else {
+      const message = this.#segmentMessage(characters)
+      segmented = {
+        codewords: [...eciCodewords, ...message.codewords],
+        finalSet: message.finalSet,
+      }
+    }
+    const { codewords, finalSet } = segmented
 
     if (codewords.length > maximumLength) {
       throw new Error(`MaxiCode mode ${mode} supports up to ${maximumLength} codewords of message data.`)
@@ -134,6 +169,48 @@ export class MaxiCodeCore {
     }
 
     return codewords
+  }
+
+  #encodeCharacters(text) {
+    const encoding = String(this.options.encoding ?? 'iso-8859-1').toLowerCase().replaceAll('_', '-')
+    const normalizedEncoding = encoding === 'utf8'
+      ? 'utf-8'
+      : ['latin1', 'latin-1', 'iso8859-1'].includes(encoding) ? 'iso-8859-1' : encoding
+    if (!(normalizedEncoding in ECI_ASSIGNMENTS)) {
+      throw new Error(`Unsupported MaxiCode text encoding: ${this.options.encoding}`)
+    }
+
+    const textCharacters = Array.from(text, (char) => !this.options.preserveControls && char === '\t' ? ' ' : char)
+    if (normalizedEncoding === 'utf-8') {
+      return Array.from(new TextEncoder().encode(textCharacters.join('')), (value) => String.fromCharCode(value))
+    }
+    for (const char of textCharacters) {
+      if (char.codePointAt(0) > 0xff) {
+        throw new Error(`Character ${JSON.stringify(char)} cannot be encoded as ISO-8859-1.`)
+      }
+    }
+    return textCharacters
+  }
+
+  #eciCodewords() {
+    const encoding = String(this.options.encoding ?? 'iso-8859-1').toLowerCase().replaceAll('_', '-')
+    const normalizedEncoding = encoding === 'utf8'
+      ? 'utf-8'
+      : ['latin1', 'latin-1', 'iso8859-1'].includes(encoding) ? 'iso-8859-1' : encoding
+    const explicit = this.options.eci
+    const assignment = explicit === undefined || explicit === null || explicit === false
+      ? (normalizedEncoding === 'utf-8' ? ECI_ASSIGNMENTS['utf-8'] : null)
+      : Number(explicit)
+    if (assignment === null) return []
+    if (normalizedEncoding === 'utf-8' && assignment !== ECI_ASSIGNMENTS['utf-8']) {
+      throw new Error('UTF-8 MaxiCode data requires ECI assignment number 26.')
+    }
+    return encodeMaxiCodeEci(assignment)
+  }
+
+  #structuredCarrierHeaderLength(characters) {
+    const prefix = characters.slice(0, 9).join('')
+    return /^\[\)>\x1e01\x1d\d{2}$/.test(prefix) ? 9 : 0
   }
 
   #segmentMessage(characters) {
