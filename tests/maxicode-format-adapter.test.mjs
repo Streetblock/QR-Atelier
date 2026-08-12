@@ -21,7 +21,7 @@ test('registers and renders MaxiCode through its format adapter', () => {
 
 test('supplies valid mode-specific MaxiCode postal defaults', () => {
   const modeField = formatRegistry.get('maxi-code').fields.find((field) => field.key === 'maxiCodeMode')
-  assert.deepEqual(modeField.options.map(([value]) => value), ['4', '5', '2', '3'])
+  assert.deepEqual(modeField.options.map(([value]) => value), ['4', '5', '6', '2', '3'])
   assert.deepEqual(modeField.update('2', { maxiCodePostalCode: '' }), {
     maxiCodeMode: '2',
     maxiCodePostalCode: '336091062',
@@ -45,6 +45,20 @@ test('offers UTF-8 with ECI 26 through the MaxiCode adapter', () => {
   })
 
   assert.match(renderer.render(), /^<svg\b/)
+})
+
+test('renders reader-programming Mode 6 through the MaxiCode adapter', () => {
+  const options = {
+    colorStart: '#0f172a',
+    colorEnd: '#0ea5e9',
+    ...formatRegistry.defaults(),
+    maxiCodeMode: '6',
+  }
+  assert.match(formatRegistry.createRenderer('maxi-code', {
+    payload: 'READER CONFIGURATION',
+    size: 256,
+    options,
+  }).render(), /^<svg\b/)
 })
 
 test('configures Structured Append through the MaxiCode adapter', () => {
