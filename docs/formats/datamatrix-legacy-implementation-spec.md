@@ -278,8 +278,28 @@ OCR output alone is not an accepted source for this sequence.
 ## 10. Placement and finder pattern
 
 Each allowed data-side length has a fixed placement grid. A placement
-implementation MUST prove that every integer position from 1 through
-`dataSide²` appears exactly once and that no position is outside the grid.
+implementation MUST prove that every zero-based integer position from 0 through
+`dataSide² - 1` appears exactly once and that no position is outside the grid.
+
+Data sides 7 through 29 (Annex H tables H.1 through H.12) are implemented as
+packed zero-based numeric permutations. The runtime data is deliberately not a
+formatted reproduction of the normative tables. Each permutation has:
+
+- an exact dimension assertion;
+- a range and bijection assertion;
+- a SHA-256 identity check over its little-endian 16-bit positions;
+- placement tests independent of the complete ECC-050 reference.
+
+The Russian adoption's H.4 table contains two entries with value 52 and no
+entry with value 62. Technical Corrigendum 2 changes only the reference decode
+algorithm in clause 9 and does not resolve Annex H. Comparison with the
+surrounding H.4 progression identifies row 10, column 9 as position 62; the
+bottom-row position remains 52. This correction is isolated by a regression
+test and restores the mandatory permutation invariant.
+
+Data sides 31 through 47 remain pending because their H.13-H.21 foldout tables
+are not present in the reviewed source set. They MUST be rejected explicitly
+rather than generated from an unverified pattern.
 
 The final finder border is one module wide:
 
@@ -380,9 +400,11 @@ Before declaring all five modes conformant:
 1. Transcribe and independently review the exact XOR taps and output order for
    the 3-2-11, 2-1-15, and 4-1-13 machines. The 4-3-3 machine is verified by
    every Annex-Q state cycle and the complete ECC-050 module matrix.
-2. Transcribe or generate every placement grid from 7×7 through 47×47 and prove
-   each grid is a permutation.
+2. Obtain and independently review the H.13-H.21 placement grids for data sides
+   31 through 47. H.1-H.12 (7 through 29) are implemented with exact identity
+   and permutation tests.
 3. Obtain complete-symbol reference vectors for ECC 000, 080, 100, and 140 from
    a real Zebra printer or another independently validated encoder.
-4. Compare the Russian adoption against Technical Corrigendum 2:2011 and an
-   English copy where wording or diagrams remain ambiguous.
+4. Compare remaining Russian wording and diagrams against a complete English
+   source where ambiguity remains. Technical Corrigendum 2:2011 was reviewed
+   and changes clause 9 only, not legacy placement.

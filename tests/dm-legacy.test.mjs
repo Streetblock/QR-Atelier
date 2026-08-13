@@ -10,6 +10,9 @@ import {
   encodeLegacyEcc050,
   encodeLegacyBase41,
   generateLegacyEcc050Reference,
+  getLegacyPlacement,
+  LEGACY_PLACEMENT_DATA_SIDES,
+  placeLegacyBits,
   LEGACY_MASTER_RANDOM_BITS,
   placeLegacy11x11,
   randomizeLegacyBits,
@@ -111,6 +114,50 @@ test('preserves the complete 2209-bit legacy master random stream', () => {
   )
   assert.equal(randomizeLegacyBits('0'.repeat(47 * 47)), LEGACY_MASTER_RANDOM_BITS)
   assert.throws(() => randomizeLegacyBits('0'.repeat(47 * 47 + 1)), /at most 2209 bits/)
+})
+
+const PLACEMENT_DIGESTS = {
+  7: '8bb16c731fce61fde20b3b46e005d6a7dcc2656937380adb38cbe31f1d663942',
+  9: '3de84ced51d0f326475add895184f57398ba67c10a30e67923071caa3d7d132f',
+  11: '4b75790ea3330dc6375fb97c777dce8a618818948ea1b9995239dd19e072f435',
+  13: '7060d0bea8653172cc510c41dce6ee72d0d8a7a58231438790a3db295526eafe',
+  15: '6adae2f52e7ad84d1b9bec2b2e78f7a97d27c8e47d26207b77a0719c82411909',
+  17: '84a4433ed5bc1d681bdec4586fef41f2d92f7c4de1ca30cdeaccfccba360e165',
+  19: '717a1f2c8f4d63ca06d6880f7f8b721d8c7beeafa4820d9838532288edbcd90a',
+  21: 'f9248731e3f3e99485acabc1edf60a8d23fdaf9d573d31e568daf146bb2c812b',
+  23: '7cfab1bfa5cd1964cdde4fa4e2a3b09645121d94ed941db43cb492e6e743a873',
+  25: '1495d688a00bfc92f7683f59dc8d70525caf221aaab145f4b7ad05c5b4240df7',
+  27: 'd05d342e8cdb2c2610ff281d07cac051e75e2c9cb0b1555ac7378f4f4d12c33f',
+  29: '3cbe0412e66ae1ea1d95c3e2a890676cf0b1dfd38043dedab18d6aa9ad96d77d',
+}
+
+test('preserves every reviewed H.1-H.12 placement as a complete permutation', () => {
+  assert.deepEqual(LEGACY_PLACEMENT_DATA_SIDES, [7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29])
+
+  for (const dataSide of LEGACY_PLACEMENT_DATA_SIDES) {
+    const placement = getLegacyPlacement(dataSide)
+    const expectedPositions = Array.from({ length: dataSide * dataSide }, (_, index) => index)
+    assert.deepEqual([...placement].sort((left, right) => left - right), expectedPositions)
+
+    const bytes = new Uint8Array(placement.length * 2)
+    placement.forEach((value, index) => {
+      bytes[index * 2] = value & 0xff
+      bytes[index * 2 + 1] = value >>> 8
+    })
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), PLACEMENT_DIGESTS[dataSide])
+  }
+})
+
+test('repairs the duplicated H.4 source position without moving its valid 52', () => {
+  const placement = getLegacyPlacement(13)
+  assert.equal(placement[9 * 13 + 8], 62)
+  assert.equal(placement[12 * 13 + 2], 52)
+})
+
+test('places reviewed data sizes and rejects unsupported or malformed grids', () => {
+  assert.equal(placeLegacyBits('1' + '0'.repeat(48), 7).flat().filter(Boolean).length, 1)
+  assert.throws(() => placeLegacyBits('0'.repeat(31 * 31), 31), /currently supports/)
+  assert.throws(() => placeLegacyBits('0'.repeat(48), 7), /requires exactly 49 bits/)
 })
 
 test('places every randomized reference bit in the 11x11 data grid', () => {
