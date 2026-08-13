@@ -4,7 +4,7 @@ This feature is intentionally separate from the modern Data Matrix ECC 200 core.
 
 ## Status and source policy
 
-Implementation is planned but must not begin from incomplete web summaries or an unofficial copy of a standard. The normative source is a legitimately obtained copy of ISO/IEC 16022:2006 (or the superseded ISO/IEC 16022:2000 plus its corrigendum).
+Implementation is governed by [the English implementation specification](./datamatrix-legacy-implementation-spec.md). It was derived from the complete GOST R ISO/IEC 16022-2008 text, an identical Russian adoption of ISO/IEC 16022:2006 with national annexes, and cross-checked against the relevant US patents. Public catalog records and the exact local research copies are recorded outside Git. Incomplete web summaries and preview fragments are not implementation sources.
 
 The 2006 table of contents identifies all required normative material:
 
@@ -48,8 +48,8 @@ The SVG renderer can be shared because it consumes a completed boolean module ma
 
 ## Implementation sequence
 
-1. Transcribe and test the legacy symbol-attribute tables from the licensed standard.
-2. Implement the six encodation formats, automatic format selection, record header, length field, and CRC.
+1. Maintain the source hierarchy, behavioral requirements, intermediate bit streams, and conformance gates in the implementation specification.
+2. Implement the six encodation formats, automatic format selection, record header, length field, and CRC against that specification.
 3. Implement the master-random-bitstream operation and normative placement grids.
 4. Implement ECC 000 first, then the shared convolutional encoder and the 050, 080, 100, and 140 parameter sets.
 5. Add exact module fixtures from the normative ECC 050 example.
@@ -69,10 +69,9 @@ The SVG renderer can be shared because it consumes a completed boolean module ma
 
 ## Research references
 
-- ISO/IEC 16022:2006, second edition (normative implementation source; licensed copy required).
+- GOST R ISO/IEC 16022-2008, identical Russian adoption of ISO/IEC 16022:2006 (implementation source; exact local provenance recorded outside Git).
+- ISO/IEC 16022:2006, second edition (source edition represented by that adoption).
 - ISO/IEC 16022:2024, third edition (documents removal of the historic variant).
 - Zebra ZPL `^BX` command documentation (supported qualities and printer behavior).
 - US 4,939,354 patent family (original Data Matrix structure and history; expired).
-- US 5,764,774 (legacy record prefix: format, CRC, and length fields; expired).
 - AIM historical timeline (addition and publication of ECC 200).
-
