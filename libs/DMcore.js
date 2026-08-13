@@ -45,15 +45,40 @@ const DM_SYMBOLS = [
   { rows: 120, cols: 120, regionRows: 18, regionCols: 18, regionCountRows: 6, regionCountCols: 6, dataCodewords: 1050, errorCodewords: 408, rsBlockData: 175, rsBlockError: 68 },
   { rows: 132, cols: 132, regionRows: 20, regionCols: 20, regionCountRows: 6, regionCountCols: 6, dataCodewords: 1304, errorCodewords: 496, rsBlockData: 163, rsBlockError: 62 },
   { rows: 144, cols: 144, regionRows: 22, regionCols: 22, regionCountRows: 6, regionCountCols: 6, dataCodewords: 1558, errorCodewords: 620, rsBlockData: null, rsBlockError: 62, rsBlockDataLengths: [156, 156, 156, 156, 156, 156, 156, 156, 155, 155] },
+  // Data Matrix Rectangular Extension sizes from ISO/IEC 21471:2025.
+  { rows: 8, cols: 48, regionRows: 6, regionCols: 22, regionCountRows: 1, regionCountCols: 2, dataCodewords: 18, errorCodewords: 15, rsBlockData: 18, rsBlockError: 15, rectangular: true, dmre: true },
+  { rows: 8, cols: 64, regionRows: 6, regionCols: 14, regionCountRows: 1, regionCountCols: 4, dataCodewords: 24, errorCodewords: 18, rsBlockData: 24, rsBlockError: 18, rectangular: true, dmre: true },
+  { rows: 8, cols: 80, regionRows: 6, regionCols: 18, regionCountRows: 1, regionCountCols: 4, dataCodewords: 32, errorCodewords: 22, rsBlockData: 32, rsBlockError: 22, rectangular: true, dmre: true },
+  { rows: 8, cols: 96, regionRows: 6, regionCols: 22, regionCountRows: 1, regionCountCols: 4, dataCodewords: 38, errorCodewords: 28, rsBlockData: 38, rsBlockError: 28, rectangular: true, dmre: true },
+  { rows: 8, cols: 120, regionRows: 6, regionCols: 18, regionCountRows: 1, regionCountCols: 6, dataCodewords: 49, errorCodewords: 32, rsBlockData: 49, rsBlockError: 32, rectangular: true, dmre: true },
+  { rows: 8, cols: 144, regionRows: 6, regionCols: 22, regionCountRows: 1, regionCountCols: 6, dataCodewords: 63, errorCodewords: 36, rsBlockData: 63, rsBlockError: 36, rectangular: true, dmre: true },
+  { rows: 12, cols: 64, regionRows: 10, regionCols: 14, regionCountRows: 1, regionCountCols: 4, dataCodewords: 43, errorCodewords: 27, rsBlockData: 43, rsBlockError: 27, rectangular: true, dmre: true },
+  { rows: 12, cols: 88, regionRows: 10, regionCols: 20, regionCountRows: 1, regionCountCols: 4, dataCodewords: 64, errorCodewords: 36, rsBlockData: 64, rsBlockError: 36, rectangular: true, dmre: true },
+  { rows: 16, cols: 64, regionRows: 14, regionCols: 14, regionCountRows: 1, regionCountCols: 4, dataCodewords: 62, errorCodewords: 36, rsBlockData: 62, rsBlockError: 36, rectangular: true, dmre: true },
+  { rows: 20, cols: 36, regionRows: 18, regionCols: 16, regionCountRows: 1, regionCountCols: 2, dataCodewords: 44, errorCodewords: 28, rsBlockData: 44, rsBlockError: 28, rectangular: true, dmre: true },
+  { rows: 20, cols: 44, regionRows: 18, regionCols: 20, regionCountRows: 1, regionCountCols: 2, dataCodewords: 56, errorCodewords: 34, rsBlockData: 56, rsBlockError: 34, rectangular: true, dmre: true },
+  { rows: 20, cols: 64, regionRows: 18, regionCols: 14, regionCountRows: 1, regionCountCols: 4, dataCodewords: 84, errorCodewords: 42, rsBlockData: 84, rsBlockError: 42, rectangular: true, dmre: true },
+  { rows: 22, cols: 48, regionRows: 20, regionCols: 22, regionCountRows: 1, regionCountCols: 2, dataCodewords: 72, errorCodewords: 38, rsBlockData: 72, rsBlockError: 38, rectangular: true, dmre: true },
+  { rows: 24, cols: 48, regionRows: 22, regionCols: 22, regionCountRows: 1, regionCountCols: 2, dataCodewords: 80, errorCodewords: 41, rsBlockData: 80, rsBlockError: 41, rectangular: true, dmre: true },
+  { rows: 24, cols: 64, regionRows: 22, regionCols: 14, regionCountRows: 1, regionCountCols: 4, dataCodewords: 108, errorCodewords: 46, rsBlockData: 108, rsBlockError: 46, rectangular: true, dmre: true },
+  { rows: 26, cols: 40, regionRows: 24, regionCols: 18, regionCountRows: 1, regionCountCols: 2, dataCodewords: 70, errorCodewords: 38, rsBlockData: 70, rsBlockError: 38, rectangular: true, dmre: true },
+  { rows: 26, cols: 48, regionRows: 24, regionCols: 22, regionCountRows: 1, regionCountCols: 2, dataCodewords: 90, errorCodewords: 42, rsBlockData: 90, rsBlockError: 42, rectangular: true, dmre: true },
+  { rows: 26, cols: 64, regionRows: 24, regionCols: 14, regionCountRows: 1, regionCountCols: 4, dataCodewords: 118, errorCodewords: 50, rsBlockData: 118, rsBlockError: 50, rectangular: true, dmre: true },
 ]
 
-export const DM_ECC200_SYMBOL_SIZES = Object.freeze(DM_SYMBOLS.map((symbol) => Object.freeze({
-  rows: symbol.rows,
-  cols: symbol.cols,
-  rectangular: Boolean(symbol.rectangular),
-  dataCodewords: symbol.dataCodewords,
-  errorCodewords: symbol.errorCodewords,
-})))
+function publicSymbolSize(symbol) {
+  return Object.freeze({
+    rows: symbol.rows,
+    cols: symbol.cols,
+    rectangular: Boolean(symbol.rectangular),
+    dmre: Boolean(symbol.dmre),
+    dataCodewords: symbol.dataCodewords,
+    errorCodewords: symbol.errorCodewords,
+  })
+}
+
+export const DM_ECC200_SYMBOL_SIZES = Object.freeze(DM_SYMBOLS.filter((symbol) => !symbol.dmre).map(publicSymbolSize))
+export const DMRE_SYMBOL_SIZES = Object.freeze(DM_SYMBOLS.filter((symbol) => symbol.dmre).map(publicSymbolSize))
 
 const DM_PRIMITIVE = 0x12d
 const DM_FACTOR_SETS = [5, 7, 10, 11, 12, 14, 18, 20, 24, 28, 36, 42, 48, 56, 62, 68]
@@ -81,13 +106,19 @@ initDmGaloisTables()
 
 export class DmCore {
   constructor(data, options = {}) {
-    validateData(data)
+    if (options.segments == null) {
+      validateData(data)
+    } else if (data !== null && data !== undefined && data !== '') {
+      throw new Error('Data Matrix data must be null when segments are provided.')
+    }
 
     this.data = data
     this.options = {
       shape: 'auto',
       encoding: DEFAULT_ENCODING,
       eci: 'auto',
+      segments: null,
+      dmre: false,
       gs1: false,
       macro: null,
       readerProgramming: false,
@@ -105,7 +136,10 @@ export class DmCore {
     const capacities = [...new Set(candidates.map((symbol) => symbol.dataCodewords))]
     if (capacities.length === 0) throw new Error('No Data Matrix symbols match the selected constraints.')
     const gs1 = normalizeGs1(this.options.gs1)
-    const macroInput = normalizeMacro(this.data, this.options.macro)
+    const segmentedInput = normalizeSegments(this.options.segments)
+    const macroInput = segmentedInput
+      ? normalizeSegmentMacro(this.options.macro)
+      : normalizeMacro(this.data, this.options.macro)
     const readerProgramming = normalizeReaderProgramming(this.options.readerProgramming)
     const structuredAppend = normalizeStructuredAppend(this.options.structuredAppend)
     if (gs1 && macroInput.macro !== null) throw new Error('Data Matrix Macro 05/06 cannot be combined with GS1 mode.')
@@ -118,7 +152,7 @@ export class DmCore {
     if (structuredAppend && readerProgramming) {
       throw new Error('Data Matrix Structured Append cannot be combined with Reader Programming.')
     }
-    const input = encodeInputBytes(macroInput.payload, this.options.encoding, this.options.eci)
+    const input = segmentedInput ?? encodeInputBytes(macroInput.payload, this.options.encoding, this.options.eci)
     const leadingGs1 = gs1 && (!structuredAppend || structuredAppend.metadata.position === 1)
     const prefixCodewords = [
       ...(structuredAppend?.codewords ?? []),
@@ -127,7 +161,10 @@ export class DmCore {
       ...(leadingGs1 ? [232] : []),
       ...input.eciCodewords,
     ]
-    const encoded = encodeMinimalDataMatrix(input.bytes, capacities, prefixCodewords, { fnc1: gs1 ? 29 : null })
+    const encoded = encodeMinimalDataMatrix(input.bytes, capacities, prefixCodewords, {
+      fnc1: gs1 ? 29 : null,
+      specialCodewords: input.specialCodewords,
+    })
     const symbol = chooseSymbol(encoded.codewords.length, constraints)
     const dataCodewords = encoded.codewords
     const allCodewords = appendEcc200(dataCodewords, symbol)
@@ -142,7 +179,8 @@ export class DmCore {
       readerProgramming,
       structuredAppend: structuredAppend?.metadata ?? null,
       eciAssignmentNumber: input.eciAssignmentNumber,
-      payloadBytes: input.bytes,
+      eciSegments: input.eciSegments ?? null,
+      payloadBytes: input.payloadBytes ?? input.bytes,
       size: symbol.rows === symbol.cols ? symbol.rows : `${symbol.rows}x${symbol.cols}`,
       rows: symbol.rows,
       cols: symbol.cols,
@@ -157,7 +195,7 @@ export class DmCore {
 
 function normalizeSymbolConstraints(options) {
   const shape = String(options.shape ?? 'auto').toLowerCase()
-  if (!['auto', 'square', 'rectangle'].includes(shape)) {
+  if (!['auto', 'square', 'rectangle', 'dmre'].includes(shape)) {
     throw new Error(`Unsupported Data Matrix shape: ${options.shape}`)
   }
   const minSize = parseDimensions(options.minSize, 'minSize')
@@ -169,7 +207,8 @@ function normalizeSymbolConstraints(options) {
   if (symbolSize && !DM_SYMBOLS.some((symbol) => symbol.rows === symbolSize.rows && symbol.cols === symbolSize.cols)) {
     throw new Error(`Unsupported Data Matrix symbol size: ${symbolSize.rows}x${symbolSize.cols}`)
   }
-  return { shape, minSize, maxSize, symbolSize }
+  if (typeof options.dmre !== 'boolean') throw new Error('dmre must be a boolean.')
+  return { shape, dmre: options.dmre, minSize, maxSize, symbolSize }
 }
 
 function normalizeGs1(value) {
@@ -272,6 +311,12 @@ function validateData(data) {
   }
 }
 
+function normalizeSegmentMacro(value) {
+  if (value === 'auto') throw new Error("macro: 'auto' is not available with Data Matrix segments.")
+  if (value !== null && value !== 5 && value !== 6) throw new Error('macro must be null, 5, or 6 with Data Matrix segments.')
+  return { macro: value, payload: null }
+}
+
 function encodeInputBytes(data, encoding, eci) {
   if (typeof data !== 'string') {
     const assignment = normalizeEci(eci, null)
@@ -306,6 +351,51 @@ function encodeInputBytes(data, encoding, eci) {
     bytes,
     eciAssignmentNumber: assignment,
     eciCodewords: encodeEciCodewords(assignment),
+  }
+}
+
+function normalizeSegments(value) {
+  if (value == null) return null
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error('segments must be null or a non-empty array of Data Matrix segments.')
+  }
+
+  const bytes = []
+  const payloadBytes = []
+  const specialCodewords = new Map()
+  const eciSegments = []
+  for (let index = 0; index < value.length; index += 1) {
+    const segment = value[index]
+    if (typeof segment !== 'object' || segment === null || Array.isArray(segment) || !Object.hasOwn(segment, 'data')) {
+      throw new Error('Each Data Matrix segment must be an object with a data property.')
+    }
+    validateData(segment.data)
+    const segmentEci = Object.hasOwn(segment, 'eci') ? segment.eci : 'auto'
+    const input = encodeInputBytes(segment.data, segment.encoding ?? DEFAULT_ENCODING, segmentEci)
+    const byteOffset = payloadBytes.length
+    if (input.eciCodewords.length > 0) {
+      specialCodewords.set(bytes.length, input.eciCodewords)
+      bytes.push(0)
+    }
+    bytes.push(...input.bytes)
+    payloadBytes.push(...input.bytes)
+    eciSegments.push(Object.freeze({
+      index,
+      byteOffset,
+      byteLength: input.bytes.length,
+      encoding: input.encoding,
+      eciAssignmentNumber: input.eciAssignmentNumber,
+    }))
+  }
+
+  return {
+    encoding: null,
+    bytes,
+    payloadBytes,
+    eciAssignmentNumber: null,
+    eciCodewords: [],
+    eciSegments: Object.freeze(eciSegments),
+    specialCodewords,
   }
 }
 
@@ -368,6 +458,11 @@ function chooseSymbol(codewordLength, constraints) {
 
 function filterSymbols(constraints) {
   return DM_SYMBOLS.filter((candidate) => {
+    const exact = constraints.symbolSize
+      && candidate.rows === constraints.symbolSize.rows
+      && candidate.cols === constraints.symbolSize.cols
+    if (candidate.dmre && constraints.shape !== 'dmre' && !constraints.dmre && !exact) return false
+    if (!candidate.dmre && constraints.shape === 'dmre') return false
     if (constraints.shape === 'square' && candidate.rectangular) return false
     if (constraints.shape === 'rectangle' && !candidate.rectangular) return false
     if (constraints.symbolSize && (candidate.rows !== constraints.symbolSize.rows || candidate.cols !== constraints.symbolSize.cols)) return false
@@ -375,7 +470,7 @@ function filterSymbols(constraints) {
       (!constraints.minSize || (candidate.rows >= constraints.minSize.rows && candidate.cols >= constraints.minSize.cols)) &&
       (!constraints.maxSize || (candidate.rows <= constraints.maxSize.rows && candidate.cols <= constraints.maxSize.cols))
     )
-  })
+  }).sort((left, right) => left.dataCodewords - right.dataCodewords)
 }
 
 function appendEcc200(dataCodewords, symbol) {
@@ -417,10 +512,7 @@ function appendEcc200(dataCodewords, symbol) {
 
 function createEccBlock(data, numEcWords) {
   const factorIndex = DM_FACTOR_SETS.indexOf(numEcWords)
-  if (factorIndex < 0) {
-    throw new Error(`Unsupported ECC word count: ${numEcWords}`)
-  }
-  const poly = DM_FACTORS[factorIndex]
+  const poly = factorIndex < 0 ? createGeneratorFactors(numEcWords) : DM_FACTORS[factorIndex]
   const ecc = new Array(numEcWords).fill(0)
 
   for (let i = 0; i < data.length; i += 1) {
@@ -444,6 +536,23 @@ function createEccBlock(data, numEcWords) {
     reversed[i] = ecc[numEcWords - i - 1]
   }
   return reversed
+}
+
+function createGeneratorFactors(degree) {
+  if (!Number.isInteger(degree) || degree < 1 || degree >= 255) {
+    throw new Error(`Unsupported ECC word count: ${degree}`)
+  }
+  let polynomial = [1]
+  for (let rootPower = 1; rootPower <= degree; rootPower += 1) {
+    const next = new Array(polynomial.length + 1).fill(0)
+    const root = DM_ALOG[rootPower]
+    for (let index = 0; index < polynomial.length; index += 1) {
+      next[index] ^= polynomial[index] === 0 ? 0 : dmMultiplyLog(polynomial[index], root)
+      next[index + 1] ^= polynomial[index]
+    }
+    polynomial = next
+  }
+  return polynomial.slice(0, -1)
 }
 
 function buildMatrix(codewords, symbol) {

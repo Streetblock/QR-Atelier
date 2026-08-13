@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { DmCore } from '../libs/DMcore.js'
+import { DmCore, DMRE_SYMBOL_SIZES } from '../libs/DMcore.js'
 
 function findPython() {
   const candidates = [...new Set([process.env.PYTHON, 'python3', 'python'].filter(Boolean))]
@@ -127,6 +127,58 @@ test('Structured Append and its GS1 combination roundtrip through ZXing-C++', ()
     assert.deepEqual(gs1Generated.dataCodewords.slice(0, 5), [233, 15, 1, 15, 232])
     assert.equal(gs1Decoded.symbologyIdentifier, ']d2')
     assert.deepEqual(gs1Decoded.bytes, Array.from(new TextEncoder().encode(gs1Payload)))
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
+})
+
+test('multiple ECI segments roundtrip through ZXing-C++', () => {
+  const python = findPython()
+  const decoder = fileURLToPath(new URL('./decode-datamatrix-zxingcpp.py', import.meta.url))
+  const directory = mkdtempSync(join(tmpdir(), 'qr-atelier-dm-multi-eci-'))
+  const latin1 = Uint8Array.of(71, 114, 252, 223, 101)
+  const utf8 = new TextEncoder().encode(' / 東京')
+
+  try {
+    const { generated, decoded } = decodeWithZxingCpp(python, decoder, directory, null, {
+      segments: [
+        { data: latin1, eci: 3 },
+        { data: utf8, eci: 26 },
+      ],
+    }, 'multi-eci.gray')
+    assert.deepEqual(generated.eciSegments.map((segment) => segment.eciAssignmentNumber), [3, 26])
+    assert.equal(decoded.text, 'Grüße / 東京')
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
+})
+
+test('all DMRE sizes roundtrip through ZXing-C++', () => {
+  const python = findPython()
+  const decoder = fileURLToPath(new URL('./decode-datamatrix-zxingcpp.py', import.meta.url))
+  const encoder = fileURLToPath(new URL('./encode-datamatrix-zxingcpp.py', import.meta.url))
+  const directory = mkdtempSync(join(tmpdir(), 'qr-atelier-dm-dmre-'))
+
+  try {
+    for (let index = 0; index < DMRE_SYMBOL_SIZES.length; index += 1) {
+      const symbol = DMRE_SYMBOL_SIZES[index]
+      const size = `${symbol.rows}x${symbol.cols}`
+      const payload = 'A'
+      const { generated, decoded } = decodeWithZxingCpp(
+        python,
+        decoder,
+        directory,
+        payload,
+        { symbolSize: size },
+        `dmre-${symbol.rows}x${symbol.cols}.gray`,
+      )
+      assert.equal(generated.symbol.dmre, true)
+      assert.equal(decoded.text, payload)
+
+      const reference = spawnSync(python, [encoder, String(31 + index), payload], { encoding: 'utf8' })
+      assert.equal(reference.status, 0, reference.stderr || reference.error?.message)
+      assert.deepEqual(generated.modules, JSON.parse(reference.stdout), `${size} differs from libzint`)
+    }
   } finally {
     rmSync(directory, { recursive: true, force: true })
   }

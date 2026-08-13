@@ -8,7 +8,7 @@ const BASE256 = 5
 const SHIFT2 = new Set(Array.from('!"#$%&\'()*+,-./:;<=>?@[\\]^_').map((character) => character.charCodeAt(0)))
 
 export function encodeMinimalDataMatrix(bytes, capacities, prefixCodewords = [], options = {}) {
-  const input = new DmInput(bytes, capacities, prefixCodewords, options.fnc1 ?? null)
+  const input = new DmInput(bytes, capacities, prefixCodewords, options.fnc1 ?? null, options.specialCodewords)
   const edges = Array.from({ length: input.length + 1 }, () => new Array(6).fill(null))
   addEdges(input, edges, 0, null)
 
@@ -37,6 +37,10 @@ export function encodeMinimalDataMatrix(bytes, capacities, prefixCodewords = [],
 }
 
 function addEdges(input, edges, from, previous) {
+  if (input.isSpecial(from)) {
+    addEdge(edges, new Edge(input, ASCII, from, 1, previous))
+    return
+  }
   const character = input.at(from)
   if (previous === null || previous.endMode() !== EDIFACT) {
     const asciiLength = isDigit(character) && input.has(from, 2) && isDigit(input.at(from + 1)) ? 2 : 1
@@ -71,6 +75,7 @@ function addEdge(edges, edge) {
 function c40SegmentLength(input, from, c40) {
   let valueCount = 0
   for (let index = from; index < input.length; index += 1) {
+    if (input.isSpecial(index)) break
     const character = input.at(index)
     if (input.isFnc1(index)) {
       valueCount += 2
@@ -90,7 +95,7 @@ function c40SegmentLength(input, from, c40) {
 }
 
 class DmInput {
-  constructor(bytes, capacities, prefixCodewords, fnc1) {
+  constructor(bytes, capacities, prefixCodewords, fnc1, specialCodewords) {
     this.characters = Array.from(bytes)
     if (!this.characters.every((value) => Number.isInteger(value) && value >= 0 && value <= 255)) {
       throw new Error('Data Matrix input must be a byte sequence.')
@@ -98,6 +103,7 @@ class DmInput {
     this.capacities = capacities
     this.prefixCodewords = prefixCodewords
     this.fnc1 = fnc1
+    this.specialCodewords = specialCodewords instanceof Map ? specialCodewords : new Map()
     this.length = this.characters.length
   }
 
@@ -111,6 +117,14 @@ class DmInput {
 
   isFnc1(position) {
     return this.fnc1 !== null && this.at(position) === this.fnc1
+  }
+
+  isSpecial(position) {
+    return this.specialCodewords.has(position)
+  }
+
+  special(position) {
+    return this.specialCodewords.get(position) ?? null
   }
 
   capacityFor(minimum) {
@@ -130,7 +144,7 @@ class Edge {
     const previousMode = this.previousMode()
     let size = previous?.totalSize ?? input.prefixCodewords.length
     if (mode === ASCII) {
-      size += isExtended(input.at(from)) ? 2 : 1
+      size += input.isSpecial(from) ? input.special(from).length : isExtended(input.at(from)) ? 2 : 1
       if ([C40, TEXT, X12].includes(previousMode)) size += 1
     } else if (mode === BASE256) {
       size += 1
@@ -227,6 +241,7 @@ class Edge {
   dataBytes() {
     const character = this.input.at(this.from)
     if (this.mode === ASCII) {
+      if (this.input.isSpecial(this.from)) return [...this.input.special(this.from)]
       if (this.input.isFnc1(this.from)) return [232]
       if (isExtended(character)) return [235, character - 127]
       if (this.length === 2) {
