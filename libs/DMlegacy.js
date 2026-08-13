@@ -1,9 +1,12 @@
-import { placeLegacyBits as placeLegacyBitsWithGrid } from './DMlegacyPlacement.js'
+import {
+  LEGACY_PLACEMENT_DATA_SIDES,
+  placeLegacyBits as placeLegacyBitsWithGrid,
+} from './DMlegacyPlacement.js'
 
 export {
   getLegacyPlacement,
-  LEGACY_PLACEMENT_DATA_SIDES,
 } from './DMlegacyPlacement.js'
+export { LEGACY_PLACEMENT_DATA_SIDES }
 
 // Data Matrix ECC 000-140 primitives.
 //
@@ -57,6 +60,11 @@ const LEGACY_FORMATS = Object.freeze({
 const LEGACY_FORMAT_SELECTION_ORDER = Object.freeze([1, 2, 4, 3, 5, 6])
 
 const ECC_050_HEADER = '0111000000000111000'
+const LEGACY_ECC_HEADERS = Object.freeze({
+  0: '0111111',
+  50: ECC_050_HEADER,
+})
+const LEGACY_ECC_MIN_DATA_SIDE = Object.freeze({ 0: 7, 50: 9 })
 
 // Each output lists indexes in a flattened four-cycle window:
 // [current input 1..3, previous cycle 1..3, ... previous cycle 3].
@@ -261,18 +269,78 @@ export function encodeLegacyEcc050(unprotectedBits) {
 
   return protectedBits
 }
+export function encodeLegacyEcc000(unprotectedBits) {
+  requireBitString(unprotectedBits, 'ECC 000 input')
+  return unprotectedBits
+}
 
-export function buildLegacyEcc050UnrandomizedBits(unprotectedBits, { dataSide = 11 } = {}) {
-  requireBitString(unprotectedBits, 'ECC 050 input')
-  if (!Number.isInteger(dataSide) || dataSide < 9 || dataSide > 47 || dataSide % 2 === 0) {
-    throw new RangeError('Legacy data side must be an odd integer from 9 through 47 for ECC 050')
+function protectLegacyBits(unprotectedBits, ecc) {
+  if (ecc === 0) return encodeLegacyEcc000(unprotectedBits)
+  if (ecc === 50) return encodeLegacyEcc050(unprotectedBits)
+  throw new RangeError('Implemented legacy ECC modes are 0 and 50')
+}
+
+export function selectLegacyDataSide(usedBits, { ecc = 0, symbolSize = null } = {}) {
+  if (!Number.isInteger(usedBits) || usedBits < 0) {
+    throw new RangeError('Used legacy module count must be a non-negative integer')
+  }
+  const minimumDataSide = LEGACY_ECC_MIN_DATA_SIDE[ecc]
+  if (minimumDataSide === undefined) {
+    throw new RangeError('Implemented legacy ECC modes are 0 and 50')
   }
 
-  const protectedBits = encodeLegacyEcc050(unprotectedBits)
-  const capacity = dataSide * dataSide
-  const used = ECC_050_HEADER.length + protectedBits.length
-  if (used > capacity) throw new RangeError(`ECC 050 data requires ${used} modules but only ${capacity} are available`)
-  return ECC_050_HEADER + protectedBits + '0'.repeat(capacity - used)
+  const supportedDataSides = LEGACY_PLACEMENT_DATA_SIDES.filter(
+    (dataSide) => dataSide >= minimumDataSide,
+  )
+
+  if (symbolSize !== null) {
+    if (!Number.isInteger(symbolSize) || symbolSize < 9 || symbolSize > 49 || symbolSize % 2 === 0) {
+      throw new RangeError('Legacy symbol size must be an odd integer from 9 through 49')
+    }
+
+    const dataSide = symbolSize - 2
+    if (!supportedDataSides.includes(dataSide)) {
+      if (dataSide > LEGACY_PLACEMENT_DATA_SIDES.at(-1)) {
+        throw new RangeError(`Legacy ${symbolSize}x${symbolSize} placement is pending verification`)
+      }
+      throw new RangeError(`ECC ${String(ecc).padStart(3, '0')} does not support ${symbolSize}x${symbolSize}`)
+    }
+    if (usedBits > dataSide * dataSide) {
+      throw new RangeError(
+        `Legacy data requires ${usedBits} modules but ${symbolSize}x${symbolSize} provides ${dataSide * dataSide}`,
+      )
+    }
+    return dataSide
+  }
+
+  const dataSide = supportedDataSides.find((side) => usedBits <= side * side)
+  if (dataSide === undefined) {
+    throw new RangeError(
+      `Legacy data requires ${usedBits} modules; larger placement grids are pending verification`,
+    )
+  }
+  return dataSide
+}
+
+export function buildLegacyUnrandomizedBits(
+  unprotectedBits,
+  { ecc = 0, symbolSize = null } = {},
+) {
+  requireBitString(unprotectedBits, 'Legacy unprotected input')
+  const protectedBits = protectLegacyBits(unprotectedBits, ecc)
+  const header = LEGACY_ECC_HEADERS[ecc]
+  const usedBits = header.length + protectedBits.length
+  const dataSide = selectLegacyDataSide(usedBits, { ecc, symbolSize })
+  const unrandomizedBits = header + protectedBits + '0'.repeat(dataSide * dataSide - usedBits)
+  return { dataSide, protectedBits, unrandomizedBits }
+}
+
+
+export function buildLegacyEcc050UnrandomizedBits(unprotectedBits, { dataSide = 11 } = {}) {
+  return buildLegacyUnrandomizedBits(
+    unprotectedBits,
+    { ecc: 50, symbolSize: dataSide + 2 },
+  ).unrandomizedBits
 }
 
 export function randomizeLegacyBits(unrandomizedBits) {
@@ -316,20 +384,32 @@ export function addLegacyFinderPattern(dataModules) {
   return modules
 }
 
-export function generateLegacyEcc050Reference(data) {
-  const unprotectedBits = buildLegacyUnprotectedBits(data, { formatId: 3 })
-  const protectedBits = encodeLegacyEcc050(unprotectedBits)
-  const unrandomizedBits = buildLegacyEcc050UnrandomizedBits(unprotectedBits, { dataSide: 11 })
-  const randomizedBits = randomizeLegacyBits(unrandomizedBits)
-  const dataModules = placeLegacy11x11(randomizedBits)
+export function generateLegacyDataMatrix(
+  data,
+  { ecc = 0, format = 'auto', symbolSize = null } = {},
+) {
+  const formatId = format === 'auto' ? selectLegacyFormat(data) : format
+  const unprotectedBits = buildLegacyUnprotectedBits(data, { format: formatId })
+  const stage = buildLegacyUnrandomizedBits(unprotectedBits, { ecc, symbolSize })
+  const randomizedBits = randomizeLegacyBits(stage.unrandomizedBits)
+  const dataModules = placeLegacyBitsWithGrid(randomizedBits, stage.dataSide)
   const modules = addLegacyFinderPattern(dataModules)
+  const side = stage.dataSide + 2
+
   return {
-    rows: 13,
-    cols: 13,
+    rows: side,
+    cols: side,
     modules,
+    ecc,
+    formatId,
+    dataSide: stage.dataSide,
     unprotectedBits,
-    protectedBits,
-    unrandomizedBits,
+    protectedBits: stage.protectedBits,
+    unrandomizedBits: stage.unrandomizedBits,
     randomizedBits,
   }
+}
+
+export function generateLegacyEcc050Reference(data) {
+  return generateLegacyDataMatrix(data, { ecc: 50, format: 3, symbolSize: 13 })
 }

@@ -194,6 +194,13 @@ to `protectedBits` is its complete bit reversal shown in the emitted column.
 `protectedBits` MUST equal `unprotectedBits`. No convolutional padding or flush
 groups are added. The emitted 7-bit ECC 000 header is still required.
 
+ECC 000 is implemented through the complete shared pipeline for reviewed
+placement sizes. A raw-byte 9x9 symbol protects header, prefix, randomization,
+placement, and finder-border integration against regression. This is a
+structural fixture produced from the independently tested stages; it is not yet
+an external complete-symbol conformance vector. ECC 000 MUST remain described
+as pending independent symbol verification until Gate C is satisfied.
+
 ### 7.2 ECC 050
 
 Split the input into 3-bit groups, zero-fill the last group, append three zero
@@ -300,6 +307,11 @@ test and restores the mandatory permutation invariant.
 Data sides 31 through 47 remain pending because their H.13-H.21 foldout tables
 are not present in the reviewed source set. They MUST be rejected explicitly
 rather than generated from an unverified pattern.
+
+Automatic sizing selects the smallest implemented data side whose square holds
+the ECC header and protected bits. Forced symbol sizes are validated against
+the selected ECC mode and available placement grids. Sizes 33x33 through 49x49
+are rejected as pending verification rather than approximated.
 
 The final finder border is one module wide:
 

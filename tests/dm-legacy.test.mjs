@@ -5,18 +5,22 @@ import {
   addLegacyFinderPattern,
   buildLegacyUnprotectedBits,
   buildLegacyEcc050UnrandomizedBits,
+  buildLegacyUnrandomizedBits,
   calculateLegacyCrcField,
   calculateLegacyCrcRegister,
   encodeLegacyEcc050,
+  encodeLegacyEcc000,
   encodeLegacyBase41,
   encodeLegacyData,
   selectLegacyFormat,
   generateLegacyEcc050Reference,
+  generateLegacyDataMatrix,
   getLegacyPlacement,
   LEGACY_PLACEMENT_DATA_SIDES,
   placeLegacyBits,
   LEGACY_MASTER_RANDOM_BITS,
   placeLegacy11x11,
+  selectLegacyDataSide,
   randomizeLegacyBits,
 } from '../libs/DMlegacy.js'
 
@@ -165,6 +169,80 @@ const REFERENCE_SYMBOL_ROWS = [
 function rowsToStrings(modules) {
   return modules.map((row) => row.map((module) => Number(module)).join(''))
 }
+
+test('keeps ECC 000 unprotected bits unchanged', () => {
+  const unprotectedBits = '00101011001101110010010000000001101001'
+  assert.equal(encodeLegacyEcc000(unprotectedBits), unprotectedBits)
+})
+
+test('selects the smallest reviewed data side and validates forced sizes', () => {
+  assert.equal(selectLegacyDataSide(49, { ecc: 0 }), 7)
+  assert.equal(selectLegacyDataSide(50, { ecc: 0 }), 9)
+  assert.equal(selectLegacyDataSide(81, { ecc: 50 }), 9)
+  assert.equal(selectLegacyDataSide(82, { ecc: 50 }), 11)
+  assert.equal(selectLegacyDataSide(49, { ecc: 0, symbolSize: 9 }), 7)
+  assert.throws(() => selectLegacyDataSide(50, { ecc: 0, symbolSize: 9 }), /provides 49/)
+  assert.throws(() => selectLegacyDataSide(49, { ecc: 50, symbolSize: 9 }), /does not support/)
+  assert.throws(() => selectLegacyDataSide(1, { ecc: 0, symbolSize: 33 }), /pending verification/)
+  assert.throws(() => selectLegacyDataSide(1, { ecc: 80 }), /modes are 0 and 50/)
+})
+
+test('checks every reviewed automatic-size boundary', () => {
+  for (const ecc of [0, 50]) {
+    const minimumDataSide = ecc === 0 ? 7 : 9
+    const dataSides = LEGACY_PLACEMENT_DATA_SIDES.filter((side) => side >= minimumDataSide)
+
+    dataSides.forEach((dataSide, index) => {
+      assert.equal(selectLegacyDataSide(dataSide * dataSide, { ecc }), dataSide)
+      if (index + 1 < dataSides.length) {
+        assert.equal(selectLegacyDataSide(dataSide * dataSide + 1, { ecc }), dataSides[index + 1])
+      } else {
+        assert.throws(
+          () => selectLegacyDataSide(dataSide * dataSide + 1, { ecc }),
+          /pending verification/,
+        )
+      }
+    })
+  }
+})
+
+test('builds the complete ECC 000 bit stages for one raw byte', () => {
+  const unprotectedBits = buildLegacyUnprotectedBits(Uint8Array.of(0x96))
+  assert.equal(unprotectedBits, '00101011001101110010010000000001101001')
+
+  const stage = buildLegacyUnrandomizedBits(unprotectedBits)
+  assert.equal(stage.dataSide, 7)
+  assert.equal(stage.protectedBits, unprotectedBits)
+  assert.equal(
+    stage.unrandomizedBits,
+    '0111111001010110011011100100100000000011010010000',
+  )
+})
+
+test('generates the reviewed 9x9 ECC 000 structural fixture', () => {
+  const result = generateLegacyDataMatrix(Uint8Array.of(0x96))
+  assert.deepEqual(
+    {
+      rows: result.rows,
+      cols: result.cols,
+      ecc: result.ecc,
+      formatId: result.formatId,
+      dataSide: result.dataSide,
+    },
+    { rows: 9, cols: 9, ecc: 0, formatId: 6, dataSide: 7 },
+  )
+  assert.deepEqual(rowsToStrings(result.modules), [
+    '101010101',
+    '110110010',
+    '111100001',
+    '101010110',
+    '101101111',
+    '100010010',
+    '111111001',
+    '101011010',
+    '111111111',
+  ])
+})
 
 test('encodes all 24 cycles of the ECC 050 convolution reference', () => {
   const unprotected = buildLegacyUnprotectedBits(REFERENCE_PAYLOAD)
