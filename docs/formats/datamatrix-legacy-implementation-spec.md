@@ -264,10 +264,26 @@ implemented under the same conformance qualification as ECC 080.
 Process one input bit per cycle, append thirteen zero input bits, and emit four
 bits per cycle through the 4-1-13 state machine.
 
+For input bit `a`, let `a1` be `a` delayed by one cycle, `a2` delayed by two
+cycles, and so on. The four output bits in transmission order are:
+
+```text
+v1 = a XOR a4 XOR a7 XOR a10 XOR a12 XOR a13
+v2 = a XOR a3 XOR a4 XOR a7 XOR a8 XOR a9 XOR a10 XOR a11 XOR a13
+v3 = a XOR a1 XOR a2 XOR a4 XOR a5 XOR a7 XOR a9 XOR a11 XOR a12 XOR a13
+v4 = a XOR a1 XOR a2 XOR a4 XOR a5 XOR a7 XOR a9 XOR a10 XOR a11 XOR a12 XOR a13
+```
+
+The equations and output order are transcribed from the state-machine diagram
+and independently cross-checked against complete 17x17 symbols for multiple
+payloads. The convolution stage and reviewed-size end-to-end path are
+implemented under the same conformance qualification as ECC 080.
+
 The precise XOR taps and output order MUST be transcribed from the four
 state-machine diagrams and verified against reference vectors. Structure names
-alone are insufficient. ECC 140 remains **pending verification** and MUST NOT
-be advertised as supported.
+alone are insufficient. All four convolution stages now meet this requirement;
+the remaining conformance qualification concerns independent complete-symbol
+fixtures across the full size range.
 
 ## 8. Symbol sizing and capacity
 

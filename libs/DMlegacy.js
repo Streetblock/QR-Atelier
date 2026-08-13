@@ -65,8 +65,9 @@ const LEGACY_ECC_HEADERS = Object.freeze({
   50: ECC_050_HEADER,
   80: '0111000000111000111',
   100: '0111000000111111111',
+  140: '0111000111000111111',
 })
-const LEGACY_ECC_MIN_DATA_SIDE = Object.freeze({ 0: 7, 50: 9, 80: 11, 100: 11 })
+const LEGACY_ECC_MIN_DATA_SIDE = Object.freeze({ 0: 7, 50: 9, 80: 11, 100: 11, 140: 15 })
 
 // Each output lists indexes in a flattened four-cycle window:
 // [current input 1..3, previous cycle 1..3, ... previous cycle 3].
@@ -94,6 +95,16 @@ const ECC_080_OUTPUT_TAPS = Object.freeze([
 const ECC_100_OUTPUT_TAPS = Object.freeze([
   Object.freeze([0, 2, 5, 6, 7, 8, 9, 10, 15]),
   Object.freeze([0, 1, 3, 4, 6, 11, 13, 14, 15]),
+])
+
+// Indexes in [current input, previous input, ... input delayed 13 cycles].
+// The equations were transcribed from the 4-1-13 state-machine diagram and
+// independently cross-checked against four ECC 140 symbols.
+const ECC_140_OUTPUT_TAPS = Object.freeze([
+  Object.freeze([0, 4, 7, 10, 12, 13]),
+  Object.freeze([0, 3, 4, 7, 8, 9, 10, 11, 13]),
+  Object.freeze([0, 1, 2, 4, 5, 7, 9, 11, 12, 13]),
+  Object.freeze([0, 1, 2, 4, 5, 7, 9, 10, 11, 12, 13]),
 ])
 
 // The 276 visually verified bytes are followed by the single least-significant
@@ -318,12 +329,19 @@ export function encodeLegacyEcc100(unprotectedBits) {
   })
 }
 
+export function encodeLegacyEcc140(unprotectedBits) {
+  return encodeLegacyConvolution(unprotectedBits, {
+    label: 'ECC 140', inputWidth: 1, flushCycles: 13, outputTaps: ECC_140_OUTPUT_TAPS,
+  })
+}
+
 function protectLegacyBits(unprotectedBits, ecc) {
   if (ecc === 0) return encodeLegacyEcc000(unprotectedBits)
   if (ecc === 50) return encodeLegacyEcc050(unprotectedBits)
   if (ecc === 80) return encodeLegacyEcc080(unprotectedBits)
   if (ecc === 100) return encodeLegacyEcc100(unprotectedBits)
-  throw new RangeError('Implemented legacy ECC modes are 0, 50, 80, and 100')
+  if (ecc === 140) return encodeLegacyEcc140(unprotectedBits)
+  throw new RangeError('Legacy ECC mode must be 0, 50, 80, 100, or 140')
 }
 
 export function selectLegacyDataSide(usedBits, { ecc = 0, symbolSize = null } = {}) {
@@ -332,7 +350,7 @@ export function selectLegacyDataSide(usedBits, { ecc = 0, symbolSize = null } = 
   }
   const minimumDataSide = LEGACY_ECC_MIN_DATA_SIDE[ecc]
   if (minimumDataSide === undefined) {
-    throw new RangeError('Implemented legacy ECC modes are 0, 50, 80, and 100')
+    throw new RangeError('Legacy ECC mode must be 0, 50, 80, 100, or 140')
   }
 
   const supportedDataSides = LEGACY_PLACEMENT_DATA_SIDES.filter(
