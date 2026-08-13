@@ -64,8 +64,9 @@ const LEGACY_ECC_HEADERS = Object.freeze({
   0: '0111111',
   50: ECC_050_HEADER,
   80: '0111000000111000111',
+  100: '0111000000111111111',
 })
-const LEGACY_ECC_MIN_DATA_SIDE = Object.freeze({ 0: 7, 50: 9, 80: 11 })
+const LEGACY_ECC_MIN_DATA_SIDE = Object.freeze({ 0: 7, 50: 9, 80: 11, 100: 11 })
 
 // Each output lists indexes in a flattened four-cycle window:
 // [current input 1..3, previous cycle 1..3, ... previous cycle 3].
@@ -85,6 +86,14 @@ const ECC_080_OUTPUT_TAPS = Object.freeze([
   Object.freeze([0, 2, 6, 7, 8, 10, 12, 14, 15, 20, 23]),
   Object.freeze([1, 2, 6, 7, 8, 10, 13, 16, 17, 18, 19, 20]),
   Object.freeze([0, 1, 3, 5, 9, 10, 12, 14, 15, 19, 23]),
+])
+
+// Indexes in [current input, previous input, ... input delayed 15 cycles].
+// The equations were transcribed from the 2-1-15 state-machine diagram and
+// independently cross-checked against four ECC 100 symbols.
+const ECC_100_OUTPUT_TAPS = Object.freeze([
+  Object.freeze([0, 2, 5, 6, 7, 8, 9, 10, 15]),
+  Object.freeze([0, 1, 3, 4, 6, 11, 13, 14, 15]),
 ])
 
 // The 276 visually verified bytes are followed by the single least-significant
@@ -254,24 +263,29 @@ export function buildLegacyUnprotectedBits(data, { format = 'auto', formatId } =
   return formatField + crcField + lengthField + encoded.encodedBits
 }
 
-export function encodeLegacyEcc050(unprotectedBits) {
-  requireBitString(unprotectedBits, 'ECC 050 input')
+function encodeLegacyConvolution(
+  unprotectedBits,
+  { label, inputWidth, flushCycles, outputTaps },
+) {
+  requireBitString(unprotectedBits, `${label} input`)
 
-  const paddedInput = unprotectedBits.padEnd(Math.ceil(unprotectedBits.length / 3) * 3, '0')
-  const groups = paddedInput.match(/.{3}/gu) ?? []
-  groups.push('000', '000', '000')
+  const paddedInput = unprotectedBits.padEnd(
+    Math.ceil(unprotectedBits.length / inputWidth) * inputWidth,
+    '0',
+  )
+  const groups = paddedInput.match(new RegExp(`.{${inputWidth}}`, 'gu')) ?? []
+  groups.push(...Array(flushCycles).fill('0'.repeat(inputWidth)))
 
-  const history = [
-    [0, 0, 0],
-    [0, 0, 0],
-    [0, 0, 0],
-  ]
+  const history = Array.from(
+    { length: flushCycles },
+    () => Array(inputWidth).fill(0),
+  )
   let protectedBits = ''
 
   for (const group of groups) {
     const current = Array.from(group, Number)
-    const window = [...current, ...history[0], ...history[1], ...history[2]]
-    for (const taps of ECC_050_OUTPUT_TAPS) {
+    const window = [...current, ...history.flat()]
+    for (const taps of outputTaps) {
       protectedBits += String(taps.reduce((parity, index) => parity ^ window[index], 0))
     }
     history.pop()
@@ -280,39 +294,36 @@ export function encodeLegacyEcc050(unprotectedBits) {
 
   return protectedBits
 }
+
+export function encodeLegacyEcc050(unprotectedBits) {
+  return encodeLegacyConvolution(unprotectedBits, {
+    label: 'ECC 050', inputWidth: 3, flushCycles: 3, outputTaps: ECC_050_OUTPUT_TAPS,
+  })
+}
+
 export function encodeLegacyEcc000(unprotectedBits) {
   requireBitString(unprotectedBits, 'ECC 000 input')
   return unprotectedBits
 }
 
 export function encodeLegacyEcc080(unprotectedBits) {
-  requireBitString(unprotectedBits, 'ECC 080 input')
+  return encodeLegacyConvolution(unprotectedBits, {
+    label: 'ECC 080', inputWidth: 2, flushCycles: 11, outputTaps: ECC_080_OUTPUT_TAPS,
+  })
+}
 
-  const paddedInput = unprotectedBits.padEnd(Math.ceil(unprotectedBits.length / 2) * 2, '0')
-  const groups = paddedInput.match(/.{2}/gu) ?? []
-  groups.push(...Array(11).fill('00'))
-
-  const history = Array.from({ length: 11 }, () => [0, 0])
-  let protectedBits = ''
-
-  for (const group of groups) {
-    const current = Array.from(group, Number)
-    const window = [...current, ...history.flat()]
-    for (const taps of ECC_080_OUTPUT_TAPS) {
-      protectedBits += String(taps.reduce((parity, index) => parity ^ window[index], 0))
-    }
-    history.pop()
-    history.unshift(current)
-  }
-
-  return protectedBits
+export function encodeLegacyEcc100(unprotectedBits) {
+  return encodeLegacyConvolution(unprotectedBits, {
+    label: 'ECC 100', inputWidth: 1, flushCycles: 15, outputTaps: ECC_100_OUTPUT_TAPS,
+  })
 }
 
 function protectLegacyBits(unprotectedBits, ecc) {
   if (ecc === 0) return encodeLegacyEcc000(unprotectedBits)
   if (ecc === 50) return encodeLegacyEcc050(unprotectedBits)
   if (ecc === 80) return encodeLegacyEcc080(unprotectedBits)
-  throw new RangeError('Implemented legacy ECC modes are 0, 50, and 80')
+  if (ecc === 100) return encodeLegacyEcc100(unprotectedBits)
+  throw new RangeError('Implemented legacy ECC modes are 0, 50, 80, and 100')
 }
 
 export function selectLegacyDataSide(usedBits, { ecc = 0, symbolSize = null } = {}) {
@@ -321,7 +332,7 @@ export function selectLegacyDataSide(usedBits, { ecc = 0, symbolSize = null } = 
   }
   const minimumDataSide = LEGACY_ECC_MIN_DATA_SIDE[ecc]
   if (minimumDataSide === undefined) {
-    throw new RangeError('Implemented legacy ECC modes are 0, 50, and 80')
+    throw new RangeError('Implemented legacy ECC modes are 0, 50, 80, and 100')
   }
 
   const supportedDataSides = LEGACY_PLACEMENT_DATA_SIDES.filter(
