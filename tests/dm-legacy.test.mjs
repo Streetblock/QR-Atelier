@@ -10,6 +10,7 @@ import {
   calculateLegacyCrcRegister,
   encodeLegacyEcc050,
   encodeLegacyEcc000,
+  encodeLegacyEcc080,
   encodeLegacyBase41,
   encodeLegacyData,
   selectLegacyFormat,
@@ -180,16 +181,18 @@ test('selects the smallest reviewed data side and validates forced sizes', () =>
   assert.equal(selectLegacyDataSide(50, { ecc: 0 }), 9)
   assert.equal(selectLegacyDataSide(81, { ecc: 50 }), 9)
   assert.equal(selectLegacyDataSide(82, { ecc: 50 }), 11)
+  assert.equal(selectLegacyDataSide(121, { ecc: 80 }), 11)
   assert.equal(selectLegacyDataSide(49, { ecc: 0, symbolSize: 9 }), 7)
   assert.throws(() => selectLegacyDataSide(50, { ecc: 0, symbolSize: 9 }), /provides 49/)
   assert.throws(() => selectLegacyDataSide(49, { ecc: 50, symbolSize: 9 }), /does not support/)
+  assert.throws(() => selectLegacyDataSide(1, { ecc: 80, symbolSize: 11 }), /does not support/)
   assert.throws(() => selectLegacyDataSide(1, { ecc: 0, symbolSize: 33 }), /pending verification/)
-  assert.throws(() => selectLegacyDataSide(1, { ecc: 80 }), /modes are 0 and 50/)
+  assert.throws(() => selectLegacyDataSide(1, { ecc: 100 }), /modes are 0, 50, and 80/)
 })
 
 test('checks every reviewed automatic-size boundary', () => {
-  for (const ecc of [0, 50]) {
-    const minimumDataSide = ecc === 0 ? 7 : 9
+  for (const ecc of [0, 50, 80]) {
+    const minimumDataSide = { 0: 7, 50: 9, 80: 11 }[ecc]
     const dataSides = LEGACY_PLACEMENT_DATA_SIDES.filter((side) => side >= minimumDataSide)
 
     dataSides.forEach((dataSide, index) => {
@@ -247,6 +250,40 @@ test('generates the reviewed 9x9 ECC 000 structural fixture', () => {
 test('encodes all 24 cycles of the ECC 050 convolution reference', () => {
   const unprotected = buildLegacyUnprotectedBits(REFERENCE_PAYLOAD)
   assert.equal(encodeLegacyEcc050(unprotected), REFERENCE_PROTECTED)
+})
+
+test('encodes ECC 080 through all input and eleven flush cycles', () => {
+  assert.equal(
+    encodeLegacyEcc080('10'),
+    '101110000110110111101101010010110000',
+  )
+  assert.equal(encodeLegacyEcc080('').length, 33)
+  assert.equal(encodeLegacyEcc080('1').length, 36)
+  assert.throws(() => encodeLegacyEcc080('10x'), /binary string/)
+})
+
+test('generates independently cross-checked 13x13 ECC 080 symbols', () => {
+  const expected = {
+    A: [
+      '1010101010101', '1100111110010', '1101110111101', '1001101011000',
+      '1010011010101', '1011010101110', '1100010011011', '1000100000100',
+      '1000111101111', '1110110111110', '1010101110101', '1000101010110',
+      '1111111111111',
+    ],
+    ABC: [
+      '1010101010101', '1101010011010', '1111011110011', '1011000011010',
+      '1010000011101', '1010110101000', '1110010110111', '1011100000010',
+      '1100100110111', '1101101111010', '1110000110101', '1001100000010',
+      '1111111111111',
+    ],
+  }
+
+  for (const [payload, rows] of Object.entries(expected)) {
+    const result = generateLegacyDataMatrix(payload, { ecc: 80 })
+    assert.equal(result.dataSide, 11)
+    assert.equal(result.protectedBits.length, (Math.ceil(result.unprotectedBits.length / 2) + 11) * 3)
+    assert.deepEqual(rowsToStrings(result.modules), rows)
+  }
 })
 
 test('builds and randomizes the 121-bit ECC 050 reference stream', () => {
