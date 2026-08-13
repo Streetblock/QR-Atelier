@@ -1,3 +1,10 @@
+import { placeLegacyBits as placeLegacyBitsWithGrid } from './DMlegacyPlacement.js'
+
+export {
+  getLegacyPlacement,
+  LEGACY_PLACEMENT_DATA_SIDES,
+} from './DMlegacyPlacement.js'
+
 // Data Matrix ECC 000-140 primitives.
 //
 // The legacy family is intentionally kept separate from DMcore.js (ECC 200).
@@ -27,22 +34,6 @@ const ECC_050_OUTPUT_TAPS = Object.freeze([
   Object.freeze([1, 4, 6, 9, 10]),
   Object.freeze([2, 3, 4, 5, 6, 9]),
   Object.freeze([0, 1, 2, 3, 4, 5, 7, 11]),
-])
-
-// Visually transcribed from the 11x11 placement grid. Positions are zero-based
-// indexes into the randomized bit stream and form a permutation of 0..120.
-const LEGACY_PLACEMENT_11 = Object.freeze([
-  Object.freeze([2, 26, 114, 70, 15, 103, 59, 37, 81, 4, 1]),
-  Object.freeze([117, 73, 18, 106, 62, 40, 84, 7, 95, 51, 29]),
-  Object.freeze([12, 100, 56, 34, 78, 92, 89, 45, 23, 111, 67]),
-  Object.freeze([65, 43, 87, 10, 98, 54, 32, 120, 76, 21, 109]),
-  Object.freeze([82, 5, 93, 49, 27, 115, 71, 16, 104, 60, 38]),
-  Object.freeze([96, 52, 30, 118, 74, 19, 107, 63, 41, 85, 8]),
-  Object.freeze([24, 112, 68, 13, 101, 57, 35, 79, 48, 90, 46]),
-  Object.freeze([75, 20, 108, 64, 42, 86, 9, 97, 53, 31, 119]),
-  Object.freeze([102, 58, 36, 80, 77, 91, 47, 25, 113, 69, 14]),
-  Object.freeze([39, 83, 6, 94, 50, 28, 116, 72, 17, 105, 61]),
-  Object.freeze([0, 88, 44, 22, 110, 66, 11, 99, 55, 33, 3]),
 ])
 
 // The 276 visually verified bytes are followed by the single least-significant
@@ -214,10 +205,12 @@ export function randomizeLegacyBits(unrandomizedBits) {
   ).join('')
 }
 
+export function placeLegacyBits(randomizedBits, dataSide) {
+  return placeLegacyBitsWithGrid(randomizedBits, dataSide)
+}
+
 export function placeLegacy11x11(randomizedBits) {
-  requireBitString(randomizedBits, 'Legacy placement input')
-  if (randomizedBits.length !== 121) throw new RangeError('The 11x11 placement grid requires exactly 121 bits')
-  return LEGACY_PLACEMENT_11.map((row) => row.map((index) => randomizedBits[index] === '1'))
+  return placeLegacyBitsWithGrid(randomizedBits, 11)
 }
 
 export function addLegacyFinderPattern(dataModules) {
