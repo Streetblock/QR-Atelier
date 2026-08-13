@@ -16,6 +16,8 @@ The Data Matrix feature branch adds a dependency-free ECC 200 encoder and SVG re
 - Automatic, square-only, rectangle-only, constrained, and exact-size selection.
 - Minimal segmentation across ASCII, C40, Text, ANSI X12, EDIFACT, and Base256.
 - UTF-8 by default with ECI assignment 26 when required; ISO-8859-1 remains optional.
+- Raw byte payloads through `Uint8Array` or byte arrays, without an assumed character encoding.
+- Automatic, suppressed, or explicit ECI assignments from 0 through 999999.
 - ECC 200 error correction is determined by the selected symbol size rather than a user-selectable QR-style level.
 
 ## Extended control functions
@@ -26,6 +28,8 @@ The Data Matrix feature branch adds a dependency-free ECC 200 encoder and SVG re
 - Reader Programming mode with codeword 234 at the start of the symbol.
 
 The library accepts raw GS1 element strings. It does not interpret parenthesized human-readable notation or validate Application Identifier rules. Splitting Structured Append payloads remains the caller's responsibility. DMRE sizes are not currently included.
+
+String input uses automatic ECI selection by default. Pass `eci: null` to suppress it or an integer assignment number to select it explicitly. Raw byte input does not guess an ECI assignment; pass one explicitly when the payload's interpretation requires it. Multiple character-set segments with separate ECI assignments are not currently supported.
 
 ## Tests
 

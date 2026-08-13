@@ -59,6 +59,20 @@ test('UTF-8 ECI symbols roundtrip through ZXing-C++', () => {
       assert.deepEqual(generated.dataCodewords.slice(0, 2), [241, 27])
       assert.equal(decoded.text, payload)
     }
+
+    const rawPayload = new TextEncoder().encode('Raw bytes: Grüße')
+    const { generated, decoded } = decodeWithZxingCpp(
+      python,
+      decoder,
+      directory,
+      rawPayload,
+      { eci: 26 },
+      'utf8-raw.gray',
+    )
+    assert.equal(generated.encoding, null)
+    assert.deepEqual(generated.dataCodewords.slice(0, 2), [241, 27])
+    assert.deepEqual(decoded.bytes, Array.from(rawPayload))
+    assert.equal(decoded.text, 'Raw bytes: Grüße')
   } finally {
     rmSync(directory, { recursive: true, force: true })
   }

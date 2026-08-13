@@ -81,14 +81,13 @@ initDmGaloisTables()
 
 export class DmCore {
   constructor(data, options = {}) {
-    if (typeof data !== 'string' || data.length === 0) {
-      throw new Error('Data Matrix data must be a non-empty string.')
-    }
+    validateData(data)
 
     this.data = data
     this.options = {
       shape: 'auto',
       encoding: DEFAULT_ENCODING,
+      eci: 'auto',
       gs1: false,
       macro: null,
       readerProgramming: false,
@@ -119,7 +118,7 @@ export class DmCore {
     if (structuredAppend && readerProgramming) {
       throw new Error('Data Matrix Structured Append cannot be combined with Reader Programming.')
     }
-    const input = encodeInputBytes(macroInput.payload, this.options.encoding)
+    const input = encodeInputBytes(macroInput.payload, this.options.encoding, this.options.eci)
     const leadingGs1 = gs1 && (!structuredAppend || structuredAppend.metadata.position === 1)
     const prefixCodewords = [
       ...(structuredAppend?.codewords ?? []),
@@ -247,6 +246,7 @@ function normalizeMacro(data, value) {
 }
 
 function detectMacroFrame(data) {
+  if (typeof data !== 'string') return null
   for (const macro of [5, 6]) {
     const header = MACRO_HEADERS[macro]
     if (data.startsWith(header) && data.endsWith(MACRO_TRAILER)) {
@@ -256,16 +256,43 @@ function detectMacroFrame(data) {
   return null
 }
 
-function encodeInputBytes(data, encoding) {
+function validateData(data) {
+  if (typeof data === 'string') {
+    if (data.length === 0) throw new Error('Data Matrix data must not be empty.')
+    return
+  }
+  if (!Array.isArray(data) && !(data instanceof Uint8Array)) {
+    throw new Error('Data Matrix data must be a non-empty string or byte array.')
+  }
+  if (data.length === 0) throw new Error('Data Matrix data must not be empty.')
+  for (const value of data) {
+    if (!Number.isInteger(value) || value < 0 || value > 255) {
+      throw new Error('Data Matrix byte values must be integers from 0 to 255.')
+    }
+  }
+}
+
+function encodeInputBytes(data, encoding, eci) {
+  if (typeof data !== 'string') {
+    const assignment = normalizeEci(eci, null)
+    return {
+      encoding: null,
+      bytes: Array.from(data),
+      eciAssignmentNumber: assignment,
+      eciCodewords: encodeEciCodewords(assignment),
+    }
+  }
+
   const normalized = normalizeEncoding(encoding)
   if (normalized === 'utf-8') {
     const bytes = Array.from(new TextEncoder().encode(data))
     const needsEci = bytes.some((value) => value >= 128)
+    const assignment = normalizeEci(eci, needsEci ? ECI_ASSIGNMENT_UTF8 : null)
     return {
       encoding: normalized,
       bytes,
-      eciAssignmentNumber: needsEci ? ECI_ASSIGNMENT_UTF8 : null,
-      eciCodewords: needsEci ? [241, ECI_ASSIGNMENT_UTF8 + 1] : [],
+      eciAssignmentNumber: assignment,
+      eciCodewords: encodeEciCodewords(assignment),
     }
   }
 
@@ -273,7 +300,38 @@ function encodeInputBytes(data, encoding) {
   if (bytes.some((value) => value > 255)) {
     throw new Error('Data contains characters that are not representable in ISO-8859-1.')
   }
-  return { encoding: normalized, bytes, eciAssignmentNumber: null, eciCodewords: [] }
+  const assignment = normalizeEci(eci, null)
+  return {
+    encoding: normalized,
+    bytes,
+    eciAssignmentNumber: assignment,
+    eciCodewords: encodeEciCodewords(assignment),
+  }
+}
+
+function normalizeEci(value, automaticAssignment) {
+  if (value === 'auto' || value === undefined) return automaticAssignment
+  if (value === null) return null
+  if (!Number.isInteger(value) || value < 0 || value > 999999) {
+    throw new Error("eci must be 'auto', null, or an integer from 0 to 999999.")
+  }
+  return value
+}
+
+function encodeEciCodewords(assignment) {
+  if (assignment === null) return []
+  if (assignment <= 126) return [241, assignment + 1]
+  if (assignment <= 16382) {
+    const adjusted = assignment - 127
+    return [241, Math.floor(adjusted / 254) + 128, (adjusted % 254) + 1]
+  }
+  const adjusted = assignment - 16383
+  return [
+    241,
+    Math.floor(adjusted / 64516) + 192,
+    Math.floor((adjusted % 64516) / 254) + 1,
+    (adjusted % 254) + 1,
+  ]
 }
 
 function normalizeEncoding(encoding = DEFAULT_ENCODING) {
