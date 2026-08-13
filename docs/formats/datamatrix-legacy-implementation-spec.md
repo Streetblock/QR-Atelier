@@ -199,6 +199,20 @@ groups are added. The emitted 7-bit ECC 000 header is still required.
 Split the input into 3-bit groups, zero-fill the last group, append three zero
 groups, and emit four bits per cycle through the 4-3-3 state machine.
 
+For input bits `a`, `b`, and `c`, let `a1` be `a` delayed by one cycle,
+`a2` delayed by two cycles, and so on. The four output bits in transmission
+order are:
+
+```text
+v1 = a  XOR c1 XOR c2 XOR b3 XOR c3
+v2 = b  XOR b1 XOR a2 XOR a3 XOR b3
+v3 = c  XOR a1 XOR b1 XOR c1 XOR a2 XOR a3
+v4 = a  XOR b  XOR c  XOR a1 XOR b1 XOR c1 XOR b2 XOR c3
+```
+
+These equations MUST reproduce all 24 input/output cycles and the complete
+13x13 Annex-Q symbol. This makes ECC 050 verified for the reference path.
+
 ### 7.3 ECC 080
 
 Split the input into 2-bit groups, zero-fill the last group, append eleven zero
@@ -216,8 +230,8 @@ bits per cycle through the 4-1-13 state machine.
 
 The precise XOR taps and output order MUST be transcribed from the four
 state-machine diagrams and verified against reference vectors. Structure names
-alone are insufficient. Until this is complete, ECC 050–140 are **pending
-verification** and MUST NOT be advertised as supported.
+alone are insufficient. ECC 080, 100, and 140 remain **pending verification**
+and MUST NOT be advertised as supported.
 
 ## 8. Symbol sizing and capacity
 
@@ -363,7 +377,8 @@ This single fixture does not establish conformance for ECC 080, 100, or 140.
 Before declaring all five modes conformant:
 
 1. Transcribe and independently review the exact XOR taps and output order for
-   the 4-3-3, 3-2-11, 2-1-15, and 4-1-13 machines.
+   the 3-2-11, 2-1-15, and 4-1-13 machines. The 4-3-3 machine is verified by
+   every Annex-Q state cycle and the complete ECC-050 module matrix.
 2. Verify the entire master random stream against a non-OCR view.
 3. Transcribe or generate every placement grid from 7×7 through 47×47 and prove
    each grid is a permutation.
