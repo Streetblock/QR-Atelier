@@ -24,6 +24,38 @@ const BASE_41_VALUES = new Map([
 
 const BASE_41_GROUP_WIDTHS = Object.freeze([0, 6, 11, 17, 22])
 
+const BASE_37_VALUES = new Map([
+  [' ', 0],
+  ...Array.from({ length: 26 }, (_, index) => [String.fromCharCode(65 + index), index + 1]),
+  ...Array.from({ length: 10 }, (_, index) => [String(index), index + 27]),
+])
+
+const LEGACY_FORMATS = Object.freeze({
+  1: Object.freeze({
+    base: 11,
+    groupSize: 6,
+    widths: Object.freeze([0, 4, 7, 11, 14, 18, 21]),
+    values: new Map([
+      [' ', 0],
+      ...Array.from({ length: 10 }, (_, index) => [String(index), index + 1]),
+    ]),
+  }),
+  2: Object.freeze({
+    base: 27,
+    groupSize: 5,
+    widths: Object.freeze([0, 5, 10, 15, 20, 24]),
+    values: new Map([
+      [' ', 0],
+      ...Array.from({ length: 26 }, (_, index) => [String.fromCharCode(65 + index), index + 1]),
+    ]),
+  }),
+  3: Object.freeze({ base: 41, groupSize: 4, widths: BASE_41_GROUP_WIDTHS, values: BASE_41_VALUES }),
+  4: Object.freeze({
+    base: 37, groupSize: 4, widths: Object.freeze([0, 6, 11, 16, 21]), values: BASE_37_VALUES,
+  }),
+})
+const LEGACY_FORMAT_SELECTION_ORDER = Object.freeze([1, 2, 4, 3, 5, 6])
+
 const ECC_050_HEADER = '0111000000000111000'
 
 // Each output lists indexes in a flattened four-cycle window:
@@ -96,29 +128,78 @@ function toBytes(data) {
   throw new TypeError('Legacy CRC input must be a string, Uint8Array, or byte array')
 }
 
-export function encodeLegacyBase41(data) {
-  if (typeof data !== 'string') throw new TypeError('Base-41 input must be a string')
-
+function encodeLegacyBase(data, formatId) {
+  if (typeof data !== 'string') throw new TypeError('Legacy base input must be a string')
+  const format = LEGACY_FORMATS[formatId]
   let encoded = ''
-  for (let offset = 0; offset < data.length; offset += 4) {
-    const group = data.slice(offset, offset + 4)
+  for (let offset = 0; offset < data.length; offset += format.groupSize) {
+    const group = data.slice(offset, offset + format.groupSize)
     let value = 0
     let weight = 1
 
     for (const character of group) {
-      const digit = BASE_41_VALUES.get(character)
+      const digit = format.values.get(character)
       if (digit === undefined) {
-        throw new RangeError(`Character ${JSON.stringify(character)} is not available in legacy base 41`)
+        throw new RangeError(
+          `Character ${JSON.stringify(character)} is not available in legacy base ${format.base}`,
+        )
       }
       value += digit * weight
-      weight *= 41
+      weight *= format.base
     }
 
-    const width = BASE_41_GROUP_WIDTHS[group.length]
+    const width = format.widths[group.length]
     encoded += bits(reverseBits(value, width), width)
   }
-
   return encoded
+}
+
+export function selectLegacyFormat(data) {
+  if (data instanceof Uint8Array || Array.isArray(data)) {
+    toBytes(data)
+    return 6
+  }
+  if (typeof data !== 'string') {
+    throw new TypeError('Legacy data must be a string, Uint8Array, or byte array')
+  }
+
+  const characters = Array.from(data)
+  for (const formatId of LEGACY_FORMAT_SELECTION_ORDER) {
+    if (formatId <= 4 && characters.every((character) => LEGACY_FORMATS[formatId].values.has(character))) {
+      return formatId
+    }
+    if (formatId === 5 && characters.every((character) => character.codePointAt(0) <= 0x7f)) return formatId
+    if (formatId === 6 && characters.every((character) => character.codePointAt(0) <= 0xff)) return formatId
+  }
+  throw new RangeError('Legacy data cannot represent characters above 8-bit values')
+}
+
+export function encodeLegacyData(data, { format = 'auto' } = {}) {
+  const formatId = format === 'auto' ? selectLegacyFormat(data) : format
+  if (!Number.isInteger(formatId) || formatId < 1 || formatId > 6) {
+    throw new RangeError('Legacy format must be auto or an integer from 1 through 6')
+  }
+  if (formatId <= 4) return { formatId, encodedBits: encodeLegacyBase(data, formatId) }
+
+  if (formatId === 5 && typeof data !== 'string') {
+    throw new TypeError('Legacy ASCII input must be a string')
+  }
+  const values = formatId === 5
+    ? Array.from(data, (character) => character.codePointAt(0))
+    : toBytes(data)
+  const maximum = formatId === 5 ? 0x7f : 0xff
+  if (values.some((value) => value > maximum)) {
+    throw new RangeError(`Legacy format ${formatId} input exceeds its ${maximum + 1}-value repertoire`)
+  }
+  const width = formatId === 5 ? 7 : 8
+  return {
+    formatId,
+    encodedBits: values.map((value) => bits(reverseBits(value, width), width)).join(''),
+  }
+}
+
+export function encodeLegacyBase41(data) {
+  return encodeLegacyBase(data, 3)
 }
 
 export function calculateLegacyCrcRegister(formatId, data) {
@@ -142,16 +223,16 @@ export function calculateLegacyCrcField(formatId, data) {
   return bits(reverseBits(calculateLegacyCrcRegister(formatId, data), 16), 16)
 }
 
-export function buildLegacyUnprotectedBits(data, { formatId = 3 } = {}) {
-  if (formatId !== 3) {
-    throw new RangeError('Only legacy base-41 format ID 3 is implemented so far')
-  }
-  if (data.length > 0x1ff) throw new RangeError('Legacy record length exceeds the 9-bit field')
+export function buildLegacyUnprotectedBits(data, { format = 'auto', formatId } = {}) {
+  const selectedFormat = formatId ?? format
+  const encoded = encodeLegacyData(data, { format: selectedFormat })
+  const dataLength = typeof data === 'string' ? Array.from(data).length : toBytes(data).length
+  if (dataLength > 0x1ff) throw new RangeError('Legacy record length exceeds the 9-bit field')
 
-  const formatField = bits(formatId - 1, 5)
-  const crcField = calculateLegacyCrcField(formatId, data)
-  const lengthField = bits(reverseBits(data.length, 9), 9)
-  return formatField + crcField + lengthField + encodeLegacyBase41(data)
+  const formatField = bits(encoded.formatId - 1, 5)
+  const crcField = calculateLegacyCrcField(encoded.formatId, data)
+  const lengthField = bits(reverseBits(dataLength, 9), 9)
+  return formatField + crcField + lengthField + encoded.encodedBits
 }
 
 export function encodeLegacyEcc050(unprotectedBits) {
