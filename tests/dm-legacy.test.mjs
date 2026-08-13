@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import {
   addLegacyFinderPattern,
   buildLegacyUnprotectedBits,
@@ -9,6 +10,7 @@ import {
   encodeLegacyEcc050,
   encodeLegacyBase41,
   generateLegacyEcc050Reference,
+  LEGACY_MASTER_RANDOM_BITS,
   placeLegacy11x11,
   randomizeLegacyBits,
 } from '../libs/DMlegacy.js'
@@ -97,6 +99,18 @@ test('builds and randomizes the 121-bit ECC 050 reference stream', () => {
   const unrandomized = buildLegacyEcc050UnrandomizedBits(unprotected)
   assert.equal(unrandomized, '0111000000000111000' + REFERENCE_PROTECTED + '000000')
   assert.equal(randomizeLegacyBits(unrandomized), REFERENCE_RANDOMIZED)
+})
+
+test('preserves the complete 2209-bit legacy master random stream', () => {
+  assert.equal(LEGACY_MASTER_RANDOM_BITS.length, 47 * 47)
+  assert.equal(LEGACY_MASTER_RANDOM_BITS.slice(0, 32), '00000101111111111100011100110001')
+  assert.equal(LEGACY_MASTER_RANDOM_BITS.slice(-33), '111101000101000001111001000010000')
+  assert.equal(
+    createHash('sha256').update(LEGACY_MASTER_RANDOM_BITS, 'ascii').digest('hex'),
+    '01321a358a45be5ed377766b44071db243e82f0d0c21e6b78578b357bfe18e49',
+  )
+  assert.equal(randomizeLegacyBits('0'.repeat(47 * 47)), LEGACY_MASTER_RANDOM_BITS)
+  assert.throws(() => randomizeLegacyBits('0'.repeat(47 * 47 + 1)), /at most 2209 bits/)
 })
 
 test('places every randomized reference bit in the 11x11 data grid', () => {

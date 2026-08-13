@@ -269,10 +269,11 @@ protected data, and tail—with the master random bit stream. Both streams start
 at their first/MSB position. The random stream is never restarted between
 fields.
 
-The committed implementation MUST contain a deterministic representation of
-the complete master stream required for a 47×47 data area. Its identity MUST be
-protected by a full-stream digest plus prefix, suffix, and Annex-Q tests. An
-OCR-derived sequence may not be committed without independent visual checking.
+The implementation contains the visually transcribed 2,209-bit master stream
+required for a 47×47 data area: 276 complete bytes in MSB-first order followed
+by the final zero bit. Its identity is protected by a full-stream SHA-256 digest,
+prefix and suffix assertions, the maximum-length XOR test, and the Annex-Q test.
+OCR output alone is not an accepted source for this sequence.
 
 ## 10. Placement and finder pattern
 
@@ -379,10 +380,9 @@ Before declaring all five modes conformant:
 1. Transcribe and independently review the exact XOR taps and output order for
    the 3-2-11, 2-1-15, and 4-1-13 machines. The 4-3-3 machine is verified by
    every Annex-Q state cycle and the complete ECC-050 module matrix.
-2. Verify the entire master random stream against a non-OCR view.
-3. Transcribe or generate every placement grid from 7×7 through 47×47 and prove
+2. Transcribe or generate every placement grid from 7×7 through 47×47 and prove
    each grid is a permutation.
-4. Obtain complete-symbol reference vectors for ECC 000, 080, 100, and 140 from
+3. Obtain complete-symbol reference vectors for ECC 000, 080, 100, and 140 from
    a real Zebra printer or another independently validated encoder.
-5. Compare the Russian adoption against Technical Corrigendum 2:2011 and an
+4. Compare the Russian adoption against Technical Corrigendum 2:2011 and an
    English copy where wording or diagrams remain ambiguous.
