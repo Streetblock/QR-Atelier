@@ -246,6 +246,19 @@ still required before claiming full conformance for every legacy size.
 Process one input bit per cycle, append fifteen zero input bits, and emit two
 bits per cycle through the 2-1-15 state machine.
 
+For input bit `a`, let `a1` be `a` delayed by one cycle, `a2` delayed by two
+cycles, and so on. The two output bits in transmission order are:
+
+```text
+v1 = a XOR a2 XOR a5 XOR a6 XOR a7 XOR a8 XOR a9 XOR a10 XOR a15
+v2 = a XOR a1 XOR a3 XOR a4 XOR a6 XOR a11 XOR a13 XOR a14 XOR a15
+```
+
+The equations and output order are transcribed from the state-machine diagram
+and independently cross-checked against complete 13x13 symbols for multiple
+payloads. The convolution stage and reviewed-size end-to-end path are
+implemented under the same conformance qualification as ECC 080.
+
 ### 7.5 ECC 140
 
 Process one input bit per cycle, append thirteen zero input bits, and emit four
@@ -253,8 +266,8 @@ bits per cycle through the 4-1-13 state machine.
 
 The precise XOR taps and output order MUST be transcribed from the four
 state-machine diagrams and verified against reference vectors. Structure names
-alone are insufficient. ECC 100 and 140 remain **pending verification** and
-MUST NOT be advertised as supported.
+alone are insufficient. ECC 140 remains **pending verification** and MUST NOT
+be advertised as supported.
 
 ## 8. Symbol sizing and capacity
 

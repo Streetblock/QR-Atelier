@@ -11,6 +11,7 @@ import {
   encodeLegacyEcc050,
   encodeLegacyEcc000,
   encodeLegacyEcc080,
+  encodeLegacyEcc100,
   encodeLegacyBase41,
   encodeLegacyData,
   selectLegacyFormat,
@@ -187,12 +188,12 @@ test('selects the smallest reviewed data side and validates forced sizes', () =>
   assert.throws(() => selectLegacyDataSide(49, { ecc: 50, symbolSize: 9 }), /does not support/)
   assert.throws(() => selectLegacyDataSide(1, { ecc: 80, symbolSize: 11 }), /does not support/)
   assert.throws(() => selectLegacyDataSide(1, { ecc: 0, symbolSize: 33 }), /pending verification/)
-  assert.throws(() => selectLegacyDataSide(1, { ecc: 100 }), /modes are 0, 50, and 80/)
+  assert.throws(() => selectLegacyDataSide(1, { ecc: 140 }), /modes are 0, 50, 80, and 100/)
 })
 
 test('checks every reviewed automatic-size boundary', () => {
-  for (const ecc of [0, 50, 80]) {
-    const minimumDataSide = { 0: 7, 50: 9, 80: 11 }[ecc]
+  for (const ecc of [0, 50, 80, 100]) {
+    const minimumDataSide = { 0: 7, 50: 9, 80: 11, 100: 11 }[ecc]
     const dataSides = LEGACY_PLACEMENT_DATA_SIDES.filter((side) => side >= minimumDataSide)
 
     dataSides.forEach((dataSide, index) => {
@@ -282,6 +283,36 @@ test('generates independently cross-checked 13x13 ECC 080 symbols', () => {
     const result = generateLegacyDataMatrix(payload, { ecc: 80 })
     assert.equal(result.dataSide, 11)
     assert.equal(result.protectedBits.length, (Math.ceil(result.unprotectedBits.length / 2) + 11) * 3)
+    assert.deepEqual(rowsToStrings(result.modules), rows)
+  }
+})
+
+test('encodes ECC 100 through all input and fifteen flush cycles', () => {
+  assert.equal(encodeLegacyEcc100('1'), '11011001011011101010100100010111')
+  assert.equal(encodeLegacyEcc100('').length, 30)
+  assert.throws(() => encodeLegacyEcc100('10x'), /binary string/)
+})
+
+test('generates independently cross-checked 13x13 ECC 100 symbols', () => {
+  const expected = {
+    A: [
+      '1010101010101', '1110001111010', '1101001011011', '1001000111010',
+      '1100011010111', '1110100001100', '1110000001011', '1001001011110',
+      '1001101110011', '1010010101000', '1100001110111', '1000111000010',
+      '1111111111111',
+    ],
+    C: [
+      '1010101010101', '1110101000010', '1111001010111', '1001100111100',
+      '1010010110111', '1111000100000', '1100000001011', '1010010111010',
+      '1000100101111', '1000001001100', '1100101100101', '1010100011010',
+      '1111111111111',
+    ],
+  }
+
+  for (const [payload, rows] of Object.entries(expected)) {
+    const result = generateLegacyDataMatrix(payload, { ecc: 100 })
+    assert.equal(result.dataSide, 11)
+    assert.equal(result.protectedBits.length, (result.unprotectedBits.length + 15) * 2)
     assert.deepEqual(rowsToStrings(result.modules), rows)
   }
 })
