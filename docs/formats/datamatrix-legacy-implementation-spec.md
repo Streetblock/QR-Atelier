@@ -225,6 +225,22 @@ These equations MUST reproduce all 24 input/output cycles and the complete
 Split the input into 2-bit groups, zero-fill the last group, append eleven zero
 groups, and emit three bits per cycle through the 3-2-11 state machine.
 
+For input bits `a` and `b`, let `a1` be `a` delayed by one cycle, `a2`
+delayed by two cycles, and so on. The three output bits in transmission order
+are:
+
+```text
+v1 = a XOR a1 XOR a3 XOR b3 XOR a4 XOR a5 XOR a6 XOR a7 XOR b7 XOR a10 XOR b11
+v2 = b XOR a1 XOR a3 XOR b3 XOR a4 XOR a5 XOR b6 XOR a8 XOR b8 XOR a9 XOR b9 XOR a10
+v3 = a XOR b XOR b1 XOR b2 XOR b4 XOR a5 XOR a6 XOR a7 XOR b7 XOR b9 XOR b11
+```
+
+The equations and output order are transcribed from the state-machine diagram
+and independently cross-checked against complete 13x13 symbols for multiple
+payloads. The convolution stage and the reviewed-size end-to-end path are
+implemented; an independently licensed normative complete-symbol fixture is
+still required before claiming full conformance for every legacy size.
+
 ### 7.4 ECC 100
 
 Process one input bit per cycle, append fifteen zero input bits, and emit two
@@ -237,8 +253,8 @@ bits per cycle through the 4-1-13 state machine.
 
 The precise XOR taps and output order MUST be transcribed from the four
 state-machine diagrams and verified against reference vectors. Structure names
-alone are insufficient. ECC 080, 100, and 140 remain **pending verification**
-and MUST NOT be advertised as supported.
+alone are insufficient. ECC 100 and 140 remain **pending verification** and
+MUST NOT be advertised as supported.
 
 ## 8. Symbol sizing and capacity
 
