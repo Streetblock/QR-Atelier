@@ -9,6 +9,8 @@ import {
   calculateLegacyCrcRegister,
   encodeLegacyEcc050,
   encodeLegacyBase41,
+  encodeLegacyData,
+  selectLegacyFormat,
   generateLegacyEcc050Reference,
   getLegacyPlacement,
   LEGACY_PLACEMENT_DATA_SIDES,
@@ -25,6 +27,78 @@ test('encodes the ECC 050 reference payload with legacy base 41', () => {
     encodeLegacyBase41(REFERENCE_PAYLOAD),
     '0010010111101100111110' + '11111111110',
   )
+})
+const PARTIAL_GROUP_FIXTURES = [
+  [1, '123456', [
+    '0100',
+    '1100010',
+    '11100000010',
+    '01100000001110',
+    '001101001100111010',
+    '100101110110010101001',
+  ]],
+  [2, 'ABCDE', [
+    '10000',
+    '1110110000',
+    '010000110001000',
+    '01110010001111001000',
+    '110000000001001110010100',
+  ]],
+  [4, 'ABC1', [
+    '100000',
+    '11010010000',
+    '0110101000001000',
+    '010000010010110110101',
+  ]],
+  [3, 'ABC.', [
+    '100000',
+    '11001010000',
+    '01100000001010000',
+    '1100001010111111011001',
+  ]],
+]
+
+test('encodes every partial group length for legacy base formats', () => {
+  for (const [format, sample, expectedPrefixes] of PARTIAL_GROUP_FIXTURES) {
+    expectedPrefixes.forEach((expected, index) => {
+      assert.equal(encodeLegacyData(sample.slice(0, index + 1), { format }).encodedBits, expected)
+    })
+  }
+})
+
+test('emits ASCII and byte values least-significant bit first', () => {
+  assert.deepEqual(encodeLegacyData('B', { format: 5 }), {
+    formatId: 5,
+    encodedBits: '0100001',
+  })
+  assert.deepEqual(encodeLegacyData(Uint8Array.of(0x96), { format: 6 }), {
+    formatId: 6,
+    encodedBits: '01101001',
+  })
+})
+
+test('selects the first complete legacy repertoire in the normative order', () => {
+  assert.equal(selectLegacyFormat('123'), 1)
+  assert.equal(selectLegacyFormat('ABC'), 2)
+  assert.equal(selectLegacyFormat('ABC1'), 4)
+  assert.equal(selectLegacyFormat('ABC-'), 3)
+  assert.equal(selectLegacyFormat('lowercase'), 5)
+  assert.equal(selectLegacyFormat('é'), 6)
+  assert.equal(selectLegacyFormat(Uint8Array.of(0xff)), 6)
+})
+
+test('validates explicit legacy format repertoires', () => {
+  assert.throws(() => encodeLegacyData('A', { format: 1 }), /legacy base 11/)
+  assert.throws(() => encodeLegacyData('é', { format: 5 }), /exceeds/)
+  assert.throws(() => encodeLegacyData('😀'), /above 8-bit/)
+  assert.throws(() => encodeLegacyData('ABC', { format: 7 }), /integer from 1 through 6/)
+})
+
+
+test('writes the selected legacy format ID into the five-bit data prefix', () => {
+  assert.equal(buildLegacyUnprotectedBits('123').slice(0, 5), '00000')
+  assert.equal(buildLegacyUnprotectedBits('ABC1', { format: 4 }).slice(0, 5), '00011')
+  assert.equal(buildLegacyUnprotectedBits(Uint8Array.of(0x96)).slice(0, 5), '00101')
 })
 
 test('calculates the legacy CRC register and transmitted field', () => {
