@@ -36,6 +36,7 @@ Das Projekt bleibt bewusst klein und nutzt pro Barcode-Familie ein Kern- und ein
 ### 1. `QRcore.js` und `QRsvg.js`
 Der QR-Code-Kern und Renderer.
 * Generiert QR-Matrizen mit Reed-Solomon Fehlerkorrektur.
+* Unterstuetzt standardmaessig QR Code Model 2 in den Versionen 1-40 und ueber die Option `model: 1` den Legacy-Modus QR Code Model 1 in den Versionen 1-2.
 * Unterstuetzt Numeric-, Alphanumeric- und Byte-Modus sowie ECI fuer UTF-8, ISO-8859-1 und Windows-1252. Der QR-Kanji-Modus wird gegenwaertig nicht unterstuetzt.
 * Verwendet UTF-8 als Standardkodierung im Byte-Modus; Nutzer der Library koennen ueber die `QrCore`-Optionen eine andere unterstuetzte Kodierung waehlen.
 * Waehlt fuer jeden QR-Versionsbereich automatisch eine biteffiziente Kombination aus Numeric-, Alphanumeric- und Byte-Segmenten.
@@ -44,7 +45,7 @@ Der QR-Code-Kern und Renderer.
 * Rendert die QR-Matrix im gewaehlten Stil.
 
 ### 2. `app.js` und `styles.css`
-Der App-Controller und das UI. Steuert den State, bindet DOM-Events und sorgt fuer das Interface. Das Studio nutzt derzeit den UTF-8-Standard des Kerns und bietet keine Auswahl der Kodierung an. Wenn ein Center-Logo vorhanden ist, fordert die App das Fehlerkorrektur-Level H an; dies ist App-Verhalten und keine automatische Regel innerhalb von `QrCore`.
+Der App-Controller und das UI. Steuert den State, bindet DOM-Events und sorgt fuer das Interface. Das Studio bietet Model 2 und den begrenzten Model-1-Legacy-Modus an, nutzt den UTF-8-Standard des Kerns und bietet keine Auswahl der Kodierung an. Wenn ein Center-Logo vorhanden ist, fordert die App das Fehlerkorrektur-Level H an; dies ist App-Verhalten und keine automatische Regel innerhalb von `QrCore`.
 
 ## Installation & Nutzung
 
@@ -73,7 +74,11 @@ Der App-Controller und das UI. Steuert den State, bindet DOM-Events und sorgt fu
 
    const data = new QrCore('https://example.com').generate()
    const svg = new QrSvgRenderer(data).render()
+
+   const legacyData = new QrCore('LEGACY', { model: 1, maxVersion: 2 }).generate()
    ```
+
+   Model 1 lehnt ECI-Segmente bewusst ab. Fuer neue Anwendungen bleibt Model 2 der Standard.
 
 4. Eine Nachricht mit QR Structured Append aufteilen
    ```js

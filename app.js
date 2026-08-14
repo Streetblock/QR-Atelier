@@ -206,12 +206,17 @@ class QRPlaygroundApp {
   #createRenderer(size) {
     const payload = this.#buildPayload()
     const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
-    const qr = new QrCore(payload, { errorCorrectionLevel: ecl }).generate()
+    const isModel1 = this.state.options.format === 'qr-model-1'
+    const qr = new QrCore(payload, {
+      errorCorrectionLevel: ecl,
+      model: isModel1 ? 1 : 2,
+      ...(isModel1 ? { maxVersion: 2 } : {}),
+    }).generate()
     return new QrSvgRenderer(qr, { size, ...this.state.options })
   }
 
   #syncFormatUi() {
-    if (!['qr'].includes(this.state.options.format)) {
+    if (!['qr', 'qr-model-1'].includes(this.state.options.format)) {
       this.state.options.format = 'qr'
     }
     if (!['text', 'wifi'].includes(this.state.options.contentMode)) {
