@@ -11,7 +11,7 @@ import {
   ResultMetadataType,
 } from '@zxing/library'
 
-import { QrCore, calculateQrStructuredAppendParity } from '../libs/QRcore.js'
+import { QrCore, QrSegment, calculateQrStructuredAppendParity } from '../libs/QRcore.js'
 
 class MatrixLuminanceSource extends LuminanceSource {
   constructor(luminance, width, height) {
@@ -109,4 +109,99 @@ test('validates structured-append metadata against the QR limits', () => {
   for (const [structuredAppend, message] of invalidCases) {
     assert.throws(() => new QrCore('A', { structuredAppend }).generate(), message)
   }
+})
+
+test('round-trips and reassembles the maximum set of 16 symbols', () => {
+  const parts = Array.from({ length: 16 }, (_, index) => `PART-${String(index + 1).padStart(2, '0')}/`)
+  const completeMessage = parts.join('')
+  const parity = calculateQrStructuredAppendParity(completeMessage)
+  const decodedParts = []
+
+  for (const [index, data] of [...parts.entries()].reverse()) {
+    const generated = new QrCore(data, {
+      errorCorrectionLevel: 'M',
+      structuredAppend: { position: index + 1, total: parts.length, parity },
+    }).generate()
+    const decoded = decodeQr(generated.modules)
+    const metadata = decoded.getResultMetadata()
+    const sequence = metadata.get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE)
+
+    assert.equal(sequence, (index << 4) | 0x0f)
+    assert.equal(metadata.get(ResultMetadataType.STRUCTURED_APPEND_PARITY), parity)
+    decodedParts.push({ index: sequence >> 4, text: decoded.getText() })
+  }
+
+  decodedParts.sort((left, right) => left.index - right.index)
+  assert.equal(decodedParts.map(({ text }) => text).join(''), completeMessage)
+})
+
+test('decodes structured append across QR versions and error correction levels', () => {
+  const cases = [
+    { version: 1, errorCorrectionLevel: 'L' },
+    { version: 5, errorCorrectionLevel: 'M' },
+    { version: 10, errorCorrectionLevel: 'Q' },
+    { version: 20, errorCorrectionLevel: 'H' },
+    { version: 40, errorCorrectionLevel: 'L' },
+  ]
+
+  for (const { version, errorCorrectionLevel } of cases) {
+    const data = `V${version}-${errorCorrectionLevel}`
+    const generated = new QrCore(data, {
+      errorCorrectionLevel,
+      minVersion: version,
+      maxVersion: version,
+      structuredAppend: { position: 2, total: 3, parity: 0xa5 },
+    }).generate()
+    const decoded = decodeQr(generated.modules, 4, version >= 20 ? 3 : 6)
+    const metadata = decoded.getResultMetadata()
+
+    assert.equal(generated.version, version)
+    assert.equal(decoded.getText(), data)
+    assert.equal(metadata.get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE), 0x12)
+    assert.equal(metadata.get(ResultMetadataType.STRUCTURED_APPEND_PARITY), 0xa5)
+  }
+})
+
+test('decodes structured append with every supported data-mode strategy', () => {
+  const cases = [
+    ['12345678901234567890', { mode: 'numeric' }],
+    ['ALPHA 12345/$%+', { mode: 'alphanumeric' }],
+    ['Byte ÄÖ', { mode: 'byte' }],
+    ['A12345678901234567890z', { mode: 'auto' }],
+    ['', { segments: [
+      QrSegment.numeric('123456'),
+      QrSegment.alphanumeric('ABC'),
+      QrSegment.byte(' ä', { encoding: 'utf-8' }),
+    ] }],
+  ]
+
+  for (const [data, options] of cases) {
+    const generated = new QrCore(data, {
+      ...options,
+      errorCorrectionLevel: 'Q',
+      structuredAppend: { position: 1, total: 2, parity: 0x5a },
+    }).generate()
+    const decoded = decodeQr(generated.modules)
+    const metadata = decoded.getResultMetadata()
+
+    assert.equal(decoded.getText(), data || '123456ABC ä')
+    assert.equal(metadata.get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE), 0x01)
+    assert.equal(metadata.get(ResultMetadataType.STRUCTURED_APPEND_PARITY), 0x5a)
+  }
+})
+
+test('preserves raw byte segments inside a structured-append symbol', () => {
+  const bytes = [0x00, 0x01, 0x7f, 0x80, 0xfe, 0xff]
+  const generated = new QrCore('', {
+    eci: false,
+    segments: [QrSegment.bytes(bytes)],
+    structuredAppend: { position: 2, total: 2, parity: calculateQrStructuredAppendParity(bytes) },
+  }).generate()
+  const decoded = decodeQr(generated.modules)
+  const metadata = decoded.getResultMetadata()
+  const byteSegments = metadata.get(ResultMetadataType.BYTE_SEGMENTS)
+
+  assert.equal(metadata.get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE), 0x11)
+  assert.equal(metadata.get(ResultMetadataType.STRUCTURED_APPEND_PARITY), 0xff)
+  assert.deepEqual(Array.from(byteSegments[0]), bytes)
 })
