@@ -42,9 +42,10 @@ The QR Code core and renderer.
 ### 2. `RMQRcore.js`
 The separate ISO/IEC 23941 rectangular Micro QR core.
 * Supports all 32 standard symbol sizes from R7x43 through R17x139 and error correction levels M and H.
-* Encodes Numeric, Alphanumeric, and UTF-8 Byte segments with automatic segmentation and deterministic symbol selection.
+* Encodes Numeric, Alphanumeric, and Byte segments with automatic segmentation and deterministic symbol selection.
+* Supports automatic and explicit ECI, including UTF-8, ISO-8859-1, Windows-1252, raw bytes, and assignment numbers from 0 to 999999.
 * Uses the standard fixed rMQR data mask and a two-module quiet zone in the renderer.
-* Kanji, ECI, GS1/FNC1, and Structured Append are outside this first milestone.
+* Kanji and GS1/FNC1 are not currently supported. Structured Append is not part of the rMQR mode set.
 
 ### 3. `app.js` and `styles.css`
 The app controller and UI. Manages state, binds DOM events, and provides the interface. The studio currently uses the cores' UTF-8 defaults and does not expose an encoding selector. Center logos and decorative module shapes are deliberately unavailable for rMQR.
@@ -80,13 +81,20 @@ The app controller and UI. Manages state, binds DOM events, and provides the int
 
    For rMQR, use the dedicated core with the same renderer:
    ```js
-   import { RMqrCore } from './libs/RMQRcore.js'
+   import { RMqrCore, RMqrSegment } from './libs/RMQRcore.js'
    import { QrSvgRenderer } from './libs/QRsvg.js'
 
    const data = new RMqrCore('RMQR REFERENCE', {
      errorCorrectionLevel: 'H',
    }).generate()
    const svg = new QrSvgRenderer(data).render()
+
+   const explicitEci = new RMqrCore('', {
+     segments: [
+       RMqrSegment.eci(3),
+       RMqrSegment.byte('é', { encoding: 'iso-8859-1' }),
+     ],
+   }).generate()
    ```
 
 4. Split a message with QR Structured Append
