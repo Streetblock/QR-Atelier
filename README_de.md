@@ -108,9 +108,10 @@ Der QR-Code-Kern und Renderer.
 ### 2. `RMQRcore.js`
 Der getrennte Kern fuer Rectangular Micro QR nach ISO/IEC 23941.
 * Unterstuetzt alle 32 Standardgroessen von R7x43 bis R17x139 und die Fehlerkorrektur-Level M und H.
-* Kodiert Numeric-, Alphanumeric- und UTF-8-Byte-Segmente mit automatischer Segmentierung und deterministischer Groessenauswahl.
+* Kodiert Numeric-, Alphanumeric- und Byte-Segmente mit automatischer Segmentierung und deterministischer Groessenauswahl.
+* Unterstuetzt automatisches und explizites ECI, einschliesslich UTF-8, ISO-8859-1, Windows-1252, Rohbytes und Assignment Numbers von 0 bis 999999.
 * Nutzt die feste Standardmaske von rMQR; der Renderer setzt die zwei Module breite Ruhezone um.
-* Kanji, ECI, GS1/FNC1 und Structured Append sind nicht Teil dieses ersten Meilensteins.
+* Kanji und GS1/FNC1 werden noch nicht unterstuetzt. Structured Append gehoert nicht zum rMQR-Modussatz.
 
 ### 3. `app.js` und `styles.css`
 Der App-Controller und das UI. Steuert den State, bindet DOM-Events und stellt die Formate ueber die gemeinsame Registry bereit. Das Studio nutzt die UTF-8-Standards der Kerne und zeigt nur die vom jeweiligen Formatadapter deklarierten Optionen an.
@@ -150,13 +151,20 @@ Der App-Controller und das UI. Steuert den State, bindet DOM-Events und stellt d
 
    Fuer rMQR wird der eigene Kern mit demselben Renderer verwendet:
    ```js
-   import { RMqrCore } from './libs/RMQRcore.js'
+   import { RMqrCore, RMqrSegment } from './libs/RMQRcore.js'
    import { QrSvgRenderer } from './libs/QRsvg.js'
 
    const data = new RMqrCore('RMQR REFERENZ', {
      errorCorrectionLevel: 'H',
    }).generate()
    const svg = new QrSvgRenderer(data).render()
+
+   const explicitEci = new RMqrCore('', {
+     segments: [
+       RMqrSegment.eci(3),
+       RMqrSegment.byte('é', { encoding: 'iso-8859-1' }),
+     ],
+   }).generate()
    ```
 
 4. Eine Nachricht mit QR Structured Append aufteilen
