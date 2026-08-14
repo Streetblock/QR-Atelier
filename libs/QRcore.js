@@ -2,6 +2,8 @@
 // QrCore.js - Dependency-free QR Code Matrix Generator
 // ==========================================
 
+import { calculateQrMaskPenalty } from './QRMaskPenalty.js'
+
 // --- Modul-Konstanten (Privat für dieses Modul) ---
 const ECC_LEVELS = {
   L: { formatBits: 1 },
@@ -281,7 +283,7 @@ export class QrCore {
         if (version >= 7) {
           drawVersionBits(candidate, isFunction, version)
         }
-        const penalty = getPenaltyScore(candidate)
+        const penalty = calculateQrMaskPenalty(candidate)
         if (penalty < bestPenalty) {
           bestPenalty = penalty
           selectedMask = mask
@@ -978,86 +980,6 @@ function drawVersionBits(modules, isFunction, version) {
     setFunctionModule(modules, isFunction, a, b, bit)
     setFunctionModule(modules, isFunction, b, a, bit)
   }
-}
-
-function getPenaltyScore(modules) {
-  const size = modules.length
-  let penalty = 0
-
-  for (let y = 0; y < size; y += 1) {
-    let runColor = false
-    let runLength = 0
-    for (let x = 0; x < size; x += 1) {
-      const color = modules[y][x]
-      if (x === 0 || color !== runColor) {
-        runColor = color
-        runLength = 1
-      } else {
-        runLength += 1
-        penalty += runLength === 5 ? 3 : runLength > 5 ? 1 : 0
-      }
-    }
-  }
-
-  for (let x = 0; x < size; x += 1) {
-    let runColor = false
-    let runLength = 0
-    for (let y = 0; y < size; y += 1) {
-      const color = modules[y][x]
-      if (y === 0 || color !== runColor) {
-        runColor = color
-        runLength = 1
-      } else {
-        runLength += 1
-        penalty += runLength === 5 ? 3 : runLength > 5 ? 1 : 0
-      }
-    }
-  }
-
-  for (let y = 0; y < size - 1; y += 1) {
-    for (let x = 0; x < size - 1; x += 1) {
-      const color = modules[y][x]
-      if (color === modules[y][x + 1] && color === modules[y + 1][x] && color === modules[y + 1][x + 1]) {
-        penalty += 3
-      }
-    }
-  }
-
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size - 10; x += 1) {
-      if (matchesPatternLine((index) => modules[y][x + index])) {
-        penalty += 40
-      }
-    }
-  }
-
-  for (let x = 0; x < size; x += 1) {
-    for (let y = 0; y < size - 10; y += 1) {
-      if (matchesPatternLine((index) => modules[y + index][x])) {
-        penalty += 40
-      }
-    }
-  }
-
-  let darkModules = 0
-  for (const row of modules) {
-    for (const module of row) {
-      if (module) {
-        darkModules += 1
-      }
-    }
-  }
-
-  const percentage = (darkModules * 100) / (size * size)
-  penalty += Math.floor(Math.abs(percentage - 50) / 5) * 10
-
-  return penalty
-}
-
-function matchesPatternLine(getValue) {
-  const a = [true, false, true, true, true, false, true, false, false, false, false]
-  const b = [false, false, false, false, true, false, true, true, true, false, true]
-  return a.every((value, index) => getValue(index) === value) || b.every((value, index) => getValue(index) === value)
 }
 
 function reedSolomonRemainder(data, degree) {
