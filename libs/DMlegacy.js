@@ -364,9 +364,6 @@ export function selectLegacyDataSide(usedBits, { ecc = 0, symbolSize = null } = 
 
     const dataSide = symbolSize - 2
     if (!supportedDataSides.includes(dataSide)) {
-      if (dataSide > LEGACY_PLACEMENT_DATA_SIDES.at(-1)) {
-        throw new RangeError(`Legacy ${symbolSize}x${symbolSize} placement is pending verification`)
-      }
       throw new RangeError(`ECC ${String(ecc).padStart(3, '0')} does not support ${symbolSize}x${symbolSize}`)
     }
     if (usedBits > dataSide * dataSide) {
@@ -380,7 +377,7 @@ export function selectLegacyDataSide(usedBits, { ecc = 0, symbolSize = null } = 
   const dataSide = supportedDataSides.find((side) => usedBits <= side * side)
   if (dataSide === undefined) {
     throw new RangeError(
-      `Legacy data requires ${usedBits} modules; larger placement grids are pending verification`,
+      `Legacy data requires ${usedBits} modules and exceeds the maximum 2209-module placement`,
     )
   }
   return dataSide

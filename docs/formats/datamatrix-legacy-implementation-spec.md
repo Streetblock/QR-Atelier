@@ -349,14 +349,14 @@ surrounding H.4 progression identifies row 10, column 9 as position 62; the
 bottom-row position remains 52. This correction is isolated by a regression
 test and restores the mandatory permutation invariant.
 
-Data sides 31 through 47 remain pending because their H.13-H.21 foldout tables
-are not present in the reviewed source set. They MUST be rejected explicitly
-rather than generated from an unverified pattern.
+Data sides 31 through 47 use the H.13-H.21 placement grids. Every embedded grid
+is verified as a complete zero-based permutation, including the four fixed
+corner positions, and protected by a SHA-256 regression digest.
 
 Automatic sizing selects the smallest implemented data side whose square holds
 the ECC header and protected bits. Forced symbol sizes are validated against
-the selected ECC mode and available placement grids. Sizes 33x33 through 49x49
-are rejected as pending verification rather than approximated.
+the selected ECC mode and all legacy symbol sizes from 9x9 through 49x49 are
+available when permitted by that ECC mode.
 
 The final finder border is one module wide:
 
@@ -457,11 +457,8 @@ Before declaring all five modes conformant:
 1. Transcribe and independently review the exact XOR taps and output order for
    the 3-2-11, 2-1-15, and 4-1-13 machines. The 4-3-3 machine is verified by
    every Annex-Q state cycle and the complete ECC-050 module matrix.
-2. Obtain and independently review the H.13-H.21 placement grids for data sides
-   31 through 47. H.1-H.12 (7 through 29) are implemented with exact identity
-   and permutation tests.
-3. Obtain complete-symbol reference vectors for ECC 000, 080, 100, and 140 from
+2. Obtain complete-symbol reference vectors for ECC 000, 080, 100, and 140 from
    a real Zebra printer or another independently validated encoder.
-4. Compare remaining Russian wording and diagrams against a complete English
+3. Compare remaining Russian wording and diagrams against a complete English
    source where ambiguity remains. Technical Corrigendum 2:2011 was reviewed
    and changes clause 9 only, not legacy placement.
