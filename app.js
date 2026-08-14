@@ -210,7 +210,7 @@ class QRPlaygroundApp {
     const qr = new QrCore(payload, {
       errorCorrectionLevel: ecl,
       model: isModel1 ? 1 : 2,
-      ...(isModel1 ? { maxVersion: 2 } : {}),
+      ...(isModel1 ? { maxVersion: 14 } : {}),
     }).generate()
     return new QrSvgRenderer(qr, { size, ...this.state.options })
   }
