@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import test from 'node:test'
 
-import { RMqrCore, RMqrSegment, RMQR_VERSIONS } from '../libs/RMQRcore.js'
+import { RMqrCore, RMqrSegment, RMQR_GS1_SEPARATOR, RMQR_VERSIONS } from '../libs/RMQRcore.js'
 import { QrSvgRenderer } from '../libs/QRsvg.js'
 
 function matrixHash(modules) {
@@ -119,6 +119,51 @@ test('validates rMQR byte encodings, bytes and ECI assignments', () => {
   assert.throws(() => RMqrSegment.bytes([256]), /Invalid byte value/)
   assert.throws(() => RMqrSegment.eci(1000000), /between 0 and 999999/)
   assert.throws(() => new RMqrCore('x', { eci: 'yes' }).generate(), /must be true or false/)
+})
+
+test('GS1 FNC1 first-position matrices match independent Zint references', () => {
+  const gtin = new RMqrCore('0112345678901231', {
+    gs1: true,
+    version: 'R7x59',
+    errorCorrectionLevel: 'M',
+  }).generate()
+  assert.equal(matrixHash(gtin.modules), 'f7d860d4a1d86f1b361f08e62a1614322a2470b20e4dea62b89f9616d0f4a582')
+
+  const byteSeparator = new RMqrCore(`9112%${RMQR_GS1_SEPARATOR}2012`, {
+    gs1: true,
+    version: 'R7x59',
+    errorCorrectionLevel: 'M',
+  }).generate()
+  assert.equal(matrixHash(byteSeparator.modules), '4b9d7183c29e18f87b7973e47ff3d6b6c9592ab35dcf607d26397a9a94ec14c1')
+
+  const escapedPercent = new RMqrCore('', {
+    gs1: true,
+    version: 'R7x59',
+    errorCorrectionLevel: 'M',
+    segments: [
+      RMqrSegment.alphanumeric(`911A%${RMQR_GS1_SEPARATOR}`, { gs1: true }),
+      RMqrSegment.numeric('2012'),
+    ],
+  }).generate()
+  assert.equal(matrixHash(escapedPercent.modules), '3e9937987cf2e3c535c13de972ac3c820fe267370a647dd42ad18ece44e53cef')
+})
+
+test('GS1 adds FNC1 first position and preserves canonical separators', () => {
+  const result = new RMqrCore(`10ABC${RMQR_GS1_SEPARATOR}21123`, { gs1: true }).generate()
+  assert.equal(result.gs1, true)
+  assert.equal(result.eci, false)
+  assert.equal(result.segments[0].mode, 'fnc1First')
+  assert.equal(result.segments.map(({ data }) => data ?? '').join(''), `10ABC${RMQR_GS1_SEPARATOR}21123`)
+})
+
+test('GS1 validates its option, ASCII repertoire and ECI exclusion', () => {
+  assert.throws(() => new RMqrCore('0101234567890128', { gs1: 'yes' }).generate(), /gs1 must be true or false/)
+  assert.throws(() => new RMqrCore('é', { gs1: true, eci: false }).generate(), /printable ASCII/)
+  assert.throws(() => new RMqrCore('10ABC\n', { gs1: true }).generate(), /printable ASCII/)
+  assert.throws(() => new RMqrCore('', {
+    gs1: true,
+    segments: [RMqrSegment.eci(26), RMqrSegment.byte('x')],
+  }).generate(), /does not support ECI/)
 })
 
 test('forced modes reject incompatible data and capacity overflow', () => {

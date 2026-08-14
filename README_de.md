@@ -44,8 +44,9 @@ Der getrennte Kern fuer Rectangular Micro QR nach ISO/IEC 23941.
 * Unterstuetzt alle 32 Standardgroessen von R7x43 bis R17x139 und die Fehlerkorrektur-Level M und H.
 * Kodiert Numeric-, Alphanumeric- und Byte-Segmente mit automatischer Segmentierung und deterministischer Groessenauswahl.
 * Unterstuetzt automatisches und explizites ECI, einschliesslich UTF-8, ISO-8859-1, Windows-1252, Rohbytes und Assignment Numbers von 0 bis 999999.
+* Unterstuetzt GS1 mit FNC1 an erster Position, einschliesslich GS-Trennzeichen und dem fuer den Alphanumeric-Modus vorgeschriebenen GS1-Percent-Escaping.
 * Nutzt die feste Standardmaske von rMQR; der Renderer setzt die zwei Module breite Ruhezone um.
-* Kanji und GS1/FNC1 werden noch nicht unterstuetzt. Structured Append gehoert nicht zum rMQR-Modussatz.
+* Kanji wird noch nicht unterstuetzt. Structured Append gehoert nicht zum rMQR-Modussatz.
 
 ### 3. `app.js` und `styles.css`
 Der App-Controller und das UI. Steuert den State, bindet DOM-Events und sorgt fuer das Interface. Das Studio nutzt derzeit die UTF-8-Standards der Kerne und bietet keine Auswahl der Kodierung an. Center-Logos und dekorative Modulformen sind fuer rMQR bewusst deaktiviert.
@@ -95,7 +96,13 @@ Der App-Controller und das UI. Steuert den State, bindet DOM-Events und sorgt fu
        RMqrSegment.byte('é', { encoding: 'iso-8859-1' }),
      ],
    }).generate()
+
+   const gs1 = new RMqrCore(`010123456789012810ABC\x1d21123`, {
+     gs1: true,
+   }).generate()
    ```
+
+   Die GS1-Eingabe verwendet den kanonischen Element-String: Klammern um Application Identifier entfallen; nach Feldern variabler Laenge wird ASCII GS (`\x1d`) eingefuegt, sofern ein weiteres Element folgt. Der Kern kodiert FNC1 und Trennzeichen, pflegt und validiert aber bewusst kein GS1-Application-Identifier-Verzeichnis. GS1 und ECI koennen nicht kombiniert werden.
 
 4. Eine Nachricht mit QR Structured Append aufteilen
    ```js
