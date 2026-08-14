@@ -34,6 +34,7 @@ The QR Code core and renderer.
 * Supports Numeric, Alphanumeric, and Byte mode plus ECI for UTF-8, ISO-8859-1, and Windows-1252. QR Kanji mode is not currently supported.
 * Uses UTF-8 as the default Byte-mode encoding; library consumers can select another supported encoding through `QrCore` options.
 * Automatically selects a bit-efficient combination of Numeric, Alphanumeric, and Byte segments for each QR version range.
+* Supports QR Structured Append for splitting one message across 2 to 16 symbols, including the standard sequence and parity header.
 * Automatically selects the best mask pattern.
 * Renders the QR matrix in the chosen visual style.
 
@@ -68,6 +69,25 @@ The app controller and UI. Manages state, binds DOM events, and provides the int
    const data = new QrCore('https://example.com').generate()
    const svg = new QrSvgRenderer(data).render()
    ```
+
+4. Split a message with QR Structured Append
+   ```js
+   import { QrCore, calculateQrStructuredAppendParity } from './libs/QRcore.js'
+
+   const completeMessage = 'ONE MESSAGE ACROSS TWO SYMBOLS'
+   const parts = ['ONE MESSAGE ', 'ACROSS TWO SYMBOLS']
+   const parity = calculateQrStructuredAppendParity(completeMessage)
+
+   const symbols = parts.map((part, index) => new QrCore(part, {
+     structuredAppend: {
+       position: index + 1,
+       total: parts.length,
+       parity,
+     },
+   }).generate())
+   ```
+
+   Calculate the parity from the complete unsplit message, using the same byte encoding as the QR data. Splitting the message itself remains application-specific.
 
 ## File Structure
 

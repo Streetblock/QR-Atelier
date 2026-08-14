@@ -99,6 +99,7 @@ const ALIGNMENT_PATTERN_POSITIONS = {
 const MODE_INDICATORS = {
   numeric: 0x1,
   alphanumeric: 0x2,
+  structuredAppend: 0x3,
   byte: 0x4,
   eci: 0x7,
 }
@@ -156,6 +157,17 @@ export const QrSegment = Object.freeze({
   },
 })
 
+/**
+ * Calculates the shared parity byte for all symbols in a structured-append set.
+ * Pass the complete, unsplit message using the same byte encoding as the QR data.
+ */
+export function calculateQrStructuredAppendParity(data, options = {}) {
+  const bytes = typeof data === 'string'
+    ? encodeText(data, options.encoding)
+    : normalizeParityBytes(data)
+  return bytes.reduce((parity, value) => parity ^ value, 0)
+}
+
 // --- Die exportierte Hauptklasse ---
 export class QrCore {
   constructor(data, options = {}) {
@@ -172,6 +184,7 @@ export class QrCore {
       mask: -1,
       mode: 'auto',
       encoding: DEFAULT_ENCODING,
+      structuredAppend: null,
       ...options,
     }
   }
@@ -189,9 +202,12 @@ export class QrCore {
       throw new Error('minVersion must be less than or equal to maxVersion.')
     }
 
+    const structuredAppend = normalizeStructuredAppend(this.options.structuredAppend)
+    const options = { ...this.options, structuredAppend }
+
     const { version, segments } = this.#chooseVersion(
       this.data,
-      this.options,
+      options,
       errorCorrectionLevel,
       minVersion,
       maxVersion,
@@ -203,6 +219,7 @@ export class QrCore {
       version,
       size: modules.length,
       errorCorrectionLevel,
+      structuredAppend,
       modules,
     }
   }
@@ -364,17 +381,17 @@ function createCodewords(segments, version, ecl) {
 
 function createSegmentCandidates(data, options = {}, version = 1) {
   if (Array.isArray(options.segments) && options.segments.length > 0) {
-    return [withEciSegments(normalizeSegments(options.segments), options)]
+    return [withStructuredAppend(withEciSegments(normalizeSegments(options.segments), options), options)]
   }
 
   const mode = normalizeMode(options.mode)
   const encoding = normalizeEncoding(options.encoding)
 
   if (mode !== 'auto') {
-    return [withEciSegments([createSegment(mode, data, { encoding })], options)]
+    return [withStructuredAppend(withEciSegments([createSegment(mode, data, { encoding })], options), options)]
   }
 
-  return [withEciSegments(createOptimalSegments(data, encoding, version), options)]
+  return [withStructuredAppend(withEciSegments(createOptimalSegments(data, encoding, version), options), options)]
 }
 
 function createOptimalSegments(data, encoding, version) {
@@ -526,6 +543,12 @@ function createByteArraySegment(bytes) {
 function appendSegments(bitBuffer, segments, version) {
   for (const segment of segments) {
     appendBits(bitBuffer, MODE_INDICATORS[segment.mode], 4)
+    if (segment.mode === 'structuredAppend') {
+      appendBits(bitBuffer, segment.position - 1, 4)
+      appendBits(bitBuffer, segment.total - 1, 4)
+      appendBits(bitBuffer, segment.parity, 8)
+      continue
+    }
     if (segment.mode === 'eci') {
       appendEciAssignmentNumber(bitBuffer, segment.assignmentNumber)
       continue
@@ -545,6 +568,9 @@ function appendSegments(bitBuffer, segments, version) {
 
 function getSegmentsBitLength(segments, version) {
   return segments.reduce((sum, segment) => {
+    if (segment.mode === 'structuredAppend') {
+      return sum + 20
+    }
     if (segment.mode === 'eci') {
       return sum + 4 + getEciAssignmentNumberBitLength(segment.assignmentNumber)
     }
@@ -630,6 +656,36 @@ function withEciSegments(segments, options = {}) {
   return result
 }
 
+function withStructuredAppend(segments, options = {}) {
+  if (!options.structuredAppend) {
+    return segments
+  }
+  return [{ mode: 'structuredAppend', ...options.structuredAppend }, ...segments]
+}
+
+function normalizeStructuredAppend(value) {
+  if (value === undefined || value === null || value === false) {
+    return null
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('QR structuredAppend must be an object.')
+  }
+
+  const position = Number(value.position)
+  const total = Number(value.total)
+  const parity = Number(value.parity)
+  if (!Number.isInteger(total) || total < 2 || total > 16) {
+    throw new Error('QR structuredAppend total must be an integer between 2 and 16.')
+  }
+  if (!Number.isInteger(position) || position < 1 || position > total) {
+    throw new Error('QR structuredAppend position must be an integer between 1 and total.')
+  }
+  if (!Number.isInteger(parity) || parity < 0 || parity > 255) {
+    throw new Error('QR structuredAppend parity must be an integer between 0 and 255.')
+  }
+  return { position, total, parity }
+}
+
 function createEciSegment(encoding) {
   const normalized = normalizeEncoding(encoding)
   return {
@@ -698,6 +754,18 @@ function encodeText(text, encoding = DEFAULT_ENCODING) {
     }
   }
   return bytes
+}
+
+function normalizeParityBytes(bytes) {
+  if (!bytes || typeof bytes[Symbol.iterator] !== 'function') {
+    throw new Error('QR structured-append parity input must be a string or iterable of bytes.')
+  }
+  return Array.from(bytes, (value) => {
+    if (!Number.isInteger(value) || value < 0 || value > 255) {
+      throw new Error(`Invalid byte value for QR structured-append parity: ${value}`)
+    }
+    return value
+  })
 }
 
 function normalizeMode(mode, allowAuto = true) {
