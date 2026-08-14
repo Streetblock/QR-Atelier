@@ -188,7 +188,7 @@ test('selects the smallest reviewed data side and validates forced sizes', () =>
   assert.throws(() => selectLegacyDataSide(50, { ecc: 0, symbolSize: 9 }), /provides 49/)
   assert.throws(() => selectLegacyDataSide(49, { ecc: 50, symbolSize: 9 }), /does not support/)
   assert.throws(() => selectLegacyDataSide(1, { ecc: 80, symbolSize: 11 }), /does not support/)
-  assert.throws(() => selectLegacyDataSide(1, { ecc: 0, symbolSize: 33 }), /pending verification/)
+  assert.equal(selectLegacyDataSide(1, { ecc: 0, symbolSize: 33 }), 31)
   assert.throws(() => selectLegacyDataSide(1, { ecc: 200 }), /must be 0, 50, 80, 100, or 140/)
 })
 
@@ -204,7 +204,7 @@ test('checks every reviewed automatic-size boundary', () => {
       } else {
         assert.throws(
           () => selectLegacyDataSide(dataSide * dataSide + 1, { ecc }),
-          /pending verification/,
+          /exceeds the maximum 2209-module placement/,
         )
       }
     })
@@ -387,10 +387,22 @@ const PLACEMENT_DIGESTS = {
   25: '1495d688a00bfc92f7683f59dc8d70525caf221aaab145f4b7ad05c5b4240df7',
   27: 'd05d342e8cdb2c2610ff281d07cac051e75e2c9cb0b1555ac7378f4f4d12c33f',
   29: '3cbe0412e66ae1ea1d95c3e2a890676cf0b1dfd38043dedab18d6aa9ad96d77d',
+  31: 'b7fe7e7026bf59725e63e894553385b1cf8d0327107efe908b1670a42b42ce01',
+  33: 'c9fdee30c76037956ee5dcb798d8585cb6e11801dfaa638d981003a0b1719c2c',
+  35: '5628fac0d902d902cd08a6c0619113fb0896209d368ff674ae009c2c220f92a8',
+  37: '7a88f168d9019c6d70f8a5d325305987bfcafd9378239e2737267d3a61029015',
+  39: '7376079de27d1f27cdf340e5bab18ed6643f2026dc5baa6c4badf720afd35192',
+  41: 'c53a0e6b17f8ea3a70a50ae221d642bd5d08b2f3f8c151506674e4d0cb6f2d95',
+  43: 'f2328d5e24c57191aa6ed40f4e3cf93f7a3d5e924a19e71fd47115737cb30651',
+  45: '361f2d52f29375bd895e84ae8384a9f692199328fca12a92be2cc10fd7a18a95',
+  47: '460878e787e0832137195b6a61a6b0980916a1ea9b866321a945452cb77f7204',
 }
 
-test('preserves every reviewed H.1-H.12 placement as a complete permutation', () => {
-  assert.deepEqual(LEGACY_PLACEMENT_DATA_SIDES, [7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29])
+test('preserves every reviewed H.1-H.21 placement as a complete permutation', () => {
+  assert.deepEqual(
+    LEGACY_PLACEMENT_DATA_SIDES,
+    [7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47],
+  )
 
   for (const dataSide of LEGACY_PLACEMENT_DATA_SIDES) {
     const placement = getLegacyPlacement(dataSide)
@@ -414,7 +426,8 @@ test('repairs the duplicated H.4 source position without moving its valid 52', (
 
 test('places reviewed data sizes and rejects unsupported or malformed grids', () => {
   assert.equal(placeLegacyBits('1' + '0'.repeat(48), 7).flat().filter(Boolean).length, 1)
-  assert.throws(() => placeLegacyBits('0'.repeat(31 * 31), 31), /currently supports/)
+  assert.equal(placeLegacyBits('1' + '0'.repeat(47 * 47 - 1), 47).flat().filter(Boolean).length, 1)
+  assert.throws(() => placeLegacyBits('0'.repeat(49 * 49), 49), /currently supports/)
   assert.throws(() => placeLegacyBits('0'.repeat(48), 7), /requires exactly 49 bits/)
 })
 
