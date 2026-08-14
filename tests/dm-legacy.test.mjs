@@ -264,7 +264,7 @@ test('encodes ECC 080 through all input and eleven flush cycles', () => {
   assert.throws(() => encodeLegacyEcc080('10x'), /binary string/)
 })
 
-test('matches a Zebra 300 dpi ECC 080 hardware symbol module for module', () => {
+test('matches an independent 300 dpi ECC 080 symbol module for module', () => {
   const result = generateLegacyDataMatrix('A', { ecc: 80, format: 6, symbolSize: 13 })
   assert.equal(result.formatId, 6)
   assert.equal(result.dataSide, 11)
