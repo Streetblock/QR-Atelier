@@ -11,6 +11,7 @@ On `main`, the studio focuses on QR Code. Additional 2D barcode families live in
 * `feat/datamatrix`
 * `feat/micro-qr-core`
 * `feat/maxi-code`
+* `feat/rmqr-core`
 
 Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
 
@@ -38,8 +39,15 @@ The QR Code core and renderer.
 * Automatically selects the best mask pattern.
 * Renders the QR matrix in the chosen visual style.
 
-### 2. `app.js` and `styles.css`
-The app controller and UI. Manages state, binds DOM events, and provides the interface. The studio currently uses the core's UTF-8 default and does not expose an encoding selector. When a center logo is present, the app requests error correction level H; this is app behavior, not an automatic rule inside `QrCore`.
+### 2. `RMQRcore.js`
+The separate ISO/IEC 23941 rectangular Micro QR core.
+* Supports all 32 standard symbol sizes from R7x43 through R17x139 and error correction levels M and H.
+* Encodes Numeric, Alphanumeric, and UTF-8 Byte segments with automatic segmentation and deterministic symbol selection.
+* Uses the standard fixed rMQR data mask and a two-module quiet zone in the renderer.
+* Kanji, ECI, GS1/FNC1, and Structured Append are outside this first milestone.
+
+### 3. `app.js` and `styles.css`
+The app controller and UI. Manages state, binds DOM events, and provides the interface. The studio currently uses the cores' UTF-8 defaults and does not expose an encoding selector. Center logos and decorative module shapes are deliberately unavailable for rMQR.
 
 ## Installation & Usage
 
@@ -67,6 +75,17 @@ The app controller and UI. Manages state, binds DOM events, and provides the int
    import { QrSvgRenderer } from './libs/QRsvg.js'
 
    const data = new QrCore('https://example.com').generate()
+   const svg = new QrSvgRenderer(data).render()
+   ```
+
+   For rMQR, use the dedicated core with the same renderer:
+   ```js
+   import { RMqrCore } from './libs/RMQRcore.js'
+   import { QrSvgRenderer } from './libs/QRsvg.js'
+
+   const data = new RMqrCore('RMQR REFERENCE', {
+     errorCorrectionLevel: 'H',
+   }).generate()
    const svg = new QrSvgRenderer(data).render()
    ```
 
@@ -99,6 +118,7 @@ QR-Atelier/
 |-- app.js
 `-- libs/
     |-- QRcore.js
+    |-- RMQRcore.js
     `-- QRsvg.js
 ```
 

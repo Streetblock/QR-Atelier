@@ -1,4 +1,5 @@
 import { QrCore } from './libs/QRcore.js'
+import { RMqrCore } from './libs/RMQRcore.js'
 import { QrSvgRenderer } from './libs/QRsvg.js'
 
 class QRPlaygroundApp {
@@ -193,7 +194,7 @@ class QRPlaygroundApp {
       const size = this.getDownloadSize()
       const renderer = this.#createRenderer(size)
       const svg = renderer.render()
-      const blob = await this.#svgToPngBlob(svg, size)
+      const blob = await this.#svgToPngBlob(svg, renderer.getOutputDimensions())
       this.#triggerBlobDownload(blob, this.#buildDownloadFilename('png', size))
     } catch (error) {
       console.error('PNG Download fehlgeschlagen:', error)
@@ -205,13 +206,16 @@ class QRPlaygroundApp {
 
   #createRenderer(size) {
     const payload = this.#buildPayload()
-    const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
-    const qr = new QrCore(payload, { errorCorrectionLevel: ecl }).generate()
+    const isRmqr = this.state.options.format === 'rmqr'
+    const ecl = isRmqr ? (this.state.options.logo ? 'H' : 'M') : (this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel)
+    const qr = isRmqr
+      ? new RMqrCore(payload, { errorCorrectionLevel: ecl }).generate()
+      : new QrCore(payload, { errorCorrectionLevel: ecl }).generate()
     return new QrSvgRenderer(qr, { size, ...this.state.options })
   }
 
   #syncFormatUi() {
-    if (!['qr'].includes(this.state.options.format)) {
+    if (!['qr', 'rmqr'].includes(this.state.options.format)) {
       this.state.options.format = 'qr'
     }
     if (!['text', 'wifi'].includes(this.state.options.contentMode)) {
@@ -221,16 +225,20 @@ class QRPlaygroundApp {
     if (this.ui.contentMode) this.ui.contentMode.value = this.state.options.contentMode
 
     const isWifi = this.state.options.contentMode === 'wifi'
+    const isRmqr = this.state.options.format === 'rmqr'
 
-    if (this.ui.dotShape) this.ui.dotShape.disabled = false
-    if (this.ui.cornerShape) this.ui.cornerShape.disabled = false
-    if (this.ui.logoUpload) this.ui.logoUpload.disabled = false
-    if (this.ui.clearLogoBtn) this.ui.clearLogoBtn.disabled = false
+    if (this.ui.dotShape) this.ui.dotShape.disabled = isRmqr
+    if (this.ui.cornerShape) this.ui.cornerShape.disabled = isRmqr
+    if (this.ui.logoUpload) this.ui.logoUpload.disabled = isRmqr
+    if (this.ui.clearLogoBtn) this.ui.clearLogoBtn.disabled = isRmqr
     if (this.ui.wifiPassword) this.ui.wifiPassword.disabled = isWifi && this.state.options.wifiAuth === 'nopass'
 
-    if (this.ui.dotShapeField) this.ui.dotShapeField.classList.remove('hidden')
-    if (this.ui.cornerShapeField) this.ui.cornerShapeField.classList.remove('hidden')
-    if (this.ui.logoUploadField) this.ui.logoUploadField.classList.remove('hidden')
+    for (const field of [this.ui.dotShapeField, this.ui.cornerShapeField, this.ui.logoUploadField]) {
+      if (!field) continue
+      field.hidden = isRmqr
+      field.classList.toggle('hidden', isRmqr)
+      field.style.display = isRmqr ? 'none' : ''
+    }
     if (this.ui.wifiSection) {
       this.ui.wifiSection.hidden = !isWifi
       this.ui.wifiSection.classList.toggle('hidden', !isWifi)
@@ -260,6 +268,7 @@ class QRPlaygroundApp {
   }
 
   #filePrefix() {
+    if (this.state.options.format === 'rmqr') return this.state.options.contentMode === 'wifi' ? 'wifi-rmqr' : 'rmqr-code'
     return this.state.options.contentMode === 'wifi' ? 'wifi-qr' : 'qr-code'
   }
 
@@ -339,17 +348,17 @@ class QRPlaygroundApp {
     URL.revokeObjectURL(url)
   }
 
-  #svgToPngBlob(svgString, size) {
+  #svgToPngBlob(svgString, dimensions) {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' }))
       const image = new Image()
 
       image.onload = () => {
         const canvas = document.createElement('canvas')
-        canvas.width = size
-        canvas.height = size
+        canvas.width = dimensions.width
+        canvas.height = dimensions.height
         const context = canvas.getContext('2d')
-        context.drawImage(image, 0, 0, size, size)
+        context.drawImage(image, 0, 0, dimensions.width, dimensions.height)
 
         canvas.toBlob((blob) => {
           URL.revokeObjectURL(url)

@@ -34,25 +34,30 @@ export class QrSvgRenderer {
    */
   render() {
     const modules = this.qrCode.modules
-    const count = this.qrCode.size
-    const viewBoxSize = count + this.style.margin * 2
+    const height = this.qrCode.height ?? modules.length
+    const width = this.qrCode.width ?? modules[0].length
+    const isRectangular = this.qrCode.symbology === 'rMQR'
+    const viewBoxWidth = width + this.style.margin * 2
+    const viewBoxHeight = height + this.style.margin * 2
+    const output = this.getOutputDimensions()
     
     // Generiere eine zufällige ID für den Gradienten, um Konflikte 
     // bei mehreren QR-Codes auf derselben Seite zu vermeiden.
     const gradientId = `qr-gradient-${Math.random().toString(36).slice(2, 10)}`
     
-    const finderAreas = getFinderAreas(count)
-    const logoArea = getLogoArea(count, this.style.logo, this.style.logoScale)
+    const finderAreas = isRectangular ? [] : getFinderAreas(width)
+    const logoArea = isRectangular ? null : getLogoArea(width, this.style.logo, this.style.logoScale)
+    const dotStyle = isRectangular ? 'square' : this.style.dotStyle
 
     // 1. Rendere alle Datenpunkte (Dots)
     let bodyMarkup = ''
-    for (let y = 0; y < count; y += 1) {
-      for (let x = 0; x < count; x += 1) {
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
         // Überspringe leere Module, Finder-Muster und die Logo-Zone
         if (!modules[y][x] || isFinderCell(x, y, finderAreas) || isInsideArea(x, y, logoArea)) {
           continue
         }
-        bodyMarkup += renderDot(x + this.style.margin, y + this.style.margin, modules, this.style.dotStyle, this.style.margin)
+        bodyMarkup += renderDot(x + this.style.margin, y + this.style.margin, modules, dotStyle, this.style.margin)
       }
     }
 
@@ -76,19 +81,30 @@ export class QrSvgRenderer {
 
     // 4. Füge alles in einem SVG-Tag zusammen
     return [
-      `<svg xmlns="http://www.w3.org/2000/svg" width="${this.style.size}" height="${this.style.size}" viewBox="0 0 ${viewBoxSize} ${viewBoxSize}" fill="none" role="img" aria-label="QR code">`,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${output.width}" height="${output.height}" viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}" fill="none" role="img" aria-label="${isRectangular ? 'rectangular Micro QR code' : 'QR code'}">`,
       `<defs>`,
-      `<linearGradient id="${gradientId}" x1="0" y1="0" x2="${viewBoxSize}" y2="${viewBoxSize}" gradientUnits="userSpaceOnUse">`,
+      `<linearGradient id="${gradientId}" x1="0" y1="0" x2="${viewBoxWidth}" y2="${viewBoxHeight}" gradientUnits="userSpaceOnUse">`,
       `<stop offset="0%" stop-color="${this.style.colorStart}"/>`,
       `<stop offset="100%" stop-color="${this.style.colorEnd}"/>`,
       `</linearGradient>`,
       `</defs>`,
-      `<rect width="${viewBoxSize}" height="${viewBoxSize}" fill="${this.style.background}" rx="2.4"/>`,
+      `<rect width="${viewBoxWidth}" height="${viewBoxHeight}" fill="${this.style.background}" rx="${isRectangular ? 1 : 2.4}"/>`,
       `<g fill="url(#${gradientId})">${bodyMarkup}</g>`,
       `<g fill="url(#${gradientId})">${cornerMarkup}</g>`,
       logoMarkup,
       '</svg>',
     ].join('')
+  }
+
+  getOutputDimensions() {
+    const modules = this.qrCode.modules
+    const height = this.qrCode.height ?? modules.length
+    const width = this.qrCode.width ?? modules[0].length
+    const viewBoxWidth = width + this.style.margin * 2
+    const viewBoxHeight = height + this.style.margin * 2
+    const longestEdge = Number(this.style.size)
+    if (viewBoxWidth >= viewBoxHeight) return { width: longestEdge, height: Math.max(1, Math.round(longestEdge * viewBoxHeight / viewBoxWidth)) }
+    return { width: Math.max(1, Math.round(longestEdge * viewBoxWidth / viewBoxHeight)), height: longestEdge }
   }
 }
 
@@ -100,7 +116,7 @@ function renderDot(x, y, modules, dotStyle, margin) {
   const moduleX = x - margin
   const moduleY = y - margin
   const top = moduleY > 0 && modules[moduleY - 1][moduleX]
-  const right = moduleX < modules.length - 1 && modules[moduleY][moduleX + 1]
+  const right = moduleX < modules[moduleY].length - 1 && modules[moduleY][moduleX + 1]
   const bottom = moduleY < modules.length - 1 && modules[moduleY + 1][moduleX]
   const left = moduleX > 0 && modules[moduleY][moduleX - 1]
 
