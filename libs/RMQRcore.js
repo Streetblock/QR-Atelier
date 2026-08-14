@@ -1,4 +1,4 @@
-// ISO/IEC 23941 rMQR matrix generator (Numeric, Alphanumeric and Byte/ECI modes).
+// ISO/IEC 23941 rMQR matrix generator (Numeric, Alphanumeric, Byte/ECI and GS1 modes).
 
 const HEIGHTS = [7,7,7,7,7,9,9,9,9,9,11,11,11,11,11,11,13,13,13,13,13,13,15,15,15,15,15,17,17,17,17,17]
 const WIDTHS = [43,59,77,99,139,43,59,77,99,139,27,43,59,77,99,139,27,43,59,77,99,139,43,59,77,99,139,43,59,77,99,139]
@@ -19,7 +19,7 @@ const CCI = {
 }
 const ALIGNMENT_CENTERS = { 27: [], 43: [21], 59: [19,39], 77: [25,51], 99: [23,49,75], 139: [27,55,83,111] }
 const ALPHANUMERIC = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
-const MODE_BITS = { numeric: 0b001, alphanumeric: 0b010, byte: 0b011, eci: 0b111 }
+const MODE_BITS = { numeric: 0b001, alphanumeric: 0b010, byte: 0b011, fnc1First: 0b101, eci: 0b111 }
 const DEFAULT_ENCODING = 'utf-8'
 const ECI_ASSIGNMENT_NUMBERS = { 'iso-8859-1': 3, 'windows-1252': 23, 'utf-8': 26 }
 const ECI_ENCODINGS = new Map(Object.entries(ECI_ASSIGNMENT_NUMBERS).map(([encoding, assignment]) => [assignment, encoding]))
@@ -33,6 +33,8 @@ const WINDOWS_1252_EXTENSIONS = new Map([
 ])
 const encoder = new TextEncoder()
 
+export const RMQR_GS1_SEPARATOR = '\x1d'
+
 export const RMQR_VERSIONS = Object.freeze(HEIGHTS.map((height, index) => Object.freeze({
   name: `R${height}x${WIDTHS[index]}`,
   index,
@@ -42,7 +44,7 @@ export const RMQR_VERSIONS = Object.freeze(HEIGHTS.map((height, index) => Object
 
 export const RMqrSegment = Object.freeze({
   numeric(data) { return createSegment('numeric', String(data)) },
-  alphanumeric(data) { return createSegment('alphanumeric', String(data)) },
+  alphanumeric(data, options = {}) { return createSegment('alphanumeric', String(data), options) },
   byte(data, options = {}) { return createSegment('byte', String(data), options) },
   bytes(bytes) { return createByteArraySegment(bytes) },
   eci(assignmentNumber) { return createEciSegment(assignmentNumber) },
@@ -60,6 +62,7 @@ export class RMqrCore {
       fitStrategy: 'balanced',
       encoding: DEFAULT_ENCODING,
       eci: true,
+      gs1: false,
       ...options,
     }
   }
@@ -70,8 +73,10 @@ export class RMqrCore {
     const mode = String(this.options.mode).toLowerCase()
     if (!['auto', 'numeric', 'alphanumeric', 'byte'].includes(mode)) throw new Error(`Unsupported rMQR mode: ${this.options.mode}`)
     const encoding = normalizeEncoding(this.options.encoding)
+    if (typeof this.options.gs1 !== 'boolean') throw new Error('rMQR gs1 must be true or false.')
+    const gs1 = this.options.gs1
     const manualSegments = Array.isArray(this.options.segments) && this.options.segments.length > 0
-      ? normalizeSegments(this.options.segments)
+      ? normalizeSegments(this.options.segments, gs1)
       : null
 
     const candidates = this.options.version === 'auto'
@@ -81,8 +86,10 @@ export class RMqrCore {
 
     const fitting = []
     for (const version of candidates) {
-      const dataSegments = manualSegments ?? optimizeSegments(this.data, version.index, mode, encoding)
-      const segments = withEciSegments(dataSegments, this.options)
+      const dataSegments = manualSegments ?? optimizeSegments(this.data, version.index, mode, encoding, gs1)
+      const encodedSegments = withEciSegments(dataSegments, this.options)
+      if (gs1) validateGs1Segments(encodedSegments)
+      const segments = gs1 ? [{ mode: 'fnc1First' }, ...encodedSegments] : encodedSegments
       const neededBits = segments.reduce((sum, segment) => sum + segmentBitLength(segment, version.index), 0)
       if (neededBits <= DATA_CODEWORDS[ecl][version.index] * 8) fitting.push({ version, segments, neededBits })
     }
@@ -105,6 +112,7 @@ export class RMqrCore {
       errorCorrectionLevel: ecl,
       encoding,
       eci: segments.some((segment) => segment.mode === 'eci'),
+      gs1,
       segments: segments.map(({ mode: segmentMode, data, encoding: segmentEncoding, assignmentNumber }) => ({
         mode: segmentMode,
         ...(data !== undefined ? { data } : {}),
@@ -123,10 +131,10 @@ function fitScore(version, strategy) {
   return version.height * 9 + version.width
 }
 
-function optimizeSegments(data, versionIndex, forcedMode, encoding) {
+function optimizeSegments(data, versionIndex, forcedMode, encoding, gs1) {
   if (forcedMode !== 'auto') {
-    if (!isValidForMode(data, forcedMode)) throw new Error(`Data cannot be encoded in rMQR ${forcedMode} mode.`)
-    return [createSegment(forcedMode, data, { encoding })]
+    if (!isValidForMode(data, forcedMode, gs1)) throw new Error(`Data cannot be encoded in rMQR ${forcedMode} mode.`)
+    return [createSegment(forcedMode, data, { encoding, gs1 })]
   }
   const chars = Array.from(data)
   const best = new Array(chars.length + 1).fill(null)
@@ -136,9 +144,9 @@ function optimizeSegments(data, versionIndex, forcedMode, encoding) {
     for (const mode of ['numeric', 'alphanumeric', 'byte']) {
       for (let end = start + 1; end <= chars.length; end += 1) {
         const part = chars.slice(start, end).join('')
-        if (!isValidForMode(part, mode)) break
+        if (!isValidForMode(part, mode, gs1)) break
         if (best[start].segments.at(-1)?.mode === mode) continue
-        const segment = createSegment(mode, part, { encoding })
+        const segment = createSegment(mode, part, { encoding, gs1 })
         const cost = best[start].cost + segmentBitLength(segment, versionIndex)
         if (!best[end] || cost < best[end].cost) best[end] = { cost, segments: [...best[start].segments, segment] }
       }
@@ -147,15 +155,16 @@ function optimizeSegments(data, versionIndex, forcedMode, encoding) {
   return best[chars.length].segments
 }
 
-function isValidForMode(data, mode) {
+function isValidForMode(data, mode, gs1 = false) {
   if (mode === 'numeric') return /^[0-9]+$/.test(data)
-  if (mode === 'alphanumeric') return Array.from(data).every((char) => ALPHANUMERIC.includes(char))
+  if (mode === 'alphanumeric') return Array.from(data).every((char) => ALPHANUMERIC.includes(char) || (gs1 && char === RMQR_GS1_SEPARATOR))
   return mode === 'byte'
 }
 
 function segmentBitLength(segment, versionIndex) {
+  if (segment.mode === 'fnc1First') return 3
   if (segment.mode === 'eci') return 3 + getEciAssignmentNumberBitLength(segment.assignmentNumber)
-  const count = segment.mode === 'byte' ? segment.bytes.length : Array.from(segment.data).length
+  const count = segment.mode === 'byte' ? segment.bytes.length : Array.from(segment.encodedData).length
   let payloadBits
   if (segment.mode === 'numeric') payloadBits = Math.floor(count / 3) * 10 + [0,4,7][count % 3]
   else if (segment.mode === 'alphanumeric') payloadBits = Math.floor(count / 2) * 11 + (count % 2) * 6
@@ -167,11 +176,12 @@ function makeDataCodewords(segments, versionIndex, capacity) {
   const bits = []
   for (const segment of segments) {
     appendBits(bits, MODE_BITS[segment.mode], 3)
+    if (segment.mode === 'fnc1First') continue
     if (segment.mode === 'eci') {
       appendEciAssignmentNumber(bits, segment.assignmentNumber)
       continue
     }
-    const values = Array.from(segment.data)
+    const values = Array.from(segment.encodedData)
     const count = segment.mode === 'byte' ? segment.bytes.length : values.length
     appendBits(bits, count, CCI[segment.mode][versionIndex])
     if (segment.mode === 'numeric') {
@@ -197,13 +207,14 @@ function makeDataCodewords(segments, versionIndex, capacity) {
   return result
 }
 
-function normalizeSegments(segments) {
+function normalizeSegments(segments, gs1) {
   return segments.map((segment) => {
     if (!segment || typeof segment !== 'object') throw new Error('rMQR segments must be objects.')
     if (String(segment.mode).toLowerCase() === 'eci') return createEciSegment(segment.assignmentNumber)
     return createSegment(segment.mode, segment.data ?? segment.text ?? '', {
       bytes: segment.bytes,
       encoding: segment.encoding,
+      gs1,
     })
   })
 }
@@ -221,14 +232,41 @@ function createSegment(mode, data, options = {}) {
   if (!['numeric', 'alphanumeric', 'byte'].includes(normalizedMode)) throw new Error(`Unsupported rMQR segment mode: ${mode}`)
   const normalizedData = String(data)
   if (!normalizedData && options.bytes === undefined) throw new Error('rMQR segments must not be empty.')
-  if (!isValidForMode(normalizedData, normalizedMode)) throw new Error(`Data cannot be encoded in rMQR ${normalizedMode} mode.`)
+  if (!isValidForMode(normalizedData, normalizedMode, options.gs1)) throw new Error(`Data cannot be encoded in rMQR ${normalizedMode} mode.`)
   const hasRawBytes = options.bytes !== undefined
   return {
     mode: normalizedMode,
     data: normalizedData,
+    encodedData: normalizedMode === 'alphanumeric' && options.gs1 ? encodeGs1Alphanumeric(normalizedData) : normalizedData,
     encoding: normalizedMode === 'byte' && (!hasRawBytes || options.encoding) ? normalizeEncoding(options.encoding) : null,
     bytes: normalizedMode === 'byte' ? normalizeByteSegmentBytes(normalizedData, options) : null,
   }
+}
+
+function encodeGs1Alphanumeric(data) {
+  return Array.from(data, (char) => {
+    if (char === RMQR_GS1_SEPARATOR) return '%'
+    if (char === '%') return '%%'
+    return char
+  }).join('')
+}
+
+function validateGs1Segments(segments) {
+  if (segments.some((segment) => segment.mode === 'eci')) {
+    throw new Error('GS1 rMQR does not support ECI segments.')
+  }
+  for (const segment of segments) {
+    if (segment.mode === 'byte' && segment.bytes.some((value) => !isGs1Character(value))) {
+      throw new Error('GS1 rMQR data must use printable ASCII characters and ASCII 29 group separators.')
+    }
+    if (segment.data && Array.from(segment.data).some((char) => !isGs1Character(char.codePointAt(0)))) {
+      throw new Error('GS1 rMQR data must use printable ASCII characters and ASCII 29 group separators.')
+    }
+  }
+}
+
+function isGs1Character(value) {
+  return value === 0x1d || (value >= 0x20 && value <= 0x7e)
 }
 
 function createByteArraySegment(bytes) {

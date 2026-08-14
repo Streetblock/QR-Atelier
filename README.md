@@ -107,8 +107,9 @@ The separate ISO/IEC 23941 rectangular Micro QR core.
 * Supports all 32 standard symbol sizes from R7x43 through R17x139 and error correction levels M and H.
 * Encodes Numeric, Alphanumeric, and Byte segments with automatic segmentation and deterministic symbol selection.
 * Supports automatic and explicit ECI, including UTF-8, ISO-8859-1, Windows-1252, raw bytes, and assignment numbers from 0 to 999999.
+* Supports GS1 with FNC1 in first position, including GS separators and the GS1 percent escaping required in Alphanumeric mode.
 * Uses the standard fixed rMQR data mask and a two-module quiet zone in the renderer.
-* Kanji and GS1/FNC1 are not currently supported. Structured Append is not part of the rMQR mode set.
+* Kanji is not currently supported. Structured Append is not part of the rMQR mode set.
 
 ### 3. `app.js` and `styles.css`
 The app controller and UI. Manages state, binds DOM events, and provides the interface through the shared format registry. The studio uses the cores' UTF-8 defaults and exposes only the options declared by each format adapter.
@@ -162,7 +163,13 @@ The app controller and UI. Manages state, binds DOM events, and provides the int
        RMqrSegment.byte('é', { encoding: 'iso-8859-1' }),
      ],
    }).generate()
+
+   const gs1 = new RMqrCore(`010123456789012810ABC\x1d21123`, {
+     gs1: true,
+   }).generate()
    ```
+
+   GS1 input uses the canonical element string: omit brackets around application identifiers and insert ASCII GS (`\x1d`) after variable-length fields when another element follows. The core encodes FNC1 and separators but deliberately does not maintain or validate the GS1 application-identifier dictionary. GS1 and ECI cannot be combined.
 
 4. Split a message with QR Structured Append
    ```js
