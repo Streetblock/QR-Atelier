@@ -383,17 +383,17 @@ class QRPlaygroundApp {
     URL.revokeObjectURL(url)
   }
 
-  #svgToPngBlob(svgString, size) {
+  #svgToPngBlob(svgString, dimensions) {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' }))
       const image = new Image()
 
       image.onload = () => {
         const canvas = document.createElement('canvas')
-        canvas.width = size
-        canvas.height = size
+        canvas.width = dimensions.width
+        canvas.height = dimensions.height
         const context = canvas.getContext('2d')
-        context.drawImage(image, 0, 0, size, size)
+        context.drawImage(image, 0, 0, dimensions.width, dimensions.height)
 
         canvas.toBlob((blob) => {
           URL.revokeObjectURL(url)

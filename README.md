@@ -12,6 +12,7 @@ On `main`, the studio focuses on QR Code. Additional 2D barcode families live in
 * `feat/datamatrix-legacy`
 * `feat/micro-qr-core`
 * `feat/maxi-code`
+* `feat/rmqr-core`
 
 The reusable native PDF417 foundation on `feat/pdf417-core` provides all 34
 MicroPDF417 variants plus a standard PDF417 core. See
@@ -101,8 +102,15 @@ The QR Code core and renderer.
 * Automatically selects the best mask pattern.
 * Renders the QR matrix in the chosen visual style.
 
-### 2. `app.js` and `styles.css`
-The app controller and UI. Manages state, binds DOM events, and provides the interface. The studio exposes Model 2 and the limited Model 1 legacy mode, uses the core's UTF-8 default, and does not expose an encoding selector. When a center logo is present, the app requests error correction level H; this is app behavior and not an automatic rule inside `QrCore`.
+### 2. `RMQRcore.js`
+The separate ISO/IEC 23941 rectangular Micro QR core.
+* Supports all 32 standard symbol sizes from R7x43 through R17x139 and error correction levels M and H.
+* Encodes Numeric, Alphanumeric, and UTF-8 Byte segments with automatic segmentation and deterministic symbol selection.
+* Uses the standard fixed rMQR data mask and a two-module quiet zone in the renderer.
+* Kanji, ECI, GS1/FNC1, and Structured Append are outside this first milestone.
+
+### 3. `app.js` and `styles.css`
+The app controller and UI. Manages state, binds DOM events, and provides the interface through the shared format registry. The studio uses the cores' UTF-8 defaults and exposes only the options declared by each format adapter.
 
 ## Installation & Usage
 
@@ -137,6 +145,17 @@ The app controller and UI. Manages state, binds DOM events, and provides the int
 
    Model 1 intentionally rejects ECI segments. Model 2 remains the default for new applications.
 
+   For rMQR, use the dedicated core with the same renderer:
+   ```js
+   import { RMqrCore } from './libs/RMQRcore.js'
+   import { QrSvgRenderer } from './libs/QRsvg.js'
+
+   const data = new RMqrCore('RMQR REFERENCE', {
+     errorCorrectionLevel: 'H',
+   }).generate()
+   const svg = new QrSvgRenderer(data).render()
+   ```
+
 4. Split a message with QR Structured Append
    ```js
    import { QrCore, calculateQrStructuredAppendParity } from './libs/QRcore.js'
@@ -168,6 +187,7 @@ QR-Atelier/
     |-- DMlegacy.js
     |-- DMlegacyPlacement.js
     |-- QRcore.js
+    |-- RMQRcore.js
     `-- QRsvg.js
 ```
 
