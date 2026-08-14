@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import test from 'node:test'
 
-import { RMqrCore, RMqrSegment, RMQR_GS1_SEPARATOR, RMQR_VERSIONS } from '../libs/RMQRcore.js'
+import { RMqrCore, RMqrSegment, RMQR_FNC1_SEPARATOR, RMQR_GS1_SEPARATOR, RMQR_VERSIONS } from '../libs/RMQRcore.js'
 import { QrSvgRenderer } from '../libs/QRsvg.js'
 
 function matrixHash(modules) {
@@ -164,6 +164,55 @@ test('GS1 validates its option, ASCII repertoire and ECI exclusion', () => {
     gs1: true,
     segments: [RMqrSegment.eci(26), RMqrSegment.byte('x')],
   }).generate(), /does not support ECI/)
+})
+
+test('AIM FNC1 second-position matrices match an independent rMQR reference', () => {
+  const numericIndicator = new RMqrCore('12345', {
+    aimApplicationIndicator: '37',
+    version: 'R7x59',
+    errorCorrectionLevel: 'M',
+    mode: 'numeric',
+  }).generate()
+  assert.equal(matrixHash(numericIndicator.modules), '534651256c7c893f036091f0c4e3ab5aec2592bd3a7566efc7c00e202b51e513')
+
+  const alphabeticIndicator = new RMqrCore('12345', {
+    aimApplicationIndicator: 'A',
+    version: 'R7x59',
+    errorCorrectionLevel: 'M',
+    mode: 'numeric',
+  }).generate()
+  assert.equal(matrixHash(alphabeticIndicator.modules), '59445b38f2ca98aac7e5ce80cae9fe3c754acf5fda54bbb2bb7f52c46b75e037')
+})
+
+test('AIM FNC1 second position exposes metadata and follows a leading ECI', () => {
+  const result = new RMqrCore(`é${RMQR_FNC1_SEPARATOR}A%`, {
+    aimApplicationIndicator: 'z',
+    version: 'R13x43',
+    errorCorrectionLevel: 'H',
+    mode: 'byte',
+  }).generate()
+  assert.equal(result.gs1, false)
+  assert.equal(result.fnc1Position, 'second')
+  assert.equal(result.aimApplicationIndicator, 'z')
+  assert.deepEqual(result.segments.map(({ mode, assignmentNumber, applicationIndicator }) => ({
+    mode,
+    assignmentNumber,
+    applicationIndicator,
+  })), [
+    { mode: 'eci', assignmentNumber: 26, applicationIndicator: undefined },
+    { mode: 'fnc1Second', assignmentNumber: undefined, applicationIndicator: 'z' },
+    { mode: 'byte', assignmentNumber: undefined, applicationIndicator: undefined },
+  ])
+})
+
+test('AIM FNC1 validates application indicators and excludes GS1 mode', () => {
+  for (const indicator of ['', '1', '123', 'Ä', 37]) {
+    assert.throws(() => new RMqrCore('x', { aimApplicationIndicator: indicator }).generate(), /one ASCII letter or exactly two digits/)
+  }
+  assert.throws(() => new RMqrCore('x', {
+    gs1: true,
+    aimApplicationIndicator: 'A',
+  }).generate(), /cannot combine GS1.*AIM/)
 })
 
 test('forced modes reject incompatible data and capacity overflow', () => {
