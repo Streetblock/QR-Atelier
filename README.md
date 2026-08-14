@@ -9,6 +9,7 @@ QR-Atelier is a minimalist, performant, and completely dependency-free QR Code s
 On `main`, the studio focuses on QR Code. Additional 2D barcode families live in feature branches:
 * `feat/aztec-code`
 * `feat/datamatrix`
+* `feat/datamatrix-legacy`
 * `feat/micro-qr-core`
 * `feat/maxi-code`
 
@@ -23,6 +24,62 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 * Center Logo Support: Upload your own logo for QR Code. The studio app automatically switches to error correction level H in the background.
 * Local Export: Direct download of the result as a vector (`SVG`) or raster image (`PNG` up to 2048x2048px).
 * URL Parameters: Populate the studio directly via URL parameters: `?url=https://your-link.com`.
+
+## Data Matrix ECC 000-140 (this branch)
+
+This branch contains an experimental, dependency-free encoder core for the
+historic Data Matrix ECC 000, ECC 050, ECC 080, ECC 100, and ECC 140 family.
+It is intentionally separate from the modern ECC 200 and DMRE core. The legacy
+encoder currently exposes a JavaScript API for browser and Node.js use; it is
+not yet integrated into the studio UI.
+
+```js
+import { generateLegacyDataMatrix } from './libs/DMlegacy.js'
+
+const symbol = generateLegacyDataMatrix('A', {
+  ecc: 80,
+  format: 6,
+  symbolSize: 13,
+})
+```
+
+The five values are selectable protection levels of one historic symbol
+family, not five successive Data Matrix generations:
+
+* ECC 000 uses the legacy CRC and placement pipeline without corrective
+  convolutional redundancy.
+* ECC 050, 080, 100, and 140 add increasing amounts of convolutional error
+  correction. Higher levels reduce the payload capacity of a given symbol.
+* Legacy symbols are square, use odd dimensions from 9x9 through 49x49, and
+  support six historic data format IDs.
+* ECC 200 is a different design: it uses Reed-Solomon error correction, even
+  symbol dimensions, and modern square and rectangular formats.
+
+### Standards history and compatibility scope
+
+Data Matrix predates its ISO standardization. In 1996, the AIM Technical
+Symbology Committee added ECC 200 and published the improved symbology as an
+AIM standard. ISO/IEC 16022:2000 and ISO/IEC 16022:2006 subsequently specified
+both ECC 000-140 and ECC 200. The third edition, ISO/IEC 16022:2024, explicitly
+removed the historic ECC 000-140 variant from the standard.
+
+This implementation therefore exists for legacy interoperability, archival
+research, encoder and decoder conformance testing, and faithful reproduction of
+existing symbols. It is not a recommendation to create new deployments with
+legacy ECC; current applications should use ECC 200.
+
+The complete encoder pipeline has been checked module-for-module against a
+physically independent implementation for all five ECC levels using format ID
+6. The tested fixtures matched in all 933 symbol modules. Implementation
+details and source notes are in
+[`docs/formats/datamatrix-legacy.md`](docs/formats/datamatrix-legacy.md) and
+[`docs/formats/datamatrix-legacy-implementation-spec.md`](docs/formats/datamatrix-legacy-implementation-spec.md).
+
+References:
+
+* [AIM history: ECC 200 was added and published in 1996](https://www.aimglobal.org/aim-1990/)
+* [ISO/IEC 16022:2000](https://www.iso.org/standard/29833.html)
+* [ISO/IEC 16022:2024](https://www.iso.org/standard/80926.html)
 
 ## Architecture & Library Scope
 
@@ -78,6 +135,8 @@ QR-Atelier/
 |-- styles.css
 |-- app.js
 `-- libs/
+    |-- DMlegacy.js
+    |-- DMlegacyPlacement.js
     |-- QRcore.js
     `-- QRsvg.js
 ```

@@ -4,7 +4,7 @@ Status: implementation contract for `DmLegacyCore`
 
 Scope: Data Matrix ECC 000, ECC 050, ECC 080, ECC 100, and ECC 140
 
-Non-scope: Data Matrix ECC 200, DMRE, and ZPL command parsing
+Non-scope: Data Matrix ECC 200, DMRE, and application-specific command languages
 
 ## 1. Purpose
 
@@ -34,10 +34,10 @@ as conformant behavior until its test oracle is available.
    translation, OCR, or edition ambiguities.
 3. The US patent family and later patents are corroborating historical sources.
    They are not substitutes for normative algorithms or tables.
-4. Zebra output is the authority for ZPL integration behavior, including `^BX`
-   defaults and invalid-parameter handling. It is not allowed to silently alter
-   the underlying Data Matrix bit stream.
-5. Labelary and other encoders are comparison oracles, never the specification.
+4. Independently captured physical output is a complete-symbol conformance
+   oracle. It is not the source for undocumented internals that output cannot
+   reveal.
+5. Other encoders are comparison oracles, never the specification.
 
 Exact local source files, hashes, page mappings, and research notes live below
 the ignored `dev/` directory. Norm text, figures, and copied tables MUST NOT be
@@ -444,11 +444,12 @@ This single fixture does not establish conformance for ECC 080, 100, or 140.
 ### Gate D — integration
 
 - Existing ECC 200 and DMRE tests remain unchanged and green.
-- ZPL `^BX` maps omitted quality and `q=0` to ECC 000.
-- `q=50`, `80`, `100`, and `140` select only their matching legacy mode.
-- Invalid/too-small forced sizes follow verified Zebra behavior.
-- Printer comparisons record printer model, firmware, resolution, complete ZPL,
-  captured output, and whether the comparison is module- or image-level.
+- The public API defaults to ECC 000 and selects ECC 050, 080, 100, and 140
+  only when explicitly requested.
+- Invalid and too-small forced sizes are rejected consistently.
+- Physical comparisons record the independent implementation, resolution,
+  payload, complete encoder options, captured output, and whether the
+  comparison is module- or image-level.
 
 ## 13. Open verification items
 
@@ -458,7 +459,7 @@ Before declaring all five modes conformant:
    the 3-2-11, 2-1-15, and 4-1-13 machines. The 4-3-3 machine is verified by
    every Annex-Q state cycle and the complete ECC-050 module matrix.
 2. Obtain complete-symbol reference vectors for ECC 000, 080, 100, and 140 from
-   a real Zebra printer or another independently validated encoder.
+   an independent physical implementation or another validated encoder.
 3. Compare remaining Russian wording and diagrams against a complete English
    source where ambiguity remains. Technical Corrigendum 2:2011 was reviewed
    and changes clause 9 only, not legacy placement.

@@ -82,8 +82,8 @@ const ECC_050_OUTPUT_TAPS = Object.freeze([
 // Each output lists indexes in a flattened twelve-cycle window:
 // [current input 1..2, previous cycle 1..2, ... previous cycle 11].
 // The equations were transcribed from the 3-2-11 state-machine diagram. All
-// 24 state positions were then solved at full rank from a Zebra 300 dpi
-// hardware symbol produced by ^BXN,12,80,13,13,6^FDA^FS.
+// 24 state positions were then solved at full rank from an independently
+// captured 300 dpi symbol using ECC 080, format 6, size 13, and payload A.
 const ECC_080_OUTPUT_TAPS = Object.freeze([
   Object.freeze([0, 2, 6, 7, 10, 12, 14, 15, 17, 20, 23]),
   Object.freeze([1, 2, 7, 8, 10, 13, 16, 17, 18, 19, 20]),
