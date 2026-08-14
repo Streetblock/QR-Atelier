@@ -31,6 +31,7 @@ The project stays intentionally small and uses one core and one renderer per bar
 ### 1. `QRcore.js` and `QRsvg.js`
 The QR Code core and renderer.
 * Generates QR matrices with Reed-Solomon error correction.
+* Supports QR Code Model 2 versions 1-40 by default and legacy QR Code Model 1 versions 1-2 through the `model: 1` option.
 * Supports Numeric, Alphanumeric, and Byte mode plus ECI for UTF-8, ISO-8859-1, and Windows-1252. QR Kanji mode is not currently supported.
 * Uses UTF-8 as the default Byte-mode encoding; library consumers can select another supported encoding through `QrCore` options.
 * Automatically selects a bit-efficient combination of Numeric, Alphanumeric, and Byte segments for each QR version range.
@@ -39,7 +40,7 @@ The QR Code core and renderer.
 * Renders the QR matrix in the chosen visual style.
 
 ### 2. `app.js` and `styles.css`
-The app controller and UI. Manages state, binds DOM events, and provides the interface. The studio currently uses the core's UTF-8 default and does not expose an encoding selector. When a center logo is present, the app requests error correction level H; this is app behavior, not an automatic rule inside `QrCore`.
+The app controller and UI. Manages state, binds DOM events, and provides the interface. The studio exposes Model 2 and the limited Model 1 legacy mode, uses the core's UTF-8 default, and does not expose an encoding selector. When a center logo is present, the app requests error correction level H; this is app behavior and not an automatic rule inside `QrCore`.
 
 ## Installation & Usage
 
@@ -68,7 +69,11 @@ The app controller and UI. Manages state, binds DOM events, and provides the int
 
    const data = new QrCore('https://example.com').generate()
    const svg = new QrSvgRenderer(data).render()
+
+   const legacyData = new QrCore('LEGACY', { model: 1, maxVersion: 2 }).generate()
    ```
+
+   Model 1 intentionally rejects ECI segments. Model 2 remains the default for new applications.
 
 4. Split a message with QR Structured Append
    ```js

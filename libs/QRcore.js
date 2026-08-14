@@ -53,6 +53,11 @@ const RS_BLOCKS = {
   40: { L: [[19, 148, 118], [6, 149, 119]], M: [[18, 75, 47], [31, 76, 48]], Q: [[34, 54, 24], [34, 55, 25]], H: [[20, 45, 15], [61, 46, 16]] },
 }
 
+const MODEL_1_RS_BLOCKS = {
+  1: { L: [[1, 26, 19]], M: [[1, 26, 16]], Q: [[1, 26, 13]], H: [[1, 26, 9]] },
+  2: { L: [[1, 46, 36]], M: [[1, 46, 30]], Q: [[1, 46, 24]], H: [[1, 46, 16]] },
+}
+
 const ALIGNMENT_PATTERN_POSITIONS = {
   1: [],
   2: [6, 18],
@@ -177,8 +182,10 @@ export class QrCore {
     }
 
     this.data = String(data ?? '')
+    this.hasExplicitMaxVersion = Object.hasOwn(options, 'maxVersion')
     this.options = {
       errorCorrectionLevel: 'Q',
+      model: 2,
       minVersion: 1,
       maxVersion: 40,
       mask: -1,
@@ -195,8 +202,10 @@ export class QrCore {
    */
   generate() {
     const errorCorrectionLevel = this.#normalizeErrorCorrectionLevel(this.options.errorCorrectionLevel)
-    const minVersion = this.#clampVersion(this.options.minVersion)
-    const maxVersion = this.#clampVersion(this.options.maxVersion)
+    const model = this.#normalizeModel(this.options.model)
+    const minVersion = this.#clampVersion(this.options.minVersion, model)
+    const configuredMaxVersion = model === 1 && !this.hasExplicitMaxVersion ? 2 : this.options.maxVersion
+    const maxVersion = this.#clampVersion(configuredMaxVersion, model)
 
     if (minVersion > maxVersion) {
       throw new Error('minVersion must be less than or equal to maxVersion.')
@@ -211,11 +220,13 @@ export class QrCore {
       errorCorrectionLevel,
       minVersion,
       maxVersion,
+      model,
     )
-    const modules = this.#buildMatrix(segments, version, errorCorrectionLevel, this.options.mask)
+    const modules = this.#buildMatrix(segments, version, errorCorrectionLevel, this.options.mask, model)
 
     return {
       data: this.data,
+      model,
       version,
       size: modules.length,
       errorCorrectionLevel,
@@ -234,22 +245,35 @@ export class QrCore {
     return normalized
   }
 
-  #clampVersion(version) {
+  #normalizeModel(model) {
+    const normalized = String(model ?? 2).toLowerCase().replaceAll(/[-_ ]/g, '')
+    if (normalized === '1' || normalized === 'model1') {
+      return 1
+    }
+    if (normalized === '2' || normalized === 'model2') {
+      return 2
+    }
+    throw new Error(`Unsupported QR model: ${model}`)
+  }
+
+  #clampVersion(version, model) {
     const numeric = Number(version)
-    if (!Number.isInteger(numeric) || numeric < 1 || numeric > 40) {
-      throw new Error('QR versions must be between 1 and 40.')
+    const maximum = model === 1 ? 2 : 40
+    if (!Number.isInteger(numeric) || numeric < 1 || numeric > maximum) {
+      throw new Error(`QR Model ${model} versions must be between 1 and ${maximum}.`)
     }
     return numeric
   }
 
-  #chooseVersion(data, options, ecl, minVersion, maxVersion) {
+  #chooseVersion(data, options, ecl, minVersion, maxVersion, model) {
     const candidatesByVersionGroup = new Map()
     for (let version = minVersion; version <= maxVersion; version += 1) {
-      const dataCapacityBits = getDataCapacityBits(version, ecl)
+      const dataCapacityBits = getDataCapacityBits(version, ecl, model)
       const versionGroup = getVersionGroup(version)
       let segmentCandidates = candidatesByVersionGroup.get(versionGroup)
       if (!segmentCandidates) {
         segmentCandidates = createSegmentCandidates(data, options, version)
+        validateSegmentsForModel(segmentCandidates, model)
         candidatesByVersionGroup.set(versionGroup, segmentCandidates)
       }
       const bestCandidate = segmentCandidates
@@ -263,13 +287,18 @@ export class QrCore {
     throw new Error('Input is too large for the configured QR version range.')
   }
 
-  #buildMatrix(segments, version, ecl, maskPreference) {
+  #buildMatrix(segments, version, ecl, maskPreference, model) {
     const size = version * 4 + 17
     const modules = createSquareArray(size, null)
     const isFunction = createSquareArray(size, false)
 
-    drawFunctionPatterns(modules, isFunction, version)
-    drawCodewords(modules, isFunction, createCodewords(segments, version, ecl))
+    drawFunctionPatterns(modules, isFunction, version, model)
+    const codewords = createCodewords(segments, version, ecl, model)
+    if (model === 1) {
+      drawModel1Codewords(modules, codewords)
+    } else {
+      drawCodewords(modules, isFunction, codewords)
+    }
 
     let selectedMask = maskPreference
     if (selectedMask < 0 || selectedMask > 7) {
@@ -277,8 +306,8 @@ export class QrCore {
       for (let mask = 0; mask < 8; mask += 1) {
         const candidate = cloneMatrix(modules)
         applyMask(candidate, isFunction, mask)
-        drawFormatBits(candidate, isFunction, ecl, mask)
-        if (version >= 7) {
+        drawFormatBits(candidate, isFunction, ecl, mask, model)
+        if (model === 2 && version >= 7) {
           drawVersionBits(candidate, isFunction, version)
         }
         const penalty = getPenaltyScore(candidate)
@@ -290,8 +319,8 @@ export class QrCore {
     }
 
     applyMask(modules, isFunction, selectedMask)
-    drawFormatBits(modules, isFunction, ecl, selectedMask)
-    if (version >= 7) {
+    drawFormatBits(modules, isFunction, ecl, selectedMask, model)
+    if (model === 2 && version >= 7) {
       drawVersionBits(modules, isFunction, version)
     }
 
@@ -303,12 +332,13 @@ export class QrCore {
 // Modul-Scope Helfer-Funktionen (Reine Logik, gekapselt)
 // ==========================================
 
-function getDataCapacityBits(version, ecl) {
-  return getRsBlocks(version, ecl).reduce((sum, block) => sum + block.dataCount, 0) * 8
+function getDataCapacityBits(version, ecl, model) {
+  const codewordBits = getRsBlocks(version, ecl, model).reduce((sum, block) => sum + block.dataCount, 0) * 8
+  return codewordBits - (model === 1 ? 4 : 0)
 }
 
-function getRsBlocks(version, ecl) {
-  const groups = RS_BLOCKS[version]?.[ecl]
+function getRsBlocks(version, ecl, model) {
+  const groups = (model === 1 ? MODEL_1_RS_BLOCKS : RS_BLOCKS)[version]?.[ecl]
   if (!groups) {
     throw new Error(`Missing RS block configuration for version ${version} ${ecl}.`)
   }
@@ -322,12 +352,15 @@ function getRsBlocks(version, ecl) {
   return blocks
 }
 
-function createCodewords(segments, version, ecl) {
-  const blocks = getRsBlocks(version, ecl)
+function createCodewords(segments, version, ecl, model) {
+  const blocks = getRsBlocks(version, ecl, model)
   const bitBuffer = []
+  if (model === 1) {
+    appendBits(bitBuffer, 0, 4)
+  }
   appendSegments(bitBuffer, segments, version)
 
-  const dataCapacityBits = getDataCapacityBits(version, ecl)
+  const dataCapacityBits = blocks.reduce((sum, block) => sum + block.dataCount, 0) * 8
   appendBits(bitBuffer, 0, Math.min(4, dataCapacityBits - bitBuffer.length))
   while (bitBuffer.length % 8 !== 0) {
     bitBuffer.push(0)
@@ -392,6 +425,15 @@ function createSegmentCandidates(data, options = {}, version = 1) {
   }
 
   return [withStructuredAppend(withEciSegments(createOptimalSegments(data, encoding, version), options), options)]
+}
+
+function validateSegmentsForModel(segmentCandidates, model) {
+  if (model !== 1) {
+    return
+  }
+  if (segmentCandidates.some((segments) => segments.some((segment) => segment.mode === 'eci'))) {
+    throw new Error('QR Model 1 does not support ECI segments.')
+  }
 }
 
 function createOptimalSegments(data, encoding, version) {
@@ -806,7 +848,7 @@ function isAlphanumeric(text) {
   return /^[0-9A-Z $%*+\-./:]+$/.test(text)
 }
 
-function drawFunctionPatterns(modules, isFunction, version) {
+function drawFunctionPatterns(modules, isFunction, version, model) {
   const size = modules.length
   drawFinderPattern(modules, isFunction, 3, 3)
   drawFinderPattern(modules, isFunction, size - 4, 3)
@@ -821,18 +863,22 @@ function drawFunctionPatterns(modules, isFunction, version) {
     }
   }
 
-  const alignmentPatternPositions = getAlignmentPatternPositions(version)
-  for (const row of alignmentPatternPositions) {
-    for (const column of alignmentPatternPositions) {
-      const overlapsFinder =
-        (row === 6 && column === 6) ||
-        (row === 6 && column === size - 7) ||
-        (row === size - 7 && column === 6)
+  if (model === 2) {
+    const alignmentPatternPositions = getAlignmentPatternPositions(version)
+    for (const row of alignmentPatternPositions) {
+      for (const column of alignmentPatternPositions) {
+        const overlapsFinder =
+          (row === 6 && column === 6) ||
+          (row === 6 && column === size - 7) ||
+          (row === size - 7 && column === 6)
 
-      if (!overlapsFinder) {
-        drawAlignmentPattern(modules, isFunction, column, row)
+        if (!overlapsFinder) {
+          drawAlignmentPattern(modules, isFunction, column, row)
+        }
       }
     }
+  } else {
+    drawModel1ExtensionPatterns(modules, isFunction, version)
   }
 
   setFunctionModule(modules, isFunction, 8, size - 8, true)
@@ -856,6 +902,32 @@ function drawFunctionPatterns(modules, isFunction, version) {
         setFunctionModule(modules, isFunction, size - 11 + j, i, false)
         setFunctionModule(modules, isFunction, i, size - 11 + j, false)
       }
+    }
+  }
+}
+
+function drawModel1ExtensionPatterns(modules, isFunction, version) {
+  const size = modules.length
+
+  for (let offsetY = 0; offsetY < 2; offsetY += 1) {
+    for (let offsetX = 0; offsetX < 2; offsetX += 1) {
+      setFunctionModule(
+        modules,
+        isFunction,
+        size - 2 + offsetX,
+        size - 2 + offsetY,
+        offsetX === 1 && offsetY === 1,
+      )
+    }
+  }
+
+  if (version === 2) {
+    const start = size - 12
+    for (let offset = 0; offset < 4; offset += 1) {
+      setFunctionModule(modules, isFunction, start + offset, size - 2, false)
+      setFunctionModule(modules, isFunction, start + offset, size - 1, true)
+      setFunctionModule(modules, isFunction, size - 2, start + offset, false)
+      setFunctionModule(modules, isFunction, size - 1, start + offset, true)
     }
   }
 }
@@ -912,6 +984,66 @@ function drawCodewords(modules, isFunction, codewords) {
   }
 }
 
+function drawModel1Codewords(modules, codewords) {
+  const dimension = modules.length
+  const columns = Math.floor(dimension / 4) + 3
+  let codewordIndex = 0
+
+  const writeCodeword = (getPosition) => {
+    if (codewordIndex >= codewords.length) {
+      throw new Error('QR Model 1 placement exceeds the available codewords.')
+    }
+    const codeword = codewords[codewordIndex]
+    for (let bit = 0; bit < 8; bit += 1) {
+      if (codewordIndex === 0 && bit < 4) {
+        continue
+      }
+      const { x, y } = getPosition(bit)
+      modules[y][x] = ((codeword >>> (7 - bit)) & 1) !== 0
+    }
+    codewordIndex += 1
+  }
+
+  for (let column = 0; column < columns; column += 1) {
+    if (column <= 1) {
+      const rows = Math.floor((dimension - 8) / 4)
+      for (let row = 0; row < rows; row += 1) {
+        if (column === 0 && row % 2 === 0 && row > 0 && row < rows - 1) {
+          continue
+        }
+        const x = dimension - 1 - column * 2
+        const y = dimension - 1 - row * 4
+        writeCodeword((bit) => ({ x: x - (bit % 2), y: y - Math.floor(bit / 2) }))
+      }
+    } else if (columns - column <= 4) {
+      const rows = Math.floor((dimension - 16) / 4)
+      for (let row = 0; row < rows; row += 1) {
+        const distanceFromLeft = columns - column
+        const x = (distanceFromLeft - 1) * 2 + 1 + (distanceFromLeft === 4 ? 1 : 0)
+        const y = dimension - 1 - 8 - row * 4
+        writeCodeword((bit) => ({ x: x - (bit % 2), y: y - Math.floor(bit / 2) }))
+      }
+    } else {
+      const rows = Math.floor(dimension / 2)
+      for (let row = 0; row < rows; row += 1) {
+        if (column === 2 && row >= rows - 4) {
+          continue
+        }
+        if (row === 0 && column % 2 === 1 && column + 1 !== columns - 4) {
+          continue
+        }
+        const x = dimension - 1 - 4 - (column - 2) * 4
+        const y = dimension - 1 - row * 2 - (row >= rows - 3 ? 1 : 0)
+        writeCodeword((bit) => ({ x: x - (bit % 4), y: y - Math.floor(bit / 4) }))
+      }
+    }
+  }
+
+  if (codewordIndex !== codewords.length) {
+    throw new Error(`QR Model 1 placement used ${codewordIndex} of ${codewords.length} codewords.`)
+  }
+}
+
 function applyMask(modules, isFunction, mask) {
   for (let y = 0; y < modules.length; y += 1) {
     for (let x = 0; x < modules.length; x += 1) {
@@ -936,14 +1068,14 @@ function getMaskValue(mask, x, y) {
   }
 }
 
-function drawFormatBits(modules, isFunction, ecl, mask) {
+function drawFormatBits(modules, isFunction, ecl, mask, model) {
   const size = modules.length
   const data = (ECC_LEVELS[ecl].formatBits << 3) | mask
   let rem = data
   for (let i = 0; i < 10; i += 1) {
     rem = (rem << 1) ^ (((rem >>> 9) & 1) * 0x537)
   }
-  const bits = ((data << 10) | rem) ^ 0x5412
+  const bits = ((data << 10) | rem) ^ (model === 1 ? 0x2825 : 0x5412)
 
   for (let i = 0; i <= 5; i += 1) {
     setFunctionModule(modules, isFunction, 8, i, getBit(bits, i))
