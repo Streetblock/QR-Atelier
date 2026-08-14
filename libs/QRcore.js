@@ -56,7 +56,23 @@ const RS_BLOCKS = {
 const MODEL_1_RS_BLOCKS = {
   1: { L: [[1, 26, 19]], M: [[1, 26, 16]], Q: [[1, 26, 13]], H: [[1, 26, 9]] },
   2: { L: [[1, 46, 36]], M: [[1, 46, 30]], Q: [[1, 46, 24]], H: [[1, 46, 16]] },
+  3: { L: [[1, 72, 57]], M: [[1, 72, 44]], Q: [[1, 72, 36]], H: [[1, 72, 24]] },
+  4: { L: [[1, 100, 80]], M: [[1, 100, 60]], Q: [[1, 100, 50]], H: [[1, 100, 34]] },
+  5: { L: [[1, 134, 108]], M: [[1, 134, 82]], Q: [[1, 134, 68]], H: [[2, 67, 23]] },
+  6: { L: [[1, 170, 136]], M: [[2, 85, 53]], Q: [[2, 85, 43]], H: [[2, 85, 29]] },
+  7: { L: [[1, 212, 170]], M: [[2, 106, 66]], Q: [[2, 106, 54]], H: [[3, 70, 24]] },
+  8: { L: [[2, 128, 104]], M: [[2, 128, 80]], Q: [[2, 128, 64]], H: [[3, 85, 29]] },
+  9: { L: [[2, 153, 123]], M: [[2, 153, 93]], Q: [[3, 102, 52]], H: [[3, 102, 34]] },
+  10: { L: [[2, 179, 145]], M: [[2, 179, 111]], Q: [[3, 119, 61]], H: [[4, 89, 31]] },
+  11: { L: [[2, 208, 168]], M: [[4, 104, 64]], Q: [[4, 104, 52]], H: [[5, 83, 29]] },
+  12: { L: [[2, 238, 192]], M: [[4, 119, 73]], Q: [[4, 119, 61]], H: [[5, 95, 33]] },
+  13: { L: [[3, 180, 144]], M: [[4, 135, 83]], Q: [[4, 135, 69]], H: [[6, 90, 32]] },
+  14: { L: [[3, 203, 163]], M: [[4, 152, 92]], Q: [[5, 122, 62]], H: [[6, 101, 35]] },
 }
+
+// Includes the unprotected remainder codewords used by some EC levels.
+// Versions 13 and 14 contain 16 and 8 remainder modules after the protected blocks.
+const MODEL_1_PLACEMENT_CODEWORDS = [0, 26, 46, 72, 100, 134, 170, 212, 256, 306, 358, 416, 476, 542, 610]
 
 const ALIGNMENT_PATTERN_POSITIONS = {
   1: [],
@@ -204,7 +220,7 @@ export class QrCore {
     const errorCorrectionLevel = this.#normalizeErrorCorrectionLevel(this.options.errorCorrectionLevel)
     const model = this.#normalizeModel(this.options.model)
     const minVersion = this.#clampVersion(this.options.minVersion, model)
-    const configuredMaxVersion = model === 1 && !this.hasExplicitMaxVersion ? 2 : this.options.maxVersion
+    const configuredMaxVersion = model === 1 && !this.hasExplicitMaxVersion ? 14 : this.options.maxVersion
     const maxVersion = this.#clampVersion(configuredMaxVersion, model)
 
     if (minVersion > maxVersion) {
@@ -258,7 +274,7 @@ export class QrCore {
 
   #clampVersion(version, model) {
     const numeric = Number(version)
-    const maximum = model === 1 ? 2 : 40
+    const maximum = model === 1 ? 14 : 40
     if (!Number.isInteger(numeric) || numeric < 1 || numeric > maximum) {
       throw new Error(`QR Model ${model} versions must be between 1 and ${maximum}.`)
     }
@@ -393,18 +409,31 @@ function createCodewords(segments, version, ecl, model) {
   const maxDataCount = Math.max(...dataBlocks.map((block) => block.length))
   const maxEccCount = Math.max(...eccBlocks.map((block) => block.length))
 
-  for (let i = 0; i < maxDataCount; i += 1) {
-    for (const block of dataBlocks) {
-      if (i < block.length) {
-        codewords.push(block[i])
+  if (model === 1) {
+    codewords.push(...dataBlocks.flat(), ...eccBlocks.flat())
+    const totalCodewords = MODEL_1_PLACEMENT_CODEWORDS[version]
+    if (codewords.length > totalCodewords) {
+      throw new Error(`QR Model 1 block configuration exceeds the capacity of version ${version}.`)
+    }
+    let remainderIndex = 0
+    while (codewords.length < totalCodewords) {
+      codewords.push(PAD_CODEWORDS[remainderIndex % 2])
+      remainderIndex += 1
+    }
+  } else {
+    for (let i = 0; i < maxDataCount; i += 1) {
+      for (const block of dataBlocks) {
+        if (i < block.length) {
+          codewords.push(block[i])
+        }
       }
     }
-  }
 
-  for (let i = 0; i < maxEccCount; i += 1) {
-    for (const block of eccBlocks) {
-      if (i < block.length) {
-        codewords.push(block[i])
+    for (let i = 0; i < maxEccCount; i += 1) {
+      for (const block of eccBlocks) {
+        if (i < block.length) {
+          codewords.push(block[i])
+        }
       }
     }
   }
@@ -921,13 +950,24 @@ function drawModel1ExtensionPatterns(modules, isFunction, version) {
     }
   }
 
-  if (version === 2) {
-    const start = size - 12
+  const rows = Math.floor((size - 8) / 4)
+  for (let row = 2; row < rows - 1; row += 2) {
+    const endY = size - 1 - row * 4
     for (let offset = 0; offset < 4; offset += 1) {
-      setFunctionModule(modules, isFunction, start + offset, size - 2, false)
-      setFunctionModule(modules, isFunction, start + offset, size - 1, true)
-      setFunctionModule(modules, isFunction, size - 2, start + offset, false)
-      setFunctionModule(modules, isFunction, size - 1, start + offset, true)
+      setFunctionModule(modules, isFunction, size - 2, endY - offset, false)
+      setFunctionModule(modules, isFunction, size - 1, endY - offset, true)
+    }
+  }
+
+  const columns = Math.floor(size / 4) + 3
+  for (let column = 3; column < columns - 4; column += 2) {
+    if (column + 1 === columns - 4) {
+      continue
+    }
+    const endX = size - 1 - 4 - (column - 2) * 4
+    for (let offset = 0; offset < 4; offset += 1) {
+      setFunctionModule(modules, isFunction, endX - offset, size - 2, false)
+      setFunctionModule(modules, isFunction, endX - offset, size - 1, true)
     }
   }
 }

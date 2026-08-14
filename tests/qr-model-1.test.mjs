@@ -14,8 +14,8 @@ test('keeps QR Model 2 as the default', () => {
   assert.equal(result.model, 2)
 })
 
-test('generates QR Model 1 versions 1 and 2 at every error-correction level', () => {
-  for (const version of [1, 2]) {
+test('generates every QR Model 1 version at every error-correction level', () => {
+  for (let version = 1; version <= 14; version += 1) {
     for (const errorCorrectionLevel of ['L', 'M', 'Q', 'H']) {
       const result = new QrCore(`V${version}${errorCorrectionLevel}`, {
         model: 1,
@@ -72,10 +72,21 @@ test('uses the additional Model 1 version 2 capacity', () => {
   )
 })
 
+test('automatically reaches QR Model 1 version 14 for large legacy payloads', () => {
+  const result = new QrCore('a'.repeat(480), {
+    model: 1,
+    mode: 'byte',
+    errorCorrectionLevel: 'L',
+  }).generate()
+
+  assert.equal(result.version, 14)
+  assert.equal(result.size, 73)
+})
+
 test('rejects unsupported Model 1 features and versions', () => {
   assert.throws(
-    () => new QrCore('payload', { model: 1, maxVersion: 3 }).generate(),
-    /Model 1 versions must be between 1 and 2/,
+    () => new QrCore('payload', { model: 1, maxVersion: 15 }).generate(),
+    /Model 1 versions must be between 1 and 14/,
   )
   assert.throws(
     () => new QrCore('Ä', { model: 1, mode: 'byte' }).generate(),
@@ -86,4 +97,3 @@ test('rejects unsupported Model 1 features and versions', () => {
     /Unsupported QR model/,
   )
 })
-
