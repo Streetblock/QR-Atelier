@@ -108,6 +108,7 @@ The separate ISO/IEC 23941 rectangular Micro QR core.
 * Encodes Numeric, Alphanumeric, and Byte segments with automatic segmentation and deterministic symbol selection.
 * Supports automatic and explicit ECI, including UTF-8, ISO-8859-1, Windows-1252, raw bytes, and assignment numbers from 0 to 999999.
 * Supports GS1 with FNC1 in first position, including GS separators and the GS1 percent escaping required in Alphanumeric mode.
+* Supports AIM application formats with FNC1 in second position and a one-letter or two-digit application indicator.
 * Uses the standard fixed rMQR data mask and a two-module quiet zone in the renderer.
 * Kanji is not currently supported. Structured Append is not part of the rMQR mode set.
 
@@ -167,9 +168,15 @@ The app controller and UI. Manages state, binds DOM events, and provides the int
    const gs1 = new RMqrCore(`010123456789012810ABC\x1d21123`, {
      gs1: true,
    }).generate()
+
+   const aim = new RMqrCore('AIM APPLICATION DATA', {
+     aimApplicationIndicator: '37',
+   }).generate()
    ```
 
    GS1 input uses the canonical element string: omit brackets around application identifiers and insert ASCII GS (`\x1d`) after variable-length fields when another element follows. The core encodes FNC1 and separators but deliberately does not maintain or validate the GS1 application-identifier dictionary. GS1 and ECI cannot be combined.
+
+   AIM FNC1 second position accepts either one ASCII letter (`A`-`Z` or `a`-`z`) or an exactly two-digit application indicator (`00`-`99`). FNC1 separators use the same `\x1d` input convention and percent escaping as GS1. AIM mode may be combined with ECI; a leading ECI is placed before the FNC1 header as required by the standard.
 
 4. Split a message with QR Structured Append
    ```js
