@@ -1,5 +1,7 @@
 // Dependency-free SVG renderer shared by PDF417 and MicroPDF417 core results.
 
+import { buildBarcodeMatrixPath, validateBarcodeMatrix } from './BarcodeMatrixSvg.js'
+
 export class Pdf417SvgRenderer {
   static DEFAULT_STYLE = Object.freeze({
     moduleSize: 1,
@@ -56,32 +58,7 @@ export const MicroPdf417SvgRenderer = Pdf417SvgRenderer
 export const MicroPDF417SvgRenderer = Pdf417SvgRenderer
 
 export function buildPdf417Path(modules, options = {}) {
-  validateModules(modules)
-  const moduleSize = positiveNumber(options.moduleSize ?? 1, 'moduleSize')
-  const rowHeight = positiveNumber(options.rowHeight ?? 1, 'rowHeight')
-  const margin = nonNegativeNumber(options.margin ?? 0, 'margin')
-  const marginSize = margin * moduleSize
-  const commands = []
-
-  for (let row = 0; row < modules.length; row += 1) {
-    let column = 0
-    while (column < modules[row].length) {
-      if (!modules[row][column]) {
-        column += 1
-        continue
-      }
-      const start = column
-      while (column < modules[row].length && modules[row][column]) column += 1
-      const x = marginSize + start * moduleSize
-      const y = marginSize + row * rowHeight * moduleSize
-      const width = (column - start) * moduleSize
-      const height = rowHeight * moduleSize
-      commands.push(
-        `M${formatNumber(x)} ${formatNumber(y)}h${formatNumber(width)}v${formatNumber(height)}h-${formatNumber(width)}z`,
-      )
-    }
-  }
-  return commands.join('')
+  return buildBarcodeMatrixPath(modules, options)
 }
 
 function normalizeStyle(style, symbology) {
@@ -104,7 +81,7 @@ function validatePdf417Result(result) {
   if (!result || typeof result !== 'object') {
     throw new TypeError('A PDF417 or MicroPDF417 core result is required.')
   }
-  validateModules(result.modules)
+  validateBarcodeMatrix(result.modules)
   if (result.rows !== result.modules.length || result.columns !== result.modules[0].length) {
     throw new Error('PDF417 result dimensions do not match its module matrix.')
   }
@@ -112,18 +89,6 @@ function validatePdf417Result(result) {
     throw new TypeError('A complete PDF417 or MicroPDF417 core result is required.')
   }
   return result.errorCorrectionLevel === undefined ? 'MicroPDF417' : 'PDF417'
-}
-
-function validateModules(modules) {
-  if (!Array.isArray(modules) || modules.length === 0 || !Array.isArray(modules[0]) || modules[0].length === 0) {
-    throw new TypeError('PDF417 modules must be a non-empty boolean matrix.')
-  }
-  const columns = modules[0].length
-  for (const row of modules) {
-    if (!Array.isArray(row) || row.length !== columns || row.some((module) => typeof module !== 'boolean')) {
-      throw new TypeError('PDF417 modules must be a rectangular boolean matrix.')
-    }
-  }
 }
 
 function positiveNumber(value, name) {

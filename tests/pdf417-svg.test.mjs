@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
+import { buildBarcodeMatrixPath, validateBarcodeMatrix } from '../libs/BarcodeMatrixSvg.js'
 import { MicroPdf417Core, Pdf417Core } from '../libs/PDF417core.js'
 import {
   MicroPDF417SvgRenderer,
@@ -43,10 +44,11 @@ test('merges adjacent modules into exact horizontal vector runs', () => {
     [true, true, false, true],
     [false, true, true, false],
   ]
-  assert.equal(
-    buildPdf417Path(modules, { moduleSize: 2, rowHeight: 3, margin: 1 }),
-    'M2 2h4v6h-4zM8 2h2v6h-2zM4 8h4v6h-4z',
-  )
+  const expected = 'M2 2h4v6h-4zM8 2h2v6h-2zM4 8h4v6h-4z'
+  const options = { moduleSize: 2, rowHeight: 3, margin: 1 }
+  assert.equal(buildBarcodeMatrixPath(modules, options), expected)
+  assert.equal(buildPdf417Path(modules, options), expected)
+  assert.deepEqual(validateBarcodeMatrix(modules), { rows: 2, columns: 4 })
 })
 
 test('supports dimensions, row scaling, colors and transparent output', () => {
