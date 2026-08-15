@@ -15,6 +15,17 @@ const VERSION_T = [
   { name: 'T-48', dataWords: 38, checkWords: 22, blockWidth: 12 },
 ]
 
+const VERSION_MAIN = [
+  { name: 'A', width: 18, height: 16, dataWords: 10, checkWords: 10, blocks: 1, dataBlock: 10, checkBlock: 10, gridWidth: 4, gridHeight: 5 },
+  { name: 'B', width: 22, height: 22, dataWords: 19, checkWords: 16, blocks: 1, dataBlock: 19, checkBlock: 16, gridWidth: 5, gridHeight: 7 },
+  { name: 'C', width: 32, height: 28, dataWords: 44, checkWords: 26, blocks: 1, dataBlock: 44, checkBlock: 26, gridWidth: 7, gridHeight: 10 },
+  { name: 'D', width: 42, height: 40, dataWords: 91, checkWords: 44, blocks: 1, dataBlock: 91, checkBlock: 44, gridWidth: 9, gridHeight: 15 },
+  { name: 'E', width: 54, height: 52, dataWords: 182, checkWords: 70, blocks: 1, dataBlock: 182, checkBlock: 70, gridWidth: 12, gridHeight: 21 },
+  { name: 'F', width: 76, height: 70, dataWords: 370, checkWords: 140, blocks: 2, dataBlock: 185, checkBlock: 70, gridWidth: 17, gridHeight: 30 },
+  { name: 'G', width: 98, height: 104, dataWords: 732, checkWords: 280, blocks: 4, dataBlock: 183, checkBlock: 70, gridWidth: 22, gridHeight: 46 },
+  { name: 'H', width: 134, height: 148, dataWords: 1480, checkWords: 560, blocks: 8, dataBlock: 185, checkBlock: 70, gridWidth: 30, gridHeight: 68 },
+]
+
 export class CodeOneCore {
   constructor(data, options = {}) {
     this.data = data
@@ -23,7 +34,15 @@ export class CodeOneCore {
 
   generate() {
     const requested = this.options.version == null ? null : String(this.options.version).toUpperCase()
-    if (requested?.startsWith('T')) return generateVersionT(this.data, requested)
+    if (requested?.startsWith('T')) {
+      rejectUnsupportedControlOptions(this.options, 'T')
+      return generateVersionT(this.data, requested)
+    }
+    if (requested === 'A-H' || VERSION_MAIN.some(version => version.name === requested)) {
+      return generateMainVersion(this.data, requested, this.options)
+    }
+
+    rejectUnsupportedControlOptions(this.options, 'S')
 
     const digits = normalizeDigits(this.data)
     const version = chooseVersion(digits.length, this.options.version)
@@ -177,6 +196,12 @@ function normalizeLatin1(value) {
   return value
 }
 
+function rejectUnsupportedControlOptions(options, family) {
+  if (options.gs1 || options.eci != null || options.structuredAppend != null) {
+    throw new RangeError(`GS1, ECI and Structured Append are not yet available for Code One Version ${family}.`)
+  }
+}
+
 function selectVersionTMode(data) {
   if (/^\d{90}$/.test(data)) return 'decimal'
   if (/^[ A-Z0-9]+$/.test(data)) {
@@ -194,7 +219,7 @@ function encodeVersionTData(data) {
   return encodeAscii(data)
 }
 
-function encodeAscii(data) {
+function encodeAscii(data, gs1 = false) {
   const codewords = []
   for (let i = 0; i < data.length;) {
     if (i + 1 < data.length && /\d/.test(data[i]) && /\d/.test(data[i + 1])) {
@@ -203,7 +228,8 @@ function encodeAscii(data) {
       continue
     }
     const value = data.charCodeAt(i++)
-    if (value > 127) codewords.push(235, value - 127)
+    if (gs1 && value === 29) codewords.push(232)
+    else if (value > 127) codewords.push(235, value - 127)
     else codewords.push(value + 1)
   }
   return codewords
@@ -280,4 +306,307 @@ function placeVersionT(codewords, version) {
   if (sub >= 2) modules[12][half] = true
   if (sub === 3) modules[14][half] = true
   return modules
+}
+
+function generateMainVersion(value, requested, options) {
+  const data = normalizeMainData(value, options)
+  const controls = createControlPrefix(options, data)
+  const selection = chooseMainEncoding(controls.data, requested, options.mode, controls.prefix, controls.gs1)
+  const { version, encoded, mode } = selection
+  const dataCodewords = [...encoded, ...Array(version.dataWords - encoded.length).fill(129)]
+  const checkCodewords = createInterleavedCheckwords(dataCodewords, version)
+  const codewords = [...dataCodewords, ...checkCodewords]
+  const modules = placeMainVersion(codewords, version)
+  return {
+    format: 'CodeOne', family: 'A-H', version: version.name, data: value,
+    width: version.width, height: version.height, modules,
+    dataCodewords, checkCodewords, codewords,
+    encodingMode: mode, gs1: controls.gs1, eci: controls.eci,
+    structuredAppend: controls.structuredAppend, readyForScan: true,
+  }
+}
+
+function normalizeMainData(value, options) {
+  if (options.encoding == null || String(options.encoding).toLowerCase() === 'latin1') return normalizeLatin1(value)
+  if (String(options.encoding).toLowerCase() !== 'utf-8') throw new RangeError('Code One encoding must be latin1 or utf-8.')
+  if (options.eci == null) throw new RangeError('Code One UTF-8 encoding requires an ECI assignment.')
+  if (typeof value !== 'string' || value.length === 0) throw new RangeError('Code One requires non-empty text.')
+  return Array.from(new TextEncoder().encode(value), byte => String.fromCharCode(byte)).join('')
+}
+
+function createControlPrefix(options, data) {
+  const gs1 = Boolean(options.gs1)
+  const eci = options.eci == null ? null : Number(options.eci)
+  const structuredAppend = normalizeStructuredAppend(options.structuredAppend)
+  if (gs1 && structuredAppend) throw new RangeError('Code One cannot combine GS1 and Structured Append.')
+  if (gs1 && eci != null) throw new RangeError('Code One GS1 mode cannot carry ECI.')
+  if (eci != null && (!Number.isInteger(eci) || eci < 0 || eci > 999999)) {
+    throw new RangeError('Code One ECI must be an integer from 0 to 999999.')
+  }
+  if (gs1) return { data, prefix: [232], gs1, eci: null, structuredAppend: null }
+
+  let encodedData = data
+  if (eci != null) encodedData = `\\${String(eci).padStart(6, '0')}${data.replaceAll('\\', '\\\\')}`
+  let prefix = []
+  if (structuredAppend) {
+    const { index, count } = structuredAppend
+    if (count < 16) {
+      prefix = eci != null && index === 1
+        ? [129, 233, (index - 1) * 15 + count - 1, 93]
+        : [(index - 1) * 15 + count - 1, 233]
+    } else {
+      prefix = eci != null && index === 1
+        ? [129, 93, 233, index, count]
+        : [index, count, 233]
+    }
+  } else if (eci != null) {
+    prefix = [129, 93]
+  }
+  return { data: encodedData, prefix, gs1, eci, structuredAppend }
+}
+
+function normalizeStructuredAppend(value) {
+  if (value == null) return null
+  if (typeof value !== 'object') throw new TypeError('Code One structuredAppend must contain index and count.')
+  const { index, count } = value
+  if (!Number.isInteger(count) || count < 2 || count > 128) throw new RangeError('Code One Structured Append count must be from 2 to 128.')
+  if (!Number.isInteger(index) || index < 1 || index > count) throw new RangeError('Code One Structured Append index must be from 1 to count.')
+  return { index, count }
+}
+
+function chooseMainEncoding(data, requested, requestedMode, prefix = [], gs1 = false) {
+  const mode = requestedMode == null ? 'auto' : String(requestedMode).toLowerCase()
+  if (!['auto', 'ascii', 'c40', 'text', 'edi', 'decimal', 'byte'].includes(mode)) {
+    throw new RangeError('Code One mode must be auto, ascii, c40, text, edi, decimal or byte.')
+  }
+  const versions = requested === 'A-H'
+    ? VERSION_MAIN
+    : [VERSION_MAIN.find(version => version.name === requested)]
+  let shortest = Infinity
+  for (const version of versions) {
+    const remainingCapacity = version.dataWords - prefix.length
+    const candidates = remainingCapacity < 1 ? [] : createMainCandidates(data, remainingCapacity, mode, gs1)
+      .map(candidate => ({ ...candidate, codewords: [...prefix, ...candidate.codewords] }))
+    for (const candidate of candidates) shortest = Math.min(shortest, candidate.codewords.length)
+    const fitting = candidates.filter(candidate => candidate.codewords.length <= version.dataWords)
+    if (fitting.length) {
+      fitting.sort((left, right) => left.codewords.length - right.codewords.length)
+      return { version, encoded: fitting[0].codewords, mode: fitting[0].mode }
+    }
+  }
+  const name = requested === 'A-H' ? 'Code One H' : `Code One ${requested}`
+  const capacity = versions.at(-1).dataWords
+  throw new RangeError(`${name} accepts at most ${capacity} data codewords; input requires ${shortest}.`)
+}
+
+function createMainCandidates(data, capacity, mode, gs1) {
+  const encoders = {
+    ascii: () => encodeAscii(data, gs1),
+    c40: () => encodeTripletMode(data, capacity, 'c40'),
+    text: () => encodeTripletMode(data, capacity, 'text'),
+    edi: () => encodeTripletMode(data, capacity, 'edi'),
+    decimal: () => encodeMainDecimal(data, capacity),
+    byte: () => encodeByte(data, capacity),
+  }
+  const names = mode === 'auto' ? ['ascii', 'c40', 'text', 'edi', 'decimal', 'byte'] : [mode]
+  const candidates = []
+  for (const name of names) {
+    try { candidates.push({ mode: name, codewords: encoders[name]() }) } catch (error) {
+      if (mode !== 'auto') throw error
+    }
+  }
+  return candidates
+}
+
+function encodeTripletMode(data, capacity, mode) {
+  const definitions = {
+    c40: { latch: 230, pattern: /^[ A-Z0-9]+$/, value: c40Value },
+    text: { latch: 239, pattern: /^[ a-z0-9]+$/, value: textValue },
+    edi: { latch: 238, pattern: /^[\r*> 0-9A-Z]+$/, value: ediValue },
+  }
+  const definition = definitions[mode]
+  if (!definition.pattern.test(data)) throw new RangeError(`Code One ${mode.toUpperCase()} mode cannot encode this payload without shifts.`)
+  const values = [...data].map(definition.value)
+  const codewords = [definition.latch]
+  let position = 0
+  while (position + 2 < values.length) {
+    const packed = 1600 * values[position] + 40 * values[position + 1] + values[position + 2] + 1
+    codewords.push(packed >> 8, packed & 255)
+    position += 3
+  }
+  const remaining = values.length - position
+  const room = capacity - codewords.length
+  if (remaining === 1 && room === 1) {
+    codewords.push(data.charCodeAt(position) + 1)
+  } else if (remaining === 2 && room === 2) {
+    const packed = 1600 * values[position] + 40 * values[position + 1] + 1
+    codewords.push(packed >> 8, packed & 255)
+  } else {
+    if (codewords.length < capacity) codewords.push(255)
+    codewords.push(...encodeAscii(data.slice(position)))
+  }
+  return codewords
+}
+
+function c40Value(character) {
+  if (character === ' ') return 3
+  if (/\d/.test(character)) return character.charCodeAt(0) - 44
+  return character.charCodeAt(0) - 51
+}
+
+function textValue(character) {
+  if (character === ' ') return 3
+  if (/\d/.test(character)) return character.charCodeAt(0) - 44
+  return character.charCodeAt(0) - 83
+}
+
+function ediValue(character) {
+  if (character === '\r') return 0
+  if (character === '*') return 1
+  if (character === '>') return 2
+  if (character === ' ') return 3
+  if (/\d/.test(character)) return character.charCodeAt(0) - 44
+  return character.charCodeAt(0) - 51
+}
+
+function encodeByte(data, capacity) {
+  const bytes = [...data].map(character => character.charCodeAt(0))
+  const length = bytes.length
+  if (length <= 249) return [231, length + 2 === capacity ? 0 : length, ...bytes]
+  return [231, 249 + Math.floor(length / 250), length % 250, ...bytes]
+}
+
+function encodeMainDecimal(data, capacity) {
+  if (!/^\d+$/.test(data)) throw new RangeError('Code One Decimal mode requires decimal digits.')
+  const codewords = []
+  let bits = '1111'
+  const flush = () => {
+    while (bits.length >= 8) {
+      codewords.push(Number.parseInt(bits.slice(0, 8), 2))
+      bits = bits.slice(8)
+    }
+  }
+  let position = 0
+  while (position + 2 < data.length) {
+    bits += (Number(data.slice(position, position + 3)) + 1).toString(2).padStart(10, '0')
+    flush()
+    position += 3
+  }
+  const remaining = data.length - position
+  if (remaining) {
+    bits += '111111'
+    flush()
+    const bitsLeft = (8 - bits.length) & 7
+    if (bitsLeft >= 4) {
+      bits += (Number(data[position]) + 1).toString(2).padStart(4, '0')
+      position++
+      if (bitsLeft === 6) bits += '01'
+      flush()
+    } else if (bitsLeft) {
+      if (bitsLeft >= 4) bits += '1111'
+      if (bitsLeft === 2 || bitsLeft === 6) bits += '01'
+      flush()
+    }
+    codewords.push(...encodeAscii(data.slice(position)))
+  } else {
+    if (capacity - codewords.length > 1) bits += '111111'
+    flush()
+    const bitsLeft = (8 - bits.length) & 7
+    if (bitsLeft === 4 || bitsLeft === 6) bits += '1111'
+    if (bitsLeft === 2 || bitsLeft === 6) bits += '01'
+    flush()
+  }
+  return codewords
+}
+
+function createInterleavedCheckwords(data, version) {
+  const result = Array(version.checkWords)
+  for (let block = 0; block < version.blocks; block++) {
+    const blockData = Array.from({ length: version.dataBlock }, (_, index) => data[index * version.blocks + block])
+    const blockCheck = reedSolomonInField(blockData, version.checkBlock, 0x12d, 256)
+    for (let index = 0; index < version.checkBlock; index++) result[index * version.blocks + block] = blockCheck[index]
+  }
+  return result
+}
+
+function placeMainVersion(codewords, version) {
+  const modules = Array.from({ length: version.height }, () => Array(version.width).fill(false))
+  const grid = Array.from({ length: version.gridHeight * 2 }, () => Array(version.gridWidth * 4).fill(false))
+  let position = 0
+  for (let row = 0; row < version.gridHeight; row++) {
+    for (let col = 0; col < version.gridWidth; col++) {
+      const value = codewords[position++]
+      for (let bit = 0; bit < 4; bit++) grid[row * 2][col * 4 + bit] = Boolean(value & (128 >> bit))
+      for (let bit = 0; bit < 4; bit++) grid[row * 2 + 1][col * 4 + bit] = Boolean(value & (8 >> bit))
+    }
+  }
+  addMainFinder(modules, grid, version.name)
+  return modules
+}
+
+function addMainFinder(modules, grid, name) {
+  const copy = (startRow, startCol, height, width, rowOffset, colOffset) => {
+    for (let row = startRow; row < startRow + height; row++) {
+      for (let col = startCol; col < startCol + width; col++) {
+        if (grid[row][col]) modules[row + rowOffset][col + colOffset] = true
+      }
+    }
+  }
+  const horizontal = (row, full) => {
+    for (let col = full ? 0 : 1; col < modules[0].length - (full ? 0 : 1); col++) modules[row][col] = true
+  }
+  const central = (startRow, rowCount, fullRows) => {
+    for (let index = 0; index < rowCount; index++) {
+      horizontal(startRow + index * 2, index < fullRows)
+      if (index >= fullRows && index !== rowCount - 1) {
+        modules[startRow + index * 2 + 1][1] = true
+        modules[startRow + index * 2 + 1][modules[0].length - 2] = true
+      }
+    }
+  }
+  const vertical = (topCol, topHeight, bottomCol, bottomHeight) => {
+    for (let row = 0; row < topHeight; row++) modules[row][topCol] = true
+    for (let row = 0; row < bottomHeight; row++) modules[modules.length - row - 1][bottomCol] = true
+  }
+  const spigot = (topRow, bottomRow) => {
+    for (let col = modules[0].length - 1; col > 0; col--) {
+      if (modules[topRow][col - 1]) modules[topRow][col] = true
+      if (modules[bottomRow][col - 1]) modules[bottomRow][col] = true
+    }
+  }
+
+  if (name === 'A') {
+    central(6, 3, 1); vertical(4, 6, 12, 5); modules[5][12] = true; spigot(0, 15)
+    copy(0, 0, 5, 4, 0, 0); copy(0, 4, 5, 12, 0, 2); copy(5, 0, 5, 12, 6, 0); copy(5, 12, 5, 4, 6, 2)
+  } else if (name === 'B') {
+    central(8, 4, 1); vertical(4, 8, 16, 7); modules[7][16] = true; spigot(0, 21)
+    copy(0, 0, 7, 4, 0, 0); copy(0, 4, 7, 16, 0, 2); copy(7, 0, 7, 16, 8, 0); copy(7, 16, 7, 4, 8, 2)
+  } else if (name === 'C') {
+    central(11, 4, 2); vertical(4, 11, 4, 10); vertical(26, 13, 26, 10); spigot(0, 27)
+    copy(0, 0, 10, 4, 0, 0); copy(0, 4, 10, 20, 0, 2); copy(0, 24, 10, 4, 0, 4)
+    copy(10, 0, 10, 4, 8, 0); copy(10, 4, 10, 20, 8, 2); copy(10, 24, 10, 4, 8, 4)
+  } else if (name === 'D') {
+    central(16, 5, 1); vertical(4, 16, 4, 15); vertical(20, 16, 20, 15); vertical(36, 16, 36, 15); spigot(0, 27); spigot(12, 39)
+    copy(0, 0, 15, 4, 0, 0); copy(0, 4, 15, 14, 0, 2); copy(0, 18, 15, 14, 0, 4); copy(0, 32, 15, 4, 0, 6)
+    copy(15, 0, 15, 4, 10, 0); copy(15, 4, 15, 14, 10, 2); copy(15, 18, 15, 14, 10, 4); copy(15, 32, 15, 4, 10, 6)
+  } else if (name === 'E') {
+    central(22, 5, 2); vertical(4, 22, 4, 21); vertical(26, 24, 26, 21); vertical(48, 22, 48, 21); spigot(0, 39); spigot(12, 51)
+    copy(0, 0, 21, 4, 0, 0); copy(0, 4, 21, 20, 0, 2); copy(0, 24, 21, 20, 0, 4); copy(0, 44, 21, 4, 0, 6)
+    copy(21, 0, 21, 4, 10, 0); copy(21, 4, 21, 20, 10, 2); copy(21, 24, 21, 20, 10, 4); copy(21, 44, 21, 4, 10, 6)
+  } else if (name === 'F') {
+    central(31, 5, 3); vertical(4, 31, 4, 30); vertical(26, 35, 26, 30); vertical(48, 31, 48, 30); vertical(70, 35, 70, 30)
+    for (let row = 0; row <= 24; row += 12) spigot(row, row + 45)
+    copy(0, 0, 30, 4, 0, 0); copy(0, 64, 30, 4, 0, 8); copy(30, 0, 30, 4, 10, 0); copy(30, 64, 30, 4, 10, 8)
+    for (let col = 4, offset = 2; col <= 44; col += 20, offset += 2) { copy(0, col, 30, 20, 0, offset); copy(30, col, 30, 20, 10, offset) }
+  } else if (name === 'G') {
+    central(47, 6, 2); vertical(6, 47, 6, 46); vertical(27, 49, 27, 46); vertical(48, 47, 48, 46); vertical(69, 49, 69, 46); vertical(90, 47, 90, 46)
+    for (let row = 0; row <= 36; row += 12) spigot(row, row + 67)
+    copy(0, 0, 46, 6, 0, 0); copy(0, 82, 46, 6, 0, 10); copy(46, 0, 46, 6, 12, 0); copy(46, 82, 46, 6, 12, 10)
+    for (let col = 6, offset = 2; col <= 63; col += 19, offset += 2) { copy(0, col, 46, 19, 0, offset); copy(46, col, 46, 19, 12, offset) }
+  } else {
+    central(69, 6, 3); vertical(6, 69, 6, 68); vertical(26, 73, 26, 68); vertical(46, 69, 46, 68); vertical(66, 73, 66, 68); vertical(86, 69, 86, 68); vertical(106, 73, 106, 68); vertical(126, 69, 126, 68)
+    for (let row = 0; row <= 60; row += 12) spigot(row, row + 87)
+    copy(0, 0, 68, 6, 0, 0); copy(0, 114, 68, 6, 0, 14); copy(68, 0, 68, 6, 12, 0); copy(68, 114, 68, 6, 12, 14)
+    for (let col = 6, offset = 2; col <= 96; col += 18, offset += 2) { copy(0, col, 68, 18, 0, offset); copy(68, col, 68, 18, 12, offset) }
+  }
 }
