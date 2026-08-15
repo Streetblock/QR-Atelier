@@ -1,5 +1,7 @@
 // Dependency-free SVG renderer for a native GS1 Composite 2D component matrix.
 
+import { buildPdf417Path } from './PDF417Svg.js'
+
 export class Gs1CompositeSvgRenderer {
   static DEFAULT_STYLE = Object.freeze({
     moduleSize: 1,
@@ -50,32 +52,7 @@ export class Gs1CompositeSvgRenderer {
 export const GS1CompositeSvgRenderer = Gs1CompositeSvgRenderer
 
 export function buildGs1CompositePath(modules, options = {}) {
-  validateModules(modules)
-  const moduleSize = positiveNumber(options.moduleSize ?? 1, 'moduleSize')
-  const rowHeight = positiveNumber(options.rowHeight ?? 1, 'rowHeight')
-  const margin = nonNegativeNumber(options.margin ?? 0, 'margin')
-  const marginSize = margin * moduleSize
-  const commands = []
-
-  for (let row = 0; row < modules.length; row += 1) {
-    let column = 0
-    while (column < modules[row].length) {
-      if (!modules[row][column]) {
-        column += 1
-        continue
-      }
-      const start = column
-      while (column < modules[row].length && modules[row][column]) column += 1
-      const x = marginSize + start * moduleSize
-      const y = marginSize + row * rowHeight * moduleSize
-      const width = (column - start) * moduleSize
-      const height = rowHeight * moduleSize
-      commands.push(
-        `M${formatNumber(x)} ${formatNumber(y)}h${formatNumber(width)}v${formatNumber(height)}h-${formatNumber(width)}z`,
-      )
-    }
-  }
-  return commands.join('')
+  return buildPdf417Path(modules, options)
 }
 
 function normalizeStyle(style, result) {
