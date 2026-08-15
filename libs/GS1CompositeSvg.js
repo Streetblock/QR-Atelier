@@ -1,6 +1,6 @@
 // Dependency-free SVG renderer for a native GS1 Composite 2D component matrix.
 
-import { buildPdf417Path } from './PDF417Svg.js'
+import { buildBarcodeMatrixPath } from './BarcodeMatrixSvg.js'
 
 export class Gs1CompositeSvgRenderer {
   static DEFAULT_STYLE = Object.freeze({
@@ -52,7 +52,7 @@ export class Gs1CompositeSvgRenderer {
 export const GS1CompositeSvgRenderer = Gs1CompositeSvgRenderer
 
 export function buildGs1CompositePath(modules, options = {}) {
-  return buildPdf417Path(modules, options)
+  return buildBarcodeMatrixPath(modules, options)
 }
 
 function normalizeStyle(style, result) {

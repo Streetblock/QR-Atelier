@@ -82,9 +82,11 @@ modules. CC-A and CC-B default to a row-height ratio of 2; CC-C defaults to 3.
 `rowHeight`, `moduleSize`, `margin`, `width`, `height`, colors, and the accessible
 label can be overridden. Set `background: null` for a transparent component.
 
-`buildGs1CompositePath(modules, options)` is also exported. A future complete
+`buildGs1CompositePath(modules, options)` is also exported as a thin wrapper
+around the symbology-neutral `buildBarcodeMatrixPath` helper. A future complete
 Composite renderer can embed this path at an exact offset above a linear
-component without nesting a second SVG document.
+component without nesting a second SVG document. The Composite renderer does
+not import or instantiate the standalone PDF417 renderer.
 
 ## Shared PDF417 architecture
 
