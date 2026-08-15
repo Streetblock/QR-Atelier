@@ -54,6 +54,38 @@ Bracketed AI syntax with either parentheses or square brackets is accepted.
 An already assembled GS1 element string can instead use ASCII Group Separator
 (`\x1d`) between variable-length fields.
 
+## SVG renderer
+
+`GS1CompositeSvg.js` turns the core result into deterministic, dependency-free
+vector markup:
+
+```js
+import { Gs1CompositeCore } from '../libs/GS1CompositeCore.js'
+import { Gs1CompositeSvgRenderer } from '../libs/GS1CompositeSvg.js'
+
+const component = new Gs1CompositeCore('(21)A12345678', {
+  version: 'b',
+  columns: 3,
+}).generate()
+
+const svg = new Gs1CompositeSvgRenderer(component, {
+  moduleSize: 2,
+  margin: 0,
+  foreground: '#000000',
+  background: '#ffffff',
+}).render()
+```
+
+The renderer merges adjacent dark modules into horizontal SVG path runs and
+uses `shape-rendering="crispEdges"`. It does not round, stylize, or remove
+modules. CC-A and CC-B default to a row-height ratio of 2; CC-C defaults to 3.
+`rowHeight`, `moduleSize`, `margin`, `width`, `height`, colors, and the accessible
+label can be overridden. Set `background: null` for a transparent component.
+
+`buildGs1CompositePath(modules, options)` is also exported. A future complete
+Composite renderer can embed this path at an exact offset above a linear
+component without nesting a second SVG document.
+
 ## Shared PDF417 architecture
 
 `GS1CompositeCore.js` owns only Composite sizing, linkage, and orchestration.
@@ -86,7 +118,8 @@ pass the canonical element string form directly.
 
 ## Linear component boundary
 
-This core deliberately returns the native **2D Composite Component**. A complete
+The core and its SVG renderer deliberately cover the native **2D Composite
+Component**. A complete
 printed GS1 Composite symbol also needs a linked linear component (EAN/UPC,
 GS1-128, or a GS1 DataBar family), its linkage flag, separator pattern, and
 alignment. Those linear encoders remain independent barcode-family modules and
