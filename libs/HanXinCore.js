@@ -37,9 +37,11 @@ export class HanXinCore {
     const forcedVersion = parseVersion(this.options.version);
     const requestedMask = parseMask(this.options.mask);
     if (this.options.gs1 != null && typeof this.options.gs1 !== 'boolean') throw new TypeError('Han Xin gs1 must be a boolean');
+    if (this.options.uri != null && typeof this.options.uri !== 'boolean') throw new TypeError('Han Xin uri must be a boolean');
     const gs1 = this.options.gs1 === true;
+    const uri = this.options.uri === true;
     const normalized = normalizeHanXinInput(this.data);
-    const compacted = compactHanXin(normalized.units, { eci: this.options.eci ?? 0, gs1 });
+    const compacted = compactHanXin(normalized.units, { eci: this.options.eci ?? 0, gs1, uri });
     const requiredCodewords = Math.ceil(compacted.bits.length / 8);
     let version = forcedVersion;
     if (version == null) {
@@ -68,6 +70,7 @@ export class HanXinCore {
       inputType: normalized.inputType,
       encoding: normalized.encoding,
       gs1,
+      uri,
       eci: this.options.eci ?? 0,
       bitLength: compacted.bits.length,
       dataCodewords,
@@ -77,6 +80,7 @@ export class HanXinCore {
       modes: compacted.modes,
       segments: compacted.segments.map((segment) => ({ ...segment, name: {
         n: 'numeric', t: 'text', b: 'binary', 1: 'region-one', 2: 'region-two', d: 'double-byte', f: 'four-byte', g: 'gs1-separator',
+        ua: 'uri-a', ub: 'uri-b', uc: 'uri-c', up: 'uri-percent',
       }[segment.mode] })),
       capacity: {
         dataCodewords: dataCapacity,

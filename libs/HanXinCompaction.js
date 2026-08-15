@@ -204,6 +204,134 @@ class BitBuffer {
   }
 }
 
+const URI_A_TOKENS = [
+  ...'abcdefghijklmnopqrstuvwxyz0123456789./-_~:@?#=+$&',
+  'http://', 'https://', 'ftp://', 'mailto:', 'ldap://', 'tel:', 'urn:', 'www.',
+  '.com', '.net', '.gov', '.org', '.cn',
+];
+const URI_B_TOKENS = [
+  ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ!*(),{}|\\^[]\'<>%";',
+  '.htm', '.html', '.asp', '.aspx', '.php', '.jsp', 'gtin', 'ser', 'bat', 'exp',
+  'search', 'id', '.jp', '.it', '.de', '.br', '.fr', 'gs1',
+];
+const URI_C_TOKENS = [
+  ...'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$-_.+!*(),{}|\\^~[]\'<>#%";/?:@&=',
+  'http://', 'https://', 'ftp://', 'mailto:', 'ldap://', 'tel:', 'urn:', 'www.',
+  '.com', '.net', '.gov', '.org', '.cn', '.htm', '.html', '.asp', '.aspx', '.php',
+  '.jsp', 'gtin', 'ser', 'bat', 'exp', 'search', 'id', '.jp', '.it', '.de', '.br',
+  '.fr', 'gs1', 'search',
+];
+const URI_TABLES = Object.freeze({ a: URI_A_TOKENS, b: URI_B_TOKENS, c: URI_C_TOKENS });
+const URI_WIDTHS = Object.freeze({ a: 6, b: 6, c: 7 });
+const URI_INDICATORS = Object.freeze({ a: 1, b: 2, c: 3 });
+const URI_TERMINATORS = Object.freeze({ a: 63, b: 63, c: 127 });
+
+function uriCandidates(text, position, mode) {
+  const result = [];
+  const tokens = URI_TABLES[mode];
+  for (let value = 0; value < tokens.length; value++) {
+    const token = tokens[value];
+    if (text.startsWith(token, position)) result.push({ token, value });
+  }
+  return result;
+}
+
+function uriTransitionCost(from, to) {
+  if (from == null) return 3;
+  if (from === to) return 0;
+  if (from === 'a' && to === 'b' || from === 'b' && to === 'a') return 6;
+  if (from === 'c') return 7;
+  return 9;
+}
+
+function appendUriTransition(output, from, to) {
+  if (from == null) output.append(URI_INDICATORS[to], 3);
+  else if (from === to) return;
+  else if (from === 'a' && to === 'b' || from === 'b' && to === 'a') output.append(62, 6);
+  else if (from === 'c') output.append(to === 'a' ? 125 : 126, 7);
+  else {
+    output.append(URI_TERMINATORS[from], URI_WIDTHS[from]);
+    output.append(URI_INDICATORS[to], 3);
+  }
+}
+
+function percentBytesAt(text, position) {
+  const bytes = [];
+  for (let cursor = position; cursor + 2 < text.length && text[cursor] === '%' &&
+      /^[0-9A-Fa-f]{2}$/.test(text.slice(cursor + 1, cursor + 3)) && bytes.length < 255; cursor += 3) {
+    bytes.push(Number.parseInt(text.slice(cursor + 1, cursor + 3), 16));
+  }
+  return bytes;
+}
+
+function compactUriHanXin(units, eci) {
+  if (eci) throw new RangeError('Han Xin URI mode does not support an ECI header');
+  if (units.some((unit) => unit > 0x7f)) throw new RangeError('Han Xin URI input must use the URI ASCII character set');
+  const text = String.fromCharCode(...units);
+  const states = [null, 'a', 'b', 'c'];
+  const costs = Array.from({ length: text.length + 1 }, () => Array(4).fill(Number.POSITIVE_INFINITY));
+  const choices = Array.from({ length: text.length }, () => Array(4).fill(null));
+  for (let state = 0; state < states.length; state++) {
+    const mode = states[state];
+    costs[text.length][state] = mode == null ? 3 : URI_WIDTHS[mode] + 3;
+  }
+  for (let position = text.length - 1; position >= 0; position--) {
+    for (let state = 0; state < states.length; state++) {
+      const from = states[state];
+      for (const to of ['a', 'b', 'c']) {
+        for (const candidate of uriCandidates(text, position, to)) {
+          const next = position + candidate.token.length;
+          const cost = uriTransitionCost(from, to) + URI_WIDTHS[to] + costs[next][states.indexOf(to)];
+          if (cost < costs[position][state]) {
+            costs[position][state] = cost;
+            choices[position][state] = { kind: 'token', to, next, ...candidate };
+          }
+        }
+      }
+      const percentBytes = percentBytesAt(text, position);
+      for (let count = 1; count <= percentBytes.length; count++) {
+        const next = position + count * 3;
+        const closeCost = from == null ? 0 : URI_WIDTHS[from];
+        const cost = closeCost + 3 + 8 + count * 8 + costs[next][0];
+        if (cost < costs[position][state]) {
+          costs[position][state] = cost;
+          choices[position][state] = { kind: 'percent', bytes: percentBytes.slice(0, count), next };
+        }
+      }
+    }
+  }
+  if (!Number.isFinite(costs[0][0])) throw new RangeError('Han Xin URI input contains a character outside the URI mode character sets');
+
+  const output = new BitBuffer();
+  const modes = Array(text.length);
+  output.append(0xe2, 8);
+  let position = 0;
+  let state = 0;
+  while (position < text.length) {
+    const from = states[state];
+    const choice = choices[position][state];
+    if (choice.kind === 'percent') {
+      if (from != null) output.append(URI_TERMINATORS[from], URI_WIDTHS[from]);
+      output.append(4, 3);
+      output.append(choice.bytes.length, 8);
+      for (const byte of choice.bytes) output.append(byte, 8);
+      modes.fill('up', position, choice.next);
+      position = choice.next;
+      state = 0;
+    } else {
+      appendUriTransition(output, from, choice.to);
+      output.append(choice.value, URI_WIDTHS[choice.to]);
+      modes.fill(`u${choice.to}`, position, choice.next);
+      position = choice.next;
+      state = states.indexOf(choice.to);
+    }
+  }
+  const finalMode = states[state];
+  if (finalMode != null) output.append(URI_TERMINATORS[finalMode], URI_WIDTHS[finalMode]);
+  output.append(7, 3);
+  return { bits: output.bits, modes, segments: segmentsFromModes(modes) };
+}
+
 function createGs1Sequence(units) {
   const sequence = [];
   let byteStart = -1;
@@ -292,9 +420,11 @@ function segmentsFromModes(modes) {
   return result;
 }
 
-export function compactHanXin(units, { eci = 0, gs1 = false } = {}) {
+export function compactHanXin(units, { eci = 0, gs1 = false, uri = false } = {}) {
   if (!Number.isInteger(eci) || eci < 0 || eci > 999999) throw new RangeError('ECI must be an integer from 0 to 999999');
+  if (gs1 && uri) throw new RangeError('Han Xin GS1 and URI modes cannot be combined');
   if (gs1) return compactGs1HanXin(units, eci);
+  if (uri) return compactUriHanXin(units, eci);
   const modes = selectHanXinModes(units);
   const segments = segmentsFromModes(modes);
   const output = new BitBuffer();

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { HanXinCore } from '../libs/HanXinCore.js';
-import { unicodeToGb18030 } from '../libs/HanXinCompaction.js';
+import { compactHanXin, unicodeToGb18030 } from '../libs/HanXinCompaction.js';
 import { HanXinSvgRenderer } from '../libs/HanXinSvg.js';
 import { HAN_XIN_DATA_CODEWORDS, HAN_XIN_TOTAL_CODEWORDS } from '../libs/HanXinTables.js';
 
@@ -105,6 +105,57 @@ test('rejects malformed or unsupported GS1 input', () => {
   assert.throws(() => new HanXinCore('汉', { gs1: true }).generate(), /ASCII/);
   assert.throws(() => new HanXinCore('0109506000134352', { gs1: true, eci: 3 }).generate(), /ECI/);
   assert.throws(() => new HanXinCore('0109506000134352', { gs1: 'yes' }).generate(), /boolean/);
+});
+
+test('encodes a common URL with the exact URI-A bit stream', () => {
+  const text = 'https://example.com';
+  const compacted = compactHanXin([...Buffer.from(text)], { uri: true });
+  const expected = [
+    '11100010', '001', '110010', '000100', '010111', '000000', '001100',
+    '001111', '001011', '000100', '111001', '111111', '111',
+  ].join('');
+  assert.equal(compacted.bits.map(Number).join(''), expected);
+  assert.deepEqual(compacted.segments.map(({ mode, length }) => ({ mode, length })), [
+    { mode: 'ua', length: text.length },
+  ]);
+});
+
+test('uses URI-C for short mixed-case data and compacts percent-encoded bytes', () => {
+  const mixed = new HanXinCore('aA', { uri: true }).generate();
+  assert.equal(mixed.uri, true);
+  assert.equal(mixed.bitLength, 35);
+  assert.equal(compactHanXin([0x61, 0x41], { uri: true }).bits.map(Number).join(''),
+    ['11100010', '011', '0000000', '0011010', '1111111', '111'].join(''));
+  assert.deepEqual(mixed.segments.map(({ name }) => name), ['uri-c']);
+
+  const url = 'https://example.com/%E2%82%AC';
+  const result = new HanXinCore(url, { uri: true }).generate();
+  assert.equal(result.bitLength, 115);
+  assert.deepEqual(result.segments.map(({ name, length }) => ({ name, length })), [
+    { name: 'uri-a', length: 20 },
+    { name: 'uri-percent', length: 9 },
+  ]);
+  assert.ok(compactHanXin([...Buffer.from(url)], { uri: true }).bits.map(Number).join('').endsWith(
+    ['111111', '100', '00000011', '11100010', '10000010', '10101100', '111'].join('')));
+  assert.ok(result.bitLength < new HanXinCore(url).generate().bitLength);
+});
+
+test('uses the compact URI-A and URI-B jump codes in both directions', () => {
+  const result = new HanXinCore('aaaaaaaaaaAaaaaaaaaaa', { uri: true }).generate();
+  assert.deepEqual(result.segments.map(({ name, length }) => ({ name, length })), [
+    { name: 'uri-a', length: 10 },
+    { name: 'uri-b', length: 1 },
+    { name: 'uri-a', length: 10 },
+  ]);
+  assert.equal(result.bitLength, 158);
+});
+
+test('validates URI mode combinations and character set', () => {
+  assert.throws(() => new HanXinCore('https://example.com', { uri: true, eci: 3 }).generate(), /ECI/);
+  assert.throws(() => new HanXinCore('https://example.com', { uri: true, gs1: true }).generate(), /cannot be combined/);
+  assert.throws(() => new HanXinCore('https://example.com', { uri: 'yes' }).generate(), /boolean/);
+  assert.throws(() => new HanXinCore('https://example.com/ä', { uri: true }).generate(), /ASCII/);
+  assert.throws(() => new HanXinCore('https://example.com/a b', { uri: true }).generate(), /character sets/);
 });
 
 test('maps representative Unicode points to GB18030 without a runtime codec', () => {

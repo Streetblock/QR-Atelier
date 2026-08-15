@@ -16,6 +16,7 @@ const symbol = new HanXinCore('汉信码 123456', {
   mask: 'auto',          // 0–3 or auto
   eci: 0,                // optional ECI assignment number, 0–999999
   gs1: false,            // true for a GS1 element string
+  uri: false,            // true for compact URI/URL encoding
 }).generate()
 
 const svg = new HanXinSvgRenderer(symbol, {
@@ -44,6 +45,7 @@ silently selecting a different symbol.
 - automatic dynamic-programming segmentation
 - ECI headers
 - GS1 framing and FNC1 element separators
+- URI-A, URI-B, URI-C and compact `%XX` byte sequences
 - all 84 versions and ECC levels L1–L4
 - ISO-style structural information, assistant/alignment patterns, RS blocks,
   picket-fence reordering and all four data masks
@@ -55,9 +57,16 @@ not maintain an Application Identifier catalog, infer separators from
 parentheses or validate checksums. GS1 mode uses the GS1 ASCII character set
 and cannot be combined with ECI.
 
-The optional URI and dedicated Unicode modes are not currently exposed. One
-ECI value applies to the complete non-GS1 input; a public multi-segment ECI API
-is not yet provided.
+Set `uri: true` to encode an ASCII URI. The encoder automatically chooses the
+smallest sequence of URI-A, URI-B, URI-C and Percent-Encoding submodes and uses
+built-in fragments such as `https://`, `www.`, `.com` and `.org`. Existing
+`%XX` sequences are preserved byte-for-byte and compacted; non-ASCII URI data
+must therefore be percent-encoded by the caller. URI mode cannot be combined
+with GS1 or ECI.
+
+The optional dedicated Unicode mode is not currently exposed. One ECI value
+applies to the complete ordinary input; a public multi-segment ECI API is not
+yet provided.
 
 ## References and verification
 
