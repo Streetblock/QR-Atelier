@@ -11,6 +11,7 @@ Auf `main` liegt der Fokus auf QR Code. Weitere 2D-Barcode-Familien leben in Fea
 * `feat/datamatrix`
 * `feat/micro-qr-core`
 * `feat/maxi-code`
+* `feat/code-one-core`
 
 Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
 
