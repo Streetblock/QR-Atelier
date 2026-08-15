@@ -6,18 +6,18 @@ import { compactPdf417, normalizePdf417Bytes } from './PDF417Compaction.js'
 import { generatePdf417ErrorCorrection } from './PDF417ErrorCorrection.js'
 import { PDF417_CODEWORD_PATTERNS } from './PDF417Patterns.js'
 
-const START_PATTERN = 0x1fea8
-const STOP_PATTERN = 0x3fa29
-const PAD_CODEWORD = 900
+export const PDF417_START_PATTERN = 0x1fea8
+export const PDF417_STOP_PATTERN = 0x3fa29
+export const PDF417_PAD_CODEWORD = 900
 
-const SIDE_ROW_ADDRESS_PATTERNS = Object.freeze([
+export const MICRO_PDF417_SIDE_RAPS = Object.freeze([
   802, 930, 946, 818, 882, 890, 826, 954, 922, 986, 970, 906, 778,
   794, 786, 914, 978, 982, 980, 916, 948, 932, 934, 942, 940, 936,
   808, 812, 814, 806, 822, 950, 918, 790, 788, 820, 884, 868, 870,
   878, 876, 872, 840, 856, 860, 862, 846, 844, 836, 838, 834, 866,
 ])
 
-const CENTER_ROW_ADDRESS_PATTERNS = Object.freeze([
+export const MICRO_PDF417_CENTER_RAPS = Object.freeze([
   718, 590, 622, 558, 550, 566, 534, 530, 538, 570, 562, 546, 610,
   626, 634, 762, 754, 758, 630, 628, 612, 614, 582, 578, 706, 738,
   742, 740, 748, 620, 556, 552, 616, 744, 712, 716, 708, 710, 646,
@@ -97,11 +97,11 @@ export class MicroPdf417Core {
     const variant = selectMicroVariant(compactedCodewords.length, this.options)
     const dataCodewords = [
       ...compactedCodewords,
-      ...new Array(variant.dataCapacity - compactedCodewords.length).fill(PAD_CODEWORD),
+      ...new Array(variant.dataCapacity - compactedCodewords.length).fill(PDF417_PAD_CODEWORD),
     ]
     const errorCodewords = generatePdf417ErrorCorrection(dataCodewords, variant.errorCodewords)
     const codewords = [...dataCodewords, ...errorCodewords]
-    const { modules, rowAddressPatterns } = buildMicroMatrix(codewords, variant)
+    const { modules, rowAddressPatterns } = buildMicroPdf417Matrix(codewords, variant)
 
     return {
       data: this.data,
@@ -152,7 +152,7 @@ export class Pdf417Core {
     const dataCodewords = [
       dataCapacity,
       ...compactedCodewords,
-      ...new Array(dataCapacity - compactedCodewords.length - 1).fill(PAD_CODEWORD),
+      ...new Array(dataCapacity - compactedCodewords.length - 1).fill(PDF417_PAD_CODEWORD),
     ]
     const errorCodewords = generatePdf417ErrorCorrection(dataCodewords, errorCodewordCount)
     const codewords = [...dataCodewords, ...errorCodewords]
@@ -286,7 +286,7 @@ function assertPdf417Capacity(dataColumns, rows, requiredCodewords) {
   }
 }
 
-function buildMicroMatrix(codewords, variant) {
+export function buildMicroPdf417Matrix(codewords, variant, options = {}) {
   const modules = []
   const rowAddressPatterns = []
   const { left, center, right } = variant.rowAddressStarts
@@ -302,22 +302,24 @@ function buildMicroMatrix(codewords, variant) {
       (rowIndex + 1) * variant.dataColumns,
     )
 
-    appendBits(row, SIDE_ROW_ADDRESS_PATTERNS[leftIndex], 10)
+    if (!(options.omitLeftRapForThreeColumns && variant.dataColumns === 3)) {
+      appendBits(row, MICRO_PDF417_SIDE_RAPS[leftIndex], 10)
+    }
     if (variant.dataColumns <= 2) {
       for (const codeword of rowCodewords) appendCodeword(row, codeword, cluster)
     } else if (variant.dataColumns === 3) {
       appendCodeword(row, rowCodewords[0], cluster)
-      appendBits(row, CENTER_ROW_ADDRESS_PATTERNS[centerIndex], 10)
+      appendBits(row, MICRO_PDF417_CENTER_RAPS[centerIndex], 10)
       appendCodeword(row, rowCodewords[1], cluster)
       appendCodeword(row, rowCodewords[2], cluster)
     } else {
       appendCodeword(row, rowCodewords[0], cluster)
       appendCodeword(row, rowCodewords[1], cluster)
-      appendBits(row, CENTER_ROW_ADDRESS_PATTERNS[centerIndex], 10)
+      appendBits(row, MICRO_PDF417_CENTER_RAPS[centerIndex], 10)
       appendCodeword(row, rowCodewords[2], cluster)
       appendCodeword(row, rowCodewords[3], cluster)
     }
-    appendBits(row, SIDE_ROW_ADDRESS_PATTERNS[rightIndex], 10)
+    appendBits(row, MICRO_PDF417_SIDE_RAPS[rightIndex], 10)
     row.push(true)
 
     modules.push(row)
@@ -332,7 +334,7 @@ function buildMicroMatrix(codewords, variant) {
   return { modules, rowAddressPatterns: Object.freeze(rowAddressPatterns) }
 }
 
-function buildPdf417Matrix(codewords, dataColumns, rows, errorCorrectionLevel, truncated) {
+export function buildPdf417Matrix(codewords, dataColumns, rows, errorCorrectionLevel, truncated = false) {
   const modules = []
   for (let rowIndex = 0; rowIndex < rows; rowIndex += 1) {
     const cluster = rowIndex % 3
@@ -352,7 +354,7 @@ function buildPdf417Matrix(codewords, dataColumns, rows, errorCorrectionLevel, t
     }
 
     const row = []
-    appendBits(row, START_PATTERN, 17)
+    appendBits(row, PDF417_START_PATTERN, 17)
     appendCodeword(row, leftIndicator, cluster)
     for (let column = 0; column < dataColumns; column += 1) {
       appendCodeword(row, codewords[rowIndex * dataColumns + column], cluster)
@@ -361,7 +363,7 @@ function buildPdf417Matrix(codewords, dataColumns, rows, errorCorrectionLevel, t
       row.push(true)
     } else {
       appendCodeword(row, rightIndicator, cluster)
-      appendBits(row, STOP_PATTERN, 18)
+      appendBits(row, PDF417_STOP_PATTERN, 18)
     }
     modules.push(row)
   }
