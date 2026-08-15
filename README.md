@@ -47,7 +47,8 @@ The app controller and UI. Manages state, binds DOM events, and provides the int
 The `feat/han-xin-core` branch adds a native ISO/IEC 20830-oriented Han Xin
 encoder without changing the QR studio UI. It supports versions 1–84, ECC
 levels L1–L4, automatic mode segmentation, GB18030 text, raw bytes, GS1, all four
-masks and a neutral SVG matrix renderer. See [docs/HANXIN.md](docs/HANXIN.md)
+masks, dedicated UTF-8 Unicode compression and a neutral SVG matrix renderer.
+See [docs/HANXIN.md](docs/HANXIN.md)
 for the public API and reference notes.
 
 ## Installation & Usage

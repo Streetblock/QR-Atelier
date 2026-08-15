@@ -158,6 +158,47 @@ test('validates URI mode combinations and character set', () => {
   assert.throws(() => new HanXinCore('https://example.com/a b', { uri: true }).generate(), /character sets/);
 });
 
+test('matches independent Han Xin Unicode reference codewords', () => {
+  const vectors = [
+    ['A', [0x91, 0x10, 0x41, 0xf0]],
+    ['Привет', [0x92, 0x61, 0x6d, 0x08, 0x03, 0xf0, 0x1c, 0x32, 0x6b, 0x0b, 0xc0]],
+    ['🙂', [0x91, 0x47, 0x82, 0xdc, 0x74, 0xb8, 0x0f]],
+  ];
+  for (const [text, expected] of vectors) {
+    const result = new HanXinCore(text, { unicode: true, version: 10, errorCorrection: 'L1', mask: 0 }).generate();
+    assert.deepEqual(result.dataCodewords.slice(0, expected.length), expected);
+    assert.equal(result.unicode, true);
+    assert.equal(result.encoding, 'UTF-8');
+  }
+});
+
+test('uses Unicode byte-column compression and variable-length group counters', () => {
+  const repeated = new HanXinCore('a'.repeat(12), { unicode: true }).generate();
+  assert.equal(repeated.bitLength, 32);
+  assert.deepEqual(repeated.segments.map(({ name, byteWidth, count, length }) => ({ name, byteWidth, count, length })), [
+    { name: 'unicode-1-byte', byteWidth: 1, count: 12, length: 12 },
+  ]);
+  assert.equal(new HanXinCore('a'.repeat(7), { unicode: true }).generate().bitLength, 28);
+  assert.equal(new HanXinCore('a'.repeat(8), { unicode: true }).generate().bitLength, 32);
+
+  const cyrillic = new HanXinCore('Привет', { unicode: true }).generate();
+  assert.deepEqual(cyrillic.segments.map(({ name, byteWidth, count }) => ({ name, byteWidth, count })), [
+    { name: 'unicode-2-byte', byteWidth: 2, count: 6 },
+  ]);
+  assert.ok(cyrillic.bitLength < new HanXinCore('Привет').generate().bitLength);
+  assert.equal(new HanXinCore('汉'.repeat(6), { unicode: true }).generate().segments[0].name, 'unicode-3-byte');
+  assert.equal(new HanXinCore('🙂'.repeat(6), { unicode: true }).generate().segments[0].name, 'unicode-4-byte');
+});
+
+test('validates Unicode input and mutually exclusive specialized modes', () => {
+  assert.throws(() => new HanXinCore(Uint8Array.of(0x41), { unicode: true }).generate(), /string input/);
+  assert.throws(() => new HanXinCore('\ud800', { unicode: true }).generate(), /unpaired surrogate/);
+  assert.throws(() => new HanXinCore('text', { unicode: 'yes' }).generate(), /boolean/);
+  assert.throws(() => new HanXinCore('text', { unicode: true, eci: 26 }).generate(), /ECI/);
+  assert.throws(() => new HanXinCore('text', { unicode: true, gs1: true }).generate(), /cannot be combined/);
+  assert.throws(() => new HanXinCore('text', { unicode: true, uri: true }).generate(), /cannot be combined/);
+});
+
 test('maps representative Unicode points to GB18030 without a runtime codec', () => {
   assert.deepEqual(unicodeToGb18030(0x41), [0x41]);
   assert.deepEqual(unicodeToGb18030('汉'.codePointAt(0)), [0xbaba]);

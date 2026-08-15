@@ -92,6 +92,24 @@ export function normalizeHanXinInput(input) {
   throw new TypeError('Han Xin data must be a string, Uint8Array, typed-array view, or ArrayBuffer');
 }
 
+export function normalizeHanXinUnicodeInput(input) {
+  if (typeof input !== 'string') throw new TypeError('Han Xin Unicode mode requires string input');
+  if (!input.length) throw new RangeError('Han Xin data must not be empty');
+  const units = [];
+  for (const character of input) {
+    const codePoint = character.codePointAt(0);
+    if (codePoint >= 0xd800 && codePoint <= 0xdfff) {
+      throw new RangeError(`Han Xin Unicode mode cannot encode an unpaired surrogate U+${codePoint.toString(16).toUpperCase()}`);
+    }
+    if (codePoint < 0x80) units.push(codePoint);
+    else if (codePoint < 0x800) units.push(0xc0 | codePoint >>> 6, 0x80 | codePoint & 0x3f);
+    else if (codePoint < 0x10000) units.push(0xe0 | codePoint >>> 12, 0x80 | codePoint >>> 6 & 0x3f, 0x80 | codePoint & 0x3f);
+    else units.push(0xf0 | codePoint >>> 18, 0x80 | codePoint >>> 12 & 0x3f,
+      0x80 | codePoint >>> 6 & 0x3f, 0x80 | codePoint & 0x3f);
+  }
+  return { units, inputType: 'text', encoding: 'UTF-8' };
+}
+
 const isDigit = (value) => value >= 0x30 && value <= 0x39;
 const isUpper = (value) => value >= 0x41 && value <= 0x5a;
 const isLower = (value) => value >= 0x61 && value <= 0x7a;
@@ -202,6 +220,75 @@ class BitBuffer {
   append(value, width) {
     for (let shift = width - 1; shift >= 0; shift--) this.bits.push(Boolean((value >>> shift) & 1));
   }
+}
+
+const unicodeCountWidth = (count) => count <= 7 ? 4 : count <= 63 ? 8 : count <= 511 ? 12 : count <= 4095 ? 16 : 20;
+
+function appendUnicodeCount(output, count) {
+  if (count < 1 || count > 32767) throw new RangeError('A Han Xin Unicode segment cannot exceed 32767 byte groups');
+  if (count <= 7) output.append(count, 4);
+  else if (count <= 63) output.append(0x80 | count, 8);
+  else if (count <= 511) output.append(0xc00 | count, 12);
+  else if (count <= 4095) output.append(0xe000 | count, 16);
+  else output.append(0xf0000 | count, 20);
+}
+
+function compactUnicodeHanXin(units, eci) {
+  if (eci) throw new RangeError('Han Xin Unicode mode does not support an ECI header');
+  const costs = Array(units.length + 1).fill(Number.POSITIVE_INFINITY);
+  const choices = Array(units.length).fill(null);
+  costs[units.length] = 0;
+
+  for (let start = units.length - 1; start >= 0; start--) {
+    for (let width = 1; width <= 4; width++) {
+      const minima = Array(width).fill(0xff);
+      const maxima = Array(width).fill(0);
+      const maximumGroups = Math.min(32767, Math.floor((units.length - start) / width));
+      for (let count = 1; count <= maximumGroups; count++) {
+        const groupStart = start + (count - 1) * width;
+        for (let column = 0; column < width; column++) {
+          const value = units[groupStart + column];
+          minima[column] = Math.min(minima[column], value);
+          maxima[column] = Math.max(maxima[column], value);
+        }
+        const differenceWidths = minima.map((minimum, column) => {
+          const difference = maxima[column] - minimum;
+          return difference ? Math.floor(Math.log2(difference)) + 1 : 0;
+        });
+        const end = start + count * width;
+        const bitLength = 4 + unicodeCountWidth(count) + width * 12 +
+          count * differenceWidths.reduce((sum, value) => sum + value, 0);
+        const candidate = bitLength + costs[end];
+        if (candidate < costs[start]) {
+          costs[start] = candidate;
+          choices[start] = { width, count, end, minima: [...minima], differenceWidths };
+        }
+      }
+    }
+  }
+
+  const output = new BitBuffer();
+  const modes = Array(units.length);
+  const segments = [];
+  output.append(9, 4);
+  for (let start = 0; start < units.length;) {
+    const choice = choices[start];
+    output.append(choice.width, 4);
+    appendUnicodeCount(output, choice.count);
+    for (const width of choice.differenceWidths) output.append(width, 4);
+    for (const minimum of choice.minima) output.append(minimum, 8);
+    for (let position = start; position < choice.end; position += choice.width) {
+      for (let column = 0; column < choice.width; column++) {
+        output.append(units[position + column] - choice.minima[column], choice.differenceWidths[column]);
+      }
+    }
+    modes.fill(`u${choice.width}`, start, choice.end);
+    segments.push({ mode: `u${choice.width}`, start, end: choice.end, length: choice.end - start,
+      byteWidth: choice.width, count: choice.count });
+    start = choice.end;
+  }
+  output.append(15, 4);
+  return { bits: output.bits, modes, segments };
 }
 
 const URI_A_TOKENS = [
@@ -420,11 +507,12 @@ function segmentsFromModes(modes) {
   return result;
 }
 
-export function compactHanXin(units, { eci = 0, gs1 = false, uri = false } = {}) {
+export function compactHanXin(units, { eci = 0, gs1 = false, uri = false, unicode = false } = {}) {
   if (!Number.isInteger(eci) || eci < 0 || eci > 999999) throw new RangeError('ECI must be an integer from 0 to 999999');
-  if (gs1 && uri) throw new RangeError('Han Xin GS1 and URI modes cannot be combined');
+  if ([gs1, uri, unicode].filter(Boolean).length > 1) throw new RangeError('Han Xin GS1, URI, and Unicode modes cannot be combined');
   if (gs1) return compactGs1HanXin(units, eci);
   if (uri) return compactUriHanXin(units, eci);
+  if (unicode) return compactUnicodeHanXin(units, eci);
   const modes = selectHanXinModes(units);
   const segments = segmentsFromModes(modes);
   const output = new BitBuffer();

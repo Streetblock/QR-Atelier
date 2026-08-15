@@ -1,4 +1,4 @@
-import { compactHanXin, normalizeHanXinInput } from './HanXinCompaction.js';
+import { compactHanXin, normalizeHanXinInput, normalizeHanXinUnicodeInput } from './HanXinCompaction.js';
 import { addHanXinErrorCorrection } from './HanXinErrorCorrection.js';
 import { createHanXinGrid, populateAndMaskHanXin } from './HanXinMatrix.js';
 import { HAN_XIN_DATA_CODEWORDS, HAN_XIN_TOTAL_CODEWORDS } from './HanXinTables.js';
@@ -38,10 +38,12 @@ export class HanXinCore {
     const requestedMask = parseMask(this.options.mask);
     if (this.options.gs1 != null && typeof this.options.gs1 !== 'boolean') throw new TypeError('Han Xin gs1 must be a boolean');
     if (this.options.uri != null && typeof this.options.uri !== 'boolean') throw new TypeError('Han Xin uri must be a boolean');
+    if (this.options.unicode != null && typeof this.options.unicode !== 'boolean') throw new TypeError('Han Xin unicode must be a boolean');
     const gs1 = this.options.gs1 === true;
     const uri = this.options.uri === true;
-    const normalized = normalizeHanXinInput(this.data);
-    const compacted = compactHanXin(normalized.units, { eci: this.options.eci ?? 0, gs1, uri });
+    const unicode = this.options.unicode === true;
+    const normalized = unicode ? normalizeHanXinUnicodeInput(this.data) : normalizeHanXinInput(this.data);
+    const compacted = compactHanXin(normalized.units, { eci: this.options.eci ?? 0, gs1, uri, unicode });
     const requiredCodewords = Math.ceil(compacted.bits.length / 8);
     let version = forcedVersion;
     if (version == null) {
@@ -71,6 +73,7 @@ export class HanXinCore {
       encoding: normalized.encoding,
       gs1,
       uri,
+      unicode,
       eci: this.options.eci ?? 0,
       bitLength: compacted.bits.length,
       dataCodewords,
@@ -81,6 +84,7 @@ export class HanXinCore {
       segments: compacted.segments.map((segment) => ({ ...segment, name: {
         n: 'numeric', t: 'text', b: 'binary', 1: 'region-one', 2: 'region-two', d: 'double-byte', f: 'four-byte', g: 'gs1-separator',
         ua: 'uri-a', ub: 'uri-b', uc: 'uri-c', up: 'uri-percent',
+        u1: 'unicode-1-byte', u2: 'unicode-2-byte', u3: 'unicode-3-byte', u4: 'unicode-4-byte',
       }[segment.mode] })),
       capacity: {
         dataCodewords: dataCapacity,

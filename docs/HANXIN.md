@@ -17,6 +17,7 @@ const symbol = new HanXinCore('汉信码 123456', {
   eci: 0,                // optional ECI assignment number, 0–999999
   gs1: false,            // true for a GS1 element string
   uri: false,            // true for compact URI/URL encoding
+  unicode: false,        // true for dedicated UTF-8 Unicode compression
 }).generate()
 
 const svg = new HanXinSvgRenderer(symbol, {
@@ -46,6 +47,7 @@ silently selecting a different symbol.
 - ECI headers
 - GS1 framing and FNC1 element separators
 - URI-A, URI-B, URI-C and compact `%XX` byte sequences
+- dedicated Unicode mode with adaptive 1-, 2-, 3- and 4-byte grouping
 - all 84 versions and ECC levels L1–L4
 - ISO-style structural information, assistant/alignment patterns, RS blocks,
   picket-fence reordering and all four data masks
@@ -64,9 +66,16 @@ built-in fragments such as `https://`, `www.`, `.com` and `.org`. Existing
 must therefore be percent-encoded by the caller. URI mode cannot be combined
 with GS1 or ECI.
 
-The optional dedicated Unicode mode is not currently exposed. One ECI value
-applies to the complete ordinary input; a public multi-segment ECI API is not
-yet provided.
+Set `unicode: true` for the dedicated Han Xin Unicode mode. It converts string
+input to strict UTF-8, chooses cost-optimal 1-, 2-, 3- and 4-byte groups, and
+compresses each byte column as a minimum value plus unsigned differences.
+This differs from ordinary string input, which uses GB18030 and may select the
+Chinese region modes. Unicode mode accepts strings only and cannot be combined
+with GS1, URI or ECI. Its result segments are measured in UTF-8 bytes and expose
+their `byteWidth` and group `count`.
+
+One ECI value applies to the complete ordinary input; a public multi-segment
+ECI API is not yet provided.
 
 ## References and verification
 
@@ -78,6 +87,9 @@ yet provided.
   installed by this repository and is not imported by production code.
 - GS1 framing, FNC1 separator encoding and numeric-boundary optimization are
   verified against BWIPP's MIT-licensed Han Xin PostScript reference.
+- Unicode framing, counters and compression codewords are verified against
+  Aspose.BarCode for Java as an external development oracle. Aspose is not
+  installed by this repository and is never a runtime dependency.
 
 BWIPP currently writes an alternating pattern into the final six structural
 information bits. ISO/IEC 20830:2021 and current Zint clear those bits. This
