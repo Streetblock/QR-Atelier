@@ -13,6 +13,7 @@ import {
   RMqrCore,
   DmCore,
   AztecCore,
+  AztecRuneCore,
   MaxiCodeCore,
   Pdf417Core,
   MicroPdf417Core,
@@ -38,6 +39,7 @@ The root surface also exports the legacy Data Matrix generator, structured contr
 | Data Matrix | `DmCore` | ECC 200, classic rectangles, DMRE, ECI and structured controls |
 | Legacy Data Matrix | `generateLegacyDataMatrix` | ECC 000/050/080/100/140 compatibility |
 | Aztec | `AztecCore` | compact and full symbols |
+| Aztec Rune | `AztecRuneCore` | 11 × 11 symbols for integers 0–255 |
 | MaxiCode | `MaxiCodeCore` | modes 2–6, ECI, Structured Append and UPS Format 07 helpers |
 | PDF417 | `Pdf417Core` | standard and truncated layouts |
 | MicroPDF417 | `MicroPdf417Core` | all 34 standardized variants |

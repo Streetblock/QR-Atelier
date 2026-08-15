@@ -6,6 +6,7 @@ import * as packageRoot from 'qr-atelier'
 import { QrCore } from '../libs/QRcore.js'
 import { DmCore } from '../libs/DMcore.js'
 import { AztecCore } from '../libs/AztecCore.js'
+import { AztecRuneCore } from '../libs/AztecRuneCore.js'
 import { MaxiCodeCore } from '../libs/MaxiCodeCore.js'
 import { MicroQrCore } from '../libs/MicroQRcore.js'
 import { RMqrCore } from '../libs/RMQRcore.js'
@@ -15,6 +16,7 @@ test('exports every independent encoder core through one stable surface', () => 
   assert.equal(atelier.QrCore, QrCore)
   assert.equal(atelier.DmCore, DmCore)
   assert.equal(atelier.AztecCore, AztecCore)
+  assert.equal(atelier.AztecRuneCore, AztecRuneCore)
   assert.equal(atelier.MaxiCodeCore, MaxiCodeCore)
   assert.equal(atelier.MicroQrCore, MicroQrCore)
   assert.equal(atelier.RMqrCore, RMqrCore)
@@ -22,6 +24,7 @@ test('exports every independent encoder core through one stable surface', () => 
   assert.equal(atelier.MicroPdf417Core, MicroPdf417Core)
   assert.equal(typeof atelier.generateLegacyDataMatrix, 'function')
   assert.equal(packageRoot.QrCore, QrCore)
+  assert.equal(packageRoot.AztecRuneCore, AztecRuneCore)
 })
 
 test('keeps individual core modules independently usable', () => {

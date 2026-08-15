@@ -95,6 +95,23 @@ export class AztecCore {
   }
 }
 
+// Shared low-level construction used by the separate Aztec Rune public API.
+// ISO/IEC 24778:2008 Annex A encodes two data words and five check words in GF(16),
+// complements every even-positioned mode bit, and places them around the compact bullseye.
+export function buildAztecRuneMatrix(value) {
+  const dataWords = [value >>> 4, value & 0x0f]
+  const checkWords = reedSolomonCheckWords(dataWords, 5, 4)
+  const modeMessageBits = wordsToBits([...dataWords, ...checkWords], 4)
+  for (let i = 0; i < modeMessageBits.length; i += 2) modeMessageBits[i] ^= 1
+
+  const size = 11
+  const modules = createSquare(size, false)
+  const isFunction = createSquare(size, false)
+  drawModeMessage(modules, isFunction, true, size, modeMessageBits)
+  drawBullsEye(modules, isFunction, 5, 5)
+  return { modules, isFunction, size, dataWords, checkWords, modeMessageBits }
+}
+
 function normalizeOptions(options) {
   const mode = String(options.mode ?? 'auto').toLowerCase()
   if (!['auto', 'compact', 'full'].includes(mode)) {

@@ -7,7 +7,7 @@ import { formatRegistry } from '../formats/index.js'
 
 test('registers all format adapters with isolated defaults and capabilities', () => {
   assert.deepEqual(formatRegistry.list().map((format) => format.id), [
-    'qr', 'qr-model-1', 'microqr', 'rmqr', 'datamatrix', 'aztec', 'maxi-code',
+    'qr', 'qr-model-1', 'microqr', 'rmqr', 'datamatrix', 'aztec', 'aztec-rune', 'maxi-code',
   ])
   assert.equal(formatRegistry.defaults().aztecStyle, 'square')
   assert.equal(formatRegistry.defaults().microMaxVersion, 'M4')

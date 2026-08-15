@@ -17,6 +17,7 @@ export {
 } from './DMlegacy.js'
 
 export { AztecCore } from './AztecCore.js'
+export { AztecRuneCore } from './AztecRuneCore.js'
 export {
   MaxiCodeCore,
   encodeMaxiCodeEci,

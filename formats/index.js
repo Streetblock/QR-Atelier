@@ -1,5 +1,6 @@
 import { FormatRegistry } from './FormatRegistry.js'
 import { aztecFormat } from './aztec.js'
+import { aztecRuneFormat } from './aztec-rune.js'
 import { dataMatrixFormat } from './datamatrix.js'
 import { maxiCodeFormat } from './maxicode.js'
 import { microQrFormat } from './microqr.js'
@@ -14,5 +15,6 @@ export const formatRegistry = new FormatRegistry([
   rmqrFormat,
   dataMatrixFormat,
   aztecFormat,
+  aztecRuneFormat,
   maxiCodeFormat,
 ])

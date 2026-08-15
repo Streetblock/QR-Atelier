@@ -11,6 +11,7 @@ test('registers the unified interactive encoder set deterministically', () => {
     'rmqr',
     'datamatrix',
     'aztec',
+    'aztec-rune',
     'maxi-code',
   ])
 })

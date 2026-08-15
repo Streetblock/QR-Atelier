@@ -6,7 +6,7 @@
 
 QR-Atelier ist eine minimalistische Sammlung performanter, abhaengigkeitsfreier 2D-Barcode-Encoder mit browserbasiertem Studio. Jede Familie behaelt einen eigenstaendigen Core und einen optionalen Renderer; Anwendungen koennen nur einen Encoder oder die stabile gemeinsame Oberflaeche auf `feat/unified-barcode-cores` importieren.
 
-Der gemeinsame Branch enthaelt QR Model 1/2, Micro QR, rMQR, Data Matrix ECC 200 und Legacy ECC, Aztec, MaxiCode, PDF417 sowie alle 34 MicroPDF417-Varianten. Stabile Imports und Paketgrenzen beschreibt [`docs/unified-cores.md`](docs/unified-cores.md). Die Familienbranches bleiben fuer fokussierte Weiterentwicklung bestehen.
+Der gemeinsame Branch enthaelt QR Model 1/2, Micro QR, rMQR, Data Matrix ECC 200 und Legacy ECC, Aztec, Aztec Rune, MaxiCode, PDF417 sowie alle 34 MicroPDF417-Varianten. Stabile Imports und Paketgrenzen beschreibt [`docs/unified-cores.md`](docs/unified-cores.md). Die Familienbranches bleiben fuer fokussierte Weiterentwicklung bestehen.
 
 Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
 
