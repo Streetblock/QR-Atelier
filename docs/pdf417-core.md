@@ -8,6 +8,7 @@ the shared three-cluster codeword patterns, and the two symbol layouts.
 
 ```js
 import { MicroPdf417Core, Pdf417Core } from '../libs/PDF417core.js'
+import { Pdf417SvgRenderer } from '../libs/PDF417Svg.js'
 
 const micro = new MicroPdf417Core('MICRO PDF417 1234567890123', {
   variant: '2x11',
@@ -19,11 +20,41 @@ const standard = new Pdf417Core('STANDARD PDF417', {
   errorCorrectionLevel: 2,
   truncated: false,
 }).generate()
+
+const svg = new Pdf417SvgRenderer(standard).render()
 ```
 
 Both constructors accept a JavaScript string, `Uint8Array`, another typed-array
 view, `ArrayBuffer`, or an array of byte values. Strings are converted to UTF-8.
 Pass bytes when the caller must control the byte encoding exactly.
+
+### SVG renderer
+
+`Pdf417SvgRenderer` accepts the result of either `Pdf417Core` or
+`MicroPdf417Core`. The aliases `PDF417SvgRenderer`, `MicroPdf417SvgRenderer`,
+and `MicroPDF417SvgRenderer` refer to the same renderer.
+
+The renderer produces barcode-faithful SVG paths with no rounded or decorative
+modules. Adjacent dark modules in a row are merged into horizontal runs and the
+SVG uses `shape-rendering="crispEdges"`. Standard PDF417 defaults to a row-height
+ratio of 3, while MicroPDF417 defaults to 2. Standalone output includes a
+two-module quiet zone by default.
+
+```js
+const svg = new Pdf417SvgRenderer(micro, {
+  moduleSize: 2,
+  rowHeight: 2,
+  margin: 2,
+  foreground: '#000000',
+  background: '#ffffff', // use null for transparency
+  width: 400,
+  height: 120,
+}).render()
+```
+
+`buildPdf417Path(modules, options)` is exported for renderers that need to place
+the barcode inside a larger SVG without nesting documents. `margin: 0` is useful
+when another symbology owns the surrounding quiet zone.
 
 ### MicroPDF417 options
 
@@ -99,6 +130,7 @@ lookup for deterministic tests and future barcode adapters.
 | `libs/PDF417ErrorCorrection.js` | Generator-polynomial construction and Reed-Solomon ECC modulo 929. |
 | `libs/PDF417Patterns.js` | Shared 3 × 929 standard codeword patterns. |
 | `libs/PDF417core.js` | Size selection and separate PDF417/MicroPDF417 row layouts. |
+| `libs/PDF417Svg.js` | Shared barcode-faithful SVG renderer and reusable path builder. |
 
 `scripts/generate-pdf417-patterns.mjs` deterministically regenerates the pattern
 table from the installed ZXing development package. The generated table is

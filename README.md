@@ -13,7 +13,7 @@ On `main`, the studio focuses on QR Code. Additional 2D barcode families live in
 * `feat/maxi-code`
 
 The reusable native PDF417 foundation on `feat/pdf417-core` provides all 34
-MicroPDF417 variants plus a standard PDF417 core. See
+MicroPDF417 variants, a standard PDF417 core, and a shared SVG renderer. See
 [`docs/pdf417-core.md`](docs/pdf417-core.md) for its low-level API, validation
 rules, reference coverage, and the planned ZPL `^BF`/`^B7` integration path.
 
