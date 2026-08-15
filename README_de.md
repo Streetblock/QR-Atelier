@@ -11,6 +11,7 @@ Auf `main` liegt der Fokus auf QR Code. Weitere 2D-Barcode-Familien leben in Fea
 * `feat/datamatrix`
 * `feat/micro-qr-core`
 * `feat/maxi-code`
+* `feat/dotcode-core`
 
 Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
 
@@ -40,6 +41,8 @@ Der QR-Code-Kern und Renderer.
 
 ### 2. `app.js` und `styles.css`
 Der App-Controller und das UI. Steuert den State, bindet DOM-Events und sorgt fuer das Interface. Das Studio nutzt derzeit den UTF-8-Standard des Kerns und bietet keine Auswahl der Kodierung an. Wenn ein Center-Logo vorhanden ist, fordert die App das Fehlerkorrektur-Level H an; dies ist App-Verhalten und keine automatische Regel innerhalb von `QrCore`.
+
+Auf `feat/dotcode-core` liefert `DotCodeCore.js` den unabhaengigen nativen Encoder und `DotCodeSvg.js` den wiederverwendbaren punktbasierten Vektor-Renderer. API und bekannte Grenzen stehen in `docs/formats/dotcode.md`.
 
 ## Installation & Nutzung
 

@@ -1,0 +1,5 @@
+export class DotCodeSvgRenderer {
+  static DEFAULT_STYLE={moduleSize:8,margin:2,dotScale:.8,foreground:'#111827',background:'#ffffff'}
+  constructor(symbol,options={}){if(!symbol||symbol.format!=='DotCode'||!Array.isArray(symbol.modules))throw new TypeError('A DotCodeCore result is required.');this.symbol=symbol;this.style={...DotCodeSvgRenderer.DEFAULT_STYLE,...options}}
+  render(){const {moduleSize,margin,dotScale,foreground,background}=this.style;if(!(moduleSize>0)||!(margin>=0)||!(dotScale>0&&dotScale<=1))throw new RangeError('Invalid DotCode SVG dimensions.');const w=this.symbol.width+margin*2,h=this.symbol.height+margin*2,r=dotScale/2;let dots='';for(let y=0;y<this.symbol.height;y++)for(let x=0;x<this.symbol.width;x++)if(this.symbol.modules[y][x])dots+=`<circle cx="${x+margin+.5}" cy="${y+margin+.5}" r="${r}"/>`;return `<svg xmlns="http://www.w3.org/2000/svg" width="${w*moduleSize}" height="${h*moduleSize}" viewBox="0 0 ${w} ${h}" role="img" aria-label="DotCode"><rect width="${w}" height="${h}" fill="${background}"/><g fill="${foreground}">${dots}</g></svg>`}
+}
