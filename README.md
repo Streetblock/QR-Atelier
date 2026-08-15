@@ -12,6 +12,11 @@ On `main`, the studio focuses on QR Code. Additional 2D barcode families live in
 * `feat/micro-qr-core`
 * `feat/maxi-code`
 
+The reusable native PDF417 foundation on `feat/pdf417-core` provides all 34
+MicroPDF417 variants plus a standard PDF417 core. See
+[`docs/pdf417-core.md`](docs/pdf417-core.md) for its low-level API, validation
+rules, reference coverage, and the planned ZPL `^BF`/`^B7` integration path.
+
 Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
 
 ## Features

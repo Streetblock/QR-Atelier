@@ -12,6 +12,11 @@ Auf `main` liegt der Fokus auf QR Code. Weitere 2D-Barcode-Familien leben in Fea
 * `feat/micro-qr-core`
 * `feat/maxi-code`
 
+Die wiederverwendbare native PDF417-Grundlage auf `feat/pdf417-core` unterstützt
+alle 34 MicroPDF417-Varianten sowie Standard-PDF417. Die Low-Level-API,
+Validierungsregeln, Referenzprüfungen und der geplante ZPL-Integrationsweg für
+`^BF` und `^B7` sind in [`docs/pdf417-core.md`](docs/pdf417-core.md) dokumentiert.
+
 Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
 
 ## Features
