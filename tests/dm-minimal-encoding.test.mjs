@@ -24,6 +24,20 @@ test('uses ASCII digit pairs and switches among compact modes', () => {
   assert.ok(base256.encodedCodewords < 40)
 })
 
+test('uses an implicit EDIFACT unlatch when at most two codewords remain', () => {
+  const result = new DmCore('@@@@????>>>>', { shape: 'square' }).generate()
+
+  assert.equal(result.encodedCodewords, 10)
+  assert.deepEqual(result.dataCodewords, [240, 0, 0, 0, 255, 255, 255, 251, 239, 190, 129, 147])
+})
+
+test('prefers C40 over equally compact EDIFACT output', () => {
+  const result = new DmCore('ZPL-TOOLKIT', { shape: 'square' }).generate()
+
+  assert.equal(result.encodedCodewords, 10)
+  assert.equal(result.dataCodewords[0], 230)
+})
+
 test('keeps all generated data and ECC codewords in byte range', () => {
   const payloads = [
     'Mixed lower UPPER 1234567890 >* punctuation!',
