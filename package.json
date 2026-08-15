@@ -6,7 +6,8 @@
   "description": "A zero-dependency barcode atelier for QR Code and related 2D barcode work.",
   "scripts": {
     "test": "node --test",
-    "test:reference": "node scripts/run-reference-tests.mjs"
+    "test:reference": "node scripts/run-reference-tests.mjs",
+    "generate:pdf417-patterns": "node scripts/generate-pdf417-patterns.mjs"
   },
   "devDependencies": {
     "@zxing/library": "0.23.0"
