@@ -7,6 +7,8 @@ The Aztec feature branch adds a native encoder and SVG renderer while keeping th
 - `libs/AztecCore.js` performs high-level text encoding, symbol planning, Reed-Solomon error correction, and module placement.
 - `libs/AztecSvg.js` renders compact and full symbols as SVG.
 - `formats/aztec.js` exposes Aztec Code and its visual style through the shared Format Registry.
+- `libs/AztecRuneCore.js` exposes the separate 11 x 11 Aztec Rune API for integer values from 0 through 255.
+- `formats/aztec-rune.js` makes Aztec Rune independently selectable while reusing the Aztec SVG renderer.
 
 ## Symbol planning
 
@@ -24,6 +26,18 @@ The encoder plans transitions among the Aztec text tables and binary data to min
 ## App integration
 
 The format adapter declares the Aztec module style. Supported renderer styles are square, rounded, dots, and classy. QR-specific finder styling and center logos are disabled.
+
+## Aztec Rune
+
+Aztec Rune is the fixed-size Annex A member of the Aztec family, not a zero-layer shortcut through the normal text encoder. It accepts exactly one integer from 0 through 255, produces an 11 x 11 matrix, adds five GF(16) Reed-Solomon check words to the two data words, applies the Rune bit complement pattern, and uses the shared Aztec bullseye placement and SVG renderer.
+
+```js
+import { AztecRuneCore } from '../../libs/AztecRuneCore.js'
+import { AztecSvgRenderer } from '../../libs/AztecSvg.js'
+
+const rune = new AztecRuneCore(125).generate()
+const svg = new AztecSvgRenderer(rune).render()
+```
 
 ## Tests
 

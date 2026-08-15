@@ -42,7 +42,7 @@ export class AztecSvgRenderer {
     }
 
     return [
-      `<svg xmlns="http://www.w3.org/2000/svg" width="${this.style.size}" height="${this.style.size}" viewBox="0 0 ${viewBoxSize} ${viewBoxSize}" fill="none" role="img" aria-label="Aztec code">`,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${this.style.size}" height="${this.style.size}" viewBox="0 0 ${viewBoxSize} ${viewBoxSize}" fill="none" role="img" aria-label="${this.aztec.format === 'aztec-rune' ? 'Aztec Rune' : 'Aztec code'}">`,
       `<defs>`,
       `<linearGradient id="${gradientId}" x1="0" y1="0" x2="${viewBoxSize}" y2="${viewBoxSize}" gradientUnits="userSpaceOnUse">`,
       `<stop offset="0%" stop-color="${this.style.colorStart}"/>`,
