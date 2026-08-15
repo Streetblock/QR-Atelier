@@ -36,8 +36,10 @@ export class HanXinCore {
     const level = parseLevel(this.options.errorCorrection ?? this.options.eccLevel);
     const forcedVersion = parseVersion(this.options.version);
     const requestedMask = parseMask(this.options.mask);
+    if (this.options.gs1 != null && typeof this.options.gs1 !== 'boolean') throw new TypeError('Han Xin gs1 must be a boolean');
+    const gs1 = this.options.gs1 === true;
     const normalized = normalizeHanXinInput(this.data);
-    const compacted = compactHanXin(normalized.units, { eci: this.options.eci ?? 0 });
+    const compacted = compactHanXin(normalized.units, { eci: this.options.eci ?? 0, gs1 });
     const requiredCodewords = Math.ceil(compacted.bits.length / 8);
     let version = forcedVersion;
     if (version == null) {
@@ -65,6 +67,7 @@ export class HanXinCore {
       maskPenalties: rendered.penalties,
       inputType: normalized.inputType,
       encoding: normalized.encoding,
+      gs1,
       eci: this.options.eci ?? 0,
       bitLength: compacted.bits.length,
       dataCodewords,
@@ -73,7 +76,7 @@ export class HanXinCore {
       blocks,
       modes: compacted.modes,
       segments: compacted.segments.map((segment) => ({ ...segment, name: {
-        n: 'numeric', t: 'text', b: 'binary', 1: 'region-one', 2: 'region-two', d: 'double-byte', f: 'four-byte',
+        n: 'numeric', t: 'text', b: 'binary', 1: 'region-one', 2: 'region-two', d: 'double-byte', f: 'four-byte', g: 'gs1-separator',
       }[segment.mode] })),
       capacity: {
         dataCodewords: dataCapacity,

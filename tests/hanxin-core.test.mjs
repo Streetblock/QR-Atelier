@@ -57,6 +57,56 @@ test('selects numeric, text, binary and Chinese compaction modes', () => {
   assert.equal(new HanXinCore('\u{1F642}').generate().segments[0].name, 'four-byte');
 });
 
+test('encodes GS1 framing and numeric data exactly', () => {
+  const result = new HanXinCore('0109506000134352', {
+    gs1: true,
+    version: 3,
+    errorCorrection: 'L1',
+    mask: 0,
+  }).generate();
+  assert.equal(result.gs1, true);
+  assert.equal(result.bitLength, 90);
+  assert.deepEqual(result.dataCodewords.slice(0, 12), [
+    0xe1, 0x10, 0x2b, 0xb6, 0x96, 0x00, 0xd6, 0xcc, 0x02, 0xff, 0x7f, 0xc0,
+  ]);
+  assert.deepEqual(result.segments.map(({ name, length }) => ({ name, length })), [
+    { name: 'numeric', length: 16 },
+  ]);
+});
+
+test('merges a GS1 separator efficiently across numeric segment boundaries', () => {
+  const result = new HanXinCore('123456789\x1d789012', {
+    gs1: true,
+    version: 3,
+    errorCorrection: 'L1',
+    mask: 0,
+  }).generate();
+  assert.equal(result.bitLength, 90);
+  assert.deepEqual(result.dataCodewords.slice(0, 12), [
+    0xe1, 0x11, 0xed, 0xc8, 0xc5, 0x7e, 0x8c, 0x54, 0x0c, 0xff, 0xff, 0xc0,
+  ]);
+  assert.deepEqual(result.segments.map(({ name, length }) => ({ name, length })), [
+    { name: 'numeric', length: 9 },
+    { name: 'gs1-separator', length: 1 },
+    { name: 'numeric', length: 6 },
+  ]);
+});
+
+test('uses binary GS1 segments for non-numeric element data', () => {
+  const result = new HanXinCore('10ABC\x1d21XYZ', { gs1: true }).generate();
+  assert.deepEqual(result.segments.map(({ name }) => name), ['binary', 'gs1-separator', 'binary']);
+  assert.equal(result.gs1, true);
+});
+
+test('rejects malformed or unsupported GS1 input', () => {
+  assert.throws(() => new HanXinCore('\x1d0109506000134352', { gs1: true }).generate(), /separators/);
+  assert.throws(() => new HanXinCore('10ABC\x1d', { gs1: true }).generate(), /separators/);
+  assert.throws(() => new HanXinCore('10ABC\x1d\x1d21XYZ', { gs1: true }).generate(), /separators/);
+  assert.throws(() => new HanXinCore('汉', { gs1: true }).generate(), /ASCII/);
+  assert.throws(() => new HanXinCore('0109506000134352', { gs1: true, eci: 3 }).generate(), /ECI/);
+  assert.throws(() => new HanXinCore('0109506000134352', { gs1: 'yes' }).generate(), /boolean/);
+});
+
 test('maps representative Unicode points to GB18030 without a runtime codec', () => {
   assert.deepEqual(unicodeToGb18030(0x41), [0x41]);
   assert.deepEqual(unicodeToGb18030('汉'.codePointAt(0)), [0xbaba]);

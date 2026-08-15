@@ -204,6 +204,83 @@ class BitBuffer {
   }
 }
 
+function createGs1Sequence(units) {
+  const sequence = [];
+  let byteStart = -1;
+  for (let position = 0; position < units.length;) {
+    let digitCount = 0;
+    while (position + digitCount < units.length && isDigit(units[position + digitCount])) digitCount++;
+    const numericThreshold = position + digitCount >= units.length ? 5 : 8;
+    if (digitCount >= numericThreshold) {
+      if (byteStart >= 0) {
+        sequence.push({ mode: 'b', units: units.slice(byteStart, position) });
+        byteStart = -1;
+      }
+      sequence.push({ mode: 'n', units: units.slice(position, position + digitCount) });
+      position += digitCount;
+    } else if (units[position] === 0x1d) {
+      if (byteStart >= 0) {
+        sequence.push({ mode: 'b', units: units.slice(byteStart, position) });
+        byteStart = -1;
+      }
+      sequence.push({ mode: 'g', units: [0x1d] });
+      position++;
+    } else {
+      if (byteStart < 0) byteStart = position;
+      position++;
+    }
+  }
+  if (byteStart >= 0) sequence.push({ mode: 'b', units: units.slice(byteStart) });
+  return sequence;
+}
+
+function compactGs1HanXin(units, eci) {
+  if (eci) throw new RangeError('Han Xin GS1 mode does not support an ECI header');
+  if (units.some((unit) => unit > 0x7f)) throw new RangeError('Han Xin GS1 input must use the GS1 ASCII character set');
+  if (units[0] === 0x1d || units.at(-1) === 0x1d || units.some((unit, index) => unit === 0x1d && units[index + 1] === 0x1d)) {
+    throw new RangeError('Han Xin GS1 separators must occur between non-empty element strings');
+  }
+  const sequence = createGs1Sequence(units);
+  const output = new BitBuffer();
+  output.append(0xe1, 8); // GS1 framing prefix
+  for (let index = 0; index < sequence.length; index++) {
+    const segment = sequence[index];
+    const previous = sequence[index - 1];
+    const next = sequence[index + 1];
+    if (segment.mode === 'b') {
+      output.append(3, 4);
+      output.append(segment.units.length, 13);
+      for (const byte of segment.units) output.append(byte, 8);
+    } else if (segment.mode === 'g') {
+      const continuesFromNumeric = previous?.mode === 'n' && previous.units.length % 3 === 0;
+      if (!continuesFromNumeric) output.append(1, 4);
+      output.append(1000, 10); // FNC1 extension value in Numeric mode
+      if (next?.mode !== 'n') output.append(1023, 10);
+    } else {
+      if (previous?.mode !== 'g') output.append(1, 4);
+      let finalCount = 0;
+      for (let position = 0; position < segment.units.length;) {
+        finalCount = Math.min(3, segment.units.length - position);
+        let value = 0;
+        for (let offset = 0; offset < finalCount; offset++) value = value * 10 + segment.units[position + offset] - 0x30;
+        output.append(value, 10);
+        position += finalCount;
+      }
+      const continuesIntoSeparator = next?.mode === 'g' && segment.units.length % 3 === 0;
+      if (!continuesIntoSeparator) output.append(1020 + finalCount, 10);
+    }
+  }
+  output.append(0xff, 8); // GS1 framing suffix
+  const modes = sequence.flatMap((segment) => Array(segment.units.length).fill(segment.mode));
+  let offset = 0;
+  const segments = sequence.map((segment) => {
+    const result = { mode: segment.mode, start: offset, end: offset + segment.units.length, length: segment.units.length };
+    offset = result.end;
+    return result;
+  });
+  return { bits: output.bits, modes, segments };
+}
+
 function segmentsFromModes(modes) {
   const result = [];
   for (let start = 0; start < modes.length;) {
@@ -215,8 +292,9 @@ function segmentsFromModes(modes) {
   return result;
 }
 
-export function compactHanXin(units, { eci = 0 } = {}) {
+export function compactHanXin(units, { eci = 0, gs1 = false } = {}) {
   if (!Number.isInteger(eci) || eci < 0 || eci > 999999) throw new RangeError('ECI must be an integer from 0 to 999999');
+  if (gs1) return compactGs1HanXin(units, eci);
   const modes = selectHanXinModes(units);
   const segments = segmentsFromModes(modes);
   const output = new BitBuffer();

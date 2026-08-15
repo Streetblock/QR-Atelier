@@ -15,6 +15,7 @@ const symbol = new HanXinCore('汉信码 123456', {
   version: 'auto',       // 1–84 or auto
   mask: 'auto',          // 0–3 or auto
   eci: 0,                // optional ECI assignment number, 0–999999
+  gs1: false,            // true for a GS1 element string
 }).generate()
 
 const svg = new HanXinSvgRenderer(symbol, {
@@ -42,14 +43,21 @@ silently selecting a different symbol.
 - GB18030 two-byte and four-byte regions
 - automatic dynamic-programming segmentation
 - ECI headers
+- GS1 framing and FNC1 element separators
 - all 84 versions and ECC levels L1–L4
 - ISO-style structural information, assistant/alignment patterns, RS blocks,
   picket-fence reordering and all four data masks
 
-The optional GS1, URI and dedicated Unicode modes are not currently exposed.
-Ordinary GS1 text can still be encoded as data, but no FNC1 semantics are
-inserted automatically. One ECI value applies to the complete input; a public
-multi-segment ECI API is not yet provided.
+Set `gs1: true` for a GS1 element string without human-readable AI
+parentheses. Insert ASCII GS (`\x1D`) between variable-length element strings;
+the core writes the Han Xin GS1 framing and FNC1 separator encoding. It does
+not maintain an Application Identifier catalog, infer separators from
+parentheses or validate checksums. GS1 mode uses the GS1 ASCII character set
+and cannot be combined with ECI.
+
+The optional URI and dedicated Unicode modes are not currently exposed. One
+ECI value applies to the complete non-GS1 input; a public multi-segment ECI API
+is not yet provided.
 
 ## References and verification
 
@@ -59,6 +67,8 @@ multi-segment ECI API is not yet provided.
   complete 23×23 matrix exactly and exercises automatic masking.
 - BWIPP/bwip-js is used only as an external development cross-check. It is not
   installed by this repository and is not imported by production code.
+- GS1 framing, FNC1 separator encoding and numeric-boundary optimization are
+  verified against BWIPP's MIT-licensed Han Xin PostScript reference.
 
 BWIPP currently writes an alternating pattern into the final six structural
 information bits. ISO/IEC 20830:2021 and current Zint clear those bits. This
