@@ -21,19 +21,22 @@ export function encodeMinimalDataMatrix(bytes, capacities, prefixCodewords = [],
   }
 
   let solution = null
-  let solutionSize = Infinity
+  let solutionResult = null
   for (let mode = ASCII; mode <= BASE256; mode += 1) {
     const edge = edges[input.length][mode]
     if (!edge) continue
-    let size = mode >= C40 && mode <= X12 ? edge.totalSize + 1 : edge.totalSize
-    if (mode === EDIFACT && edge.remaining(edge.totalSize) > 0) size += 3
-    if (size < solutionSize) {
+    const result = buildResult(edge)
+    const prefersC40Tie = solution
+      && result.unpaddedLength === solutionResult.unpaddedLength
+      && edge.mode === C40
+      && solution.mode === EDIFACT
+    if (!solutionResult || result.unpaddedLength < solutionResult.unpaddedLength || prefersC40Tie) {
       solution = edge
-      solutionSize = size
+      solutionResult = result
     }
   }
   if (!solution) throw new Error('Unable to encode Data Matrix input.')
-  return buildResult(solution)
+  return solutionResult
 }
 
 function addEdges(input, edges, from, previous) {
@@ -257,7 +260,10 @@ class Edge {
 }
 
 function buildResult(solution) {
-  const needsEdifactUnlatch = solution.endMode() === EDIFACT && solution.remaining(solution.totalSize) > 0
+  // ISO/IEC 16022 permits an implicit EDIFACT unlatch when at most two data
+  // codewords remain. Charging a full three-codeword unlatch here discards an
+  // otherwise optimal final group of four EDIFACT characters.
+  const needsEdifactUnlatch = solution.endMode() === EDIFACT && solution.remaining(solution.totalSize) > 2
   const bytes = needsEdifactUnlatch ? [124, 0, 0] : []
   let segmentSize = 0
   const base256Segments = []
