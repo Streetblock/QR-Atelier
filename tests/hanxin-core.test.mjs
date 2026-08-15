@@ -1,0 +1,102 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { HanXinCore } from '../libs/HanXinCore.js';
+import { unicodeToGb18030 } from '../libs/HanXinCompaction.js';
+import { HanXinSvgRenderer } from '../libs/HanXinSvg.js';
+import { HAN_XIN_DATA_CODEWORDS, HAN_XIN_TOTAL_CODEWORDS } from '../libs/HanXinTables.js';
+
+function matrixStrings(result) {
+  return result.modules.map((row) => row.map(Number).join(''));
+}
+
+function assertShape(result) {
+  assert.equal(result.size, result.version * 2 + 21);
+  assert.equal(result.modules.length, result.size);
+  for (const row of result.modules) {
+    assert.equal(row.length, result.size);
+    for (const module of row) assert.equal(typeof module, 'boolean');
+  }
+}
+
+test('matches the ISO/IEC 20830 Annex K numeric symbol reproduced by Zint', () => {
+  const result = new HanXinCore('1234567890', { version: 1, errorCorrection: 'L1', mask: 0 }).generate();
+  assert.deepEqual(matrixStrings(result), [
+    '11111110100010101111111', '10000000000100100000001', '10111110000000101111101',
+    '10100000001110000000101', '10101110111010101110101', '10101110000000001110101',
+    '10101110000110001110101', '00000000001000100000000', '00010101000000100000000',
+    '00011000101000000000100', '00000000000000001111000', '00000111101000000000000',
+    '00000000000000000000001', '11010110000000010110100', '00000000100000010101000',
+    '00000000100001000000000', '11111110010100001110101', '00000010000000001110101',
+    '11111010100000101110101', '00001010000111000000101', '11101010101000001111101',
+    '11101010100000000000001', '11101010100000101111111',
+  ]);
+  assert.deepEqual(result.dataCodewords.slice(0, 8), [0x11, 0xed, 0xc8, 0xc5, 0x40, 0x0f, 0xf4, 0]);
+});
+
+test('automatic masking matches the Annex K mask 01 symbol', () => {
+  const result = new HanXinCore('1234567890', { version: 1, errorCorrection: 'L1' }).generate();
+  assert.equal(result.mask, 1);
+  assert.deepEqual(matrixStrings(result), [
+    '11111110001000001111111', '10000000110001100000001', '10111110001010101111101',
+    '10100000111011100000101', '10101110010000101110101', '10101110110101001110101',
+    '10101110001100001110101', '00000000011101100000000', '00010101001010011000000',
+    '01001101111101010101110', '10101010101010100101101', '01010010111101010101010',
+    '10101010101010101010100', '10000011010101000011110', '00000011001010010101000',
+    '00000000110100000000000', '11111110011110001110101', '00000010010101101110101',
+    '11111010101010001110101', '00001010110010100000101', '11101010100010001111101',
+    '11101010110101100000001', '11101010001010001111111',
+  ]);
+});
+
+test('selects numeric, text, binary and Chinese compaction modes', () => {
+  assert.equal(new HanXinCore('1234567890').generate().segments[0].name, 'numeric');
+  assert.equal(new HanXinCore('HanXin').generate().segments[0].name, 'text');
+  assert.equal(new HanXinCore(Uint8Array.of(0x80)).generate().segments[0].name, 'binary');
+  assert.equal(new HanXinCore('汉信码').generate().segments[0].name, 'region-one');
+  assert.equal(new HanXinCore('\u{1F642}').generate().segments[0].name, 'four-byte');
+});
+
+test('maps representative Unicode points to GB18030 without a runtime codec', () => {
+  assert.deepEqual(unicodeToGb18030(0x41), [0x41]);
+  assert.deepEqual(unicodeToGb18030('汉'.codePointAt(0)), [0xbaba]);
+  assert.deepEqual(unicodeToGb18030(0x1f642), [0x9530, 0x8532]);
+});
+
+test('supports every version and all four error-correction levels', () => {
+  for (let version = 1; version <= 84; version++) {
+    const result = new HanXinCore('1', { version, errorCorrection: `L${version % 4 + 1}`, mask: 0 }).generate();
+    assert.equal(result.version, version);
+    assert.equal(result.codewords.length, HAN_XIN_TOTAL_CODEWORDS[version - 1]);
+    assert.equal(result.dataCodewords.length, HAN_XIN_DATA_CODEWORDS[version % 4][version - 1]);
+    assertShape(result);
+  }
+});
+
+test('validates forced versions, ECC levels, masks, ECI and overflow', () => {
+  assert.throws(() => new HanXinCore('x', { version: 0 }).generate(), /version/);
+  assert.throws(() => new HanXinCore('x', { errorCorrection: 'L5' }).generate(), /errorCorrection/);
+  assert.throws(() => new HanXinCore('x', { mask: 4 }).generate(), /mask/);
+  assert.throws(() => new HanXinCore('x', { eci: 1_000_000 }).generate(), /ECI/);
+  assert.throws(() => new HanXinCore('A'.repeat(30), { version: 1, errorCorrection: 'L4' }).generate(), /requires/);
+  assert.throws(() => new HanXinCore('').generate(), /must not be empty/);
+});
+
+test('generation is deterministic and exposes RS block metadata', () => {
+  const options = { errorCorrection: 'L3', version: 8 };
+  const first = new HanXinCore('Han Xin 汉信 1234567890', options).generate();
+  const second = new HanXinCore('Han Xin 汉信 1234567890', options).generate();
+  assert.deepEqual(first.modules, second.modules);
+  assert.deepEqual(first.codewords, second.codewords);
+  assert.ok(first.blocks.length > 1);
+  assert.equal(first.codewords.length, first.capacity.totalCodewords);
+});
+
+test('renders a dependency-free, crisp SVG with a quiet zone', () => {
+  const result = new HanXinCore('Han Xin').generate();
+  const svg = new HanXinSvgRenderer(result, { scale: 3, margin: 3 }).render();
+  assert.match(svg, /^<svg/);
+  assert.match(svg, /shape-rendering="crispEdges"/);
+  assert.match(svg, /aria-label="Han Xin code"/);
+  assert.match(svg, new RegExp(`width="${(result.size + 6) * 3}"`));
+});

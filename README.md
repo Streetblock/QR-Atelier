@@ -11,6 +11,7 @@ On `main`, the studio focuses on QR Code. Additional 2D barcode families live in
 * `feat/datamatrix`
 * `feat/micro-qr-core`
 * `feat/maxi-code`
+* `feat/han-xin-core`
 
 Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
 
@@ -40,6 +41,14 @@ The QR Code core and renderer.
 
 ### 2. `app.js` and `styles.css`
 The app controller and UI. Manages state, binds DOM events, and provides the interface. The studio currently uses the core's UTF-8 default and does not expose an encoding selector. When a center logo is present, the app requests error correction level H; this is app behavior, not an automatic rule inside `QrCore`.
+
+### Han Xin feature branch
+
+The `feat/han-xin-core` branch adds a native ISO/IEC 20830-oriented Han Xin
+encoder without changing the QR studio UI. It supports versions 1–84, ECC
+levels L1–L4, automatic mode segmentation, GB18030 text, raw bytes, all four
+masks and a neutral SVG matrix renderer. See [docs/HANXIN.md](docs/HANXIN.md)
+for the public API and reference notes.
 
 ## Installation & Usage
 
