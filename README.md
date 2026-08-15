@@ -17,6 +17,11 @@ MicroPDF417 variants plus a standard PDF417 core. See
 [`docs/pdf417-core.md`](docs/pdf417-core.md) for its low-level API, validation
 rules, reference coverage, and the planned ZPL `^BF`/`^B7` integration path.
 
+The stacked `feat/gs1-composite-core` branch adds native CC-A, CC-B, and CC-C
+2D components while reusing that PDF417 foundation. Its API, linear-component
+boundary, and reference coverage are documented in
+[`docs/gs1-composite-core.md`](docs/gs1-composite-core.md).
+
 Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
 
 ## Features
