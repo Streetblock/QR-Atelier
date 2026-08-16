@@ -66,6 +66,36 @@ test('can force byte mode when compact high-level modes are not wanted', () => {
   assert.deepEqual(bytes.modes, ['byte', 'byte', 'byte'])
 })
 
+test('matches Reader Initialization and Structured Append reference vectors', () => {
+  const vectors = [
+    [{ readerInitialization: true }, [0x51, 0x11, 0x71, 0x7E, 0x40]],
+    [{ structuredAppend: { index: 1, count: 16 } }, [0x48, 0x03, 0x60, 0x24, 0x3C, 0x3F, 0x50]],
+    [{ readerInitialization: true, structuredAppend: { index: 1, count: 16 } }, [0x54, 0x40, 0x1E, 0x02, 0x23, 0x63, 0x7D, 0x00]],
+    [{ structuredAppend: { index: 2, count: 16 } }, [0x48, 0x03, 0x62, 0x24, 0x3C, 0x3F, 0x50]],
+    [{ structuredAppend: { index: 3, count: 3, id: 255 } }, [0x4F, 0x7C, 0x44, 0x24, 0x3C, 0x3F, 0x50]],
+  ]
+  for (const [options, expected] of vectors) {
+    assert.deepEqual(new GridMatrixCore('12', options).generate().dataCodewords, expected, JSON.stringify(options))
+  }
+})
+
+test('omits Reader Initialization after the first Structured Append symbol', () => {
+  const symbol = new GridMatrixCore('12', {
+    readerInitialization: true,
+    structuredAppend: { index: 2, count: 16 },
+  }).generate()
+  assert.equal(symbol.readerInitialization, false)
+  assert.deepEqual(symbol.dataCodewords, [0x48, 0x03, 0x62, 0x24, 0x3C, 0x3F, 0x50])
+})
+
+test('validates Reader Initialization and Structured Append metadata', () => {
+  assert.throws(() => new GridMatrixCore('A', { readerInitialization: 1 }).generate(), /boolean/)
+  assert.throws(() => new GridMatrixCore('A', { structuredAppend: true }).generate(), /object/)
+  assert.throws(() => new GridMatrixCore('A', { structuredAppend: { index: 1, count: 1 } }).generate(), /count/)
+  assert.throws(() => new GridMatrixCore('A', { structuredAppend: { index: 3, count: 2 } }).generate(), /index/)
+  assert.throws(() => new GridMatrixCore('A', { structuredAppend: { index: 1, count: 2, id: 256 } }).generate(), /id/)
+})
+
 test('supports all thirteen explicit versions and produces square boolean matrices', () => {
   for (let layers = 1; layers <= 13; layers++) {
     const symbol = new GridMatrixCore('A', { layers }).generate()

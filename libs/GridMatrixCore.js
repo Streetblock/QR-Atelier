@@ -74,13 +74,14 @@ export class GridMatrixCore {
 
   generate() {
     const { bytes, eci } = normalizeInput(this.data, this.options.eci)
+    const controls = normalizeControls(this.options)
     const requestedMode = this.options.mode == null ? 'auto' : String(this.options.mode).toLowerCase()
     if (!['auto', 'byte'].includes(requestedMode)) {
       throw new RangeError("Grid Matrix mode must be 'auto' or 'byte'.")
     }
     const { bits, modes } = requestedMode === 'byte'
-      ? { bits: encodeByteSegments(bytes, eci), modes: Array(bytes.length).fill(BYTE) }
-      : encodeOptimized(bytes, eci)
+      ? { bits: encodeByteSegments(bytes, eci, controls.prefix), modes: Array(bytes.length).fill(BYTE) }
+      : encodeOptimized(bytes, eci, controls.prefix)
     const dataCodewords = bitsToCodewords(bits)
     const layers = chooseLayers(dataCodewords.length, this.options.layers)
     const eccLevel = chooseEccLevel(dataCodewords.length, layers, this.options.eccLevel)
@@ -93,6 +94,8 @@ export class GridMatrixCore {
       layers,
       eccLevel,
       eci,
+      readerInitialization: controls.readerInitialization,
+      structuredAppend: controls.structuredAppend,
       encoding: requestedMode,
       modes: modes.map(mode => MODE_NAMES[mode - 1]),
       width: modules.length,
@@ -103,6 +106,44 @@ export class GridMatrixCore {
       readyForScan: true,
     }
   }
+}
+
+function normalizeControls(options) {
+  const requestedReaderInitialization = options.readerInitialization === true
+  if (options.readerInitialization != null && typeof options.readerInitialization !== 'boolean') {
+    throw new TypeError('Grid Matrix readerInitialization must be boolean.')
+  }
+
+  let structuredAppend = null
+  if (options.structuredAppend != null) {
+    const value = options.structuredAppend
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new TypeError('Grid Matrix structuredAppend must be an object.')
+    }
+    const count = Number(value.count), index = Number(value.index)
+    const id = value.id == null ? 0 : Number(value.id)
+    if (!Number.isInteger(count) || count < 2 || count > 16) {
+      throw new RangeError('Grid Matrix structuredAppend count must be an integer from 2 to 16.')
+    }
+    if (!Number.isInteger(index) || index < 1 || index > count) {
+      throw new RangeError('Grid Matrix structuredAppend index must be an integer from 1 to count.')
+    }
+    if (!Number.isInteger(id) || id < 0 || id > 255) {
+      throw new RangeError('Grid Matrix structuredAppend id must be an integer from 0 to 255.')
+    }
+    structuredAppend = { index, count, id }
+  }
+
+  const readerInitialization = requestedReaderInitialization && (!structuredAppend || structuredAppend.index === 1)
+  const prefix = []
+  if (readerInitialization) appendBits(prefix, 10, 4)
+  if (structuredAppend) {
+    appendBits(prefix, 9, 4)
+    appendBits(prefix, structuredAppend.id, 8)
+    appendBits(prefix, structuredAppend.count - 1, 4)
+    appendBits(prefix, structuredAppend.index - 1, 4)
+  }
+  return { prefix, readerInitialization, structuredAppend }
 }
 
 function normalizeInput(value, requestedEci) {
@@ -177,8 +218,8 @@ function buildGb2312EncodeMap() {
   return map
 }
 
-function encodeByteSegments(bytes, eci) {
-  const bits = []
+function encodeByteSegments(bytes, eci, prefix = []) {
+  const bits = [...prefix]
   appendEci(bits, eci)
   const flatBytes = Array.from(bytes).flatMap(value => value > 0xFF ? [value >> 8, value & 0xFF] : [value])
   for (let offset = 0; offset < flatBytes.length; offset += 512) {
@@ -193,8 +234,8 @@ function encodeByteSegments(bytes, eci) {
   return bits
 }
 
-function encodeOptimized(data, eci) {
-  const bits = []
+function encodeOptimized(data, eci, prefix = []) {
+  const bits = [...prefix]
   appendEci(bits, eci)
   const modes = defineModes(data)
   let position = 0, currentMode = 0, lastMode = 0
