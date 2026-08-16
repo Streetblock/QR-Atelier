@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { CodeOneCore } from '../libs/CodeOneCore.js'
+import { CodeOneSvgRenderer } from '../libs/CodeOneSvg.js'
 
 const references = [
   ['A', 18, 16, '50aa7fb5610bfc5770b61668703d9f3d23165ba79872e6469620fefd6f0acada'],
@@ -49,9 +50,29 @@ test('matches official matrices for every general high-level mode', () => {
 })
 
 test('validates explicitly selected high-level modes', () => {
-  assert.throws(() => new CodeOneCore('lowercase', { version: 'A-H', mode: 'c40' }).generate(), /cannot encode/)
+  assert.equal(new CodeOneCore('lowercase', { version: 'A-H', mode: 'c40' }).generate().encodingMode, 'c40')
+  assert.throws(() => new CodeOneCore('lowercase', { version: 'A-H', mode: 'edi' }).generate(), /EDI mode accepts/)
   assert.throws(() => new CodeOneCore('ABC', { version: 'A-H', mode: 'decimal' }).generate(), /requires decimal digits/)
   assert.throws(() => new CodeOneCore('ABC', { version: 'A-H', mode: 'unknown' }).generate(), /must be auto/)
+})
+
+test('matches official shifted and extended C40 matrices', () => {
+  const references = [
+    ['ABCDEFGHIJ\x01K', 'dad824358e537f87006007ef1c47c2c96cfe4ef0418f30d5731d53e8ef8520d4'],
+    ['ABCDEFGHIJK\x80', '15484eef3e09541e4392f1fb153069590910225b9234ecdff1a20ce046ce24e2'],
+  ]
+  for (const [data, expectedHash] of references) {
+    const symbol = new CodeOneCore(data, { version: 'A-H', mode: 'c40' }).generate()
+    const bits = symbol.modules.map(row => row.map(Number).join('')).join('')
+    assert.equal(createHash('sha256').update(bits).digest('hex'), expectedHash)
+  }
+})
+
+test('matches an official mixed ASCII/Decimal/ASCII matrix', () => {
+  const symbol = new CodeOneCore('A123456789012345678901A', { version: 'A-H' }).generate()
+  const bits = symbol.modules.map(row => row.map(Number).join('')).join('')
+  assert.equal(symbol.encodingMode, 'mixed')
+  assert.equal(createHash('sha256').update(bits).digest('hex'), '887f58ae136bf85dd3a9765152f2b568d652bb97509c6f4be3b177cebaa3fa28')
 })
 
 test('matches official Structured Append and ECI matrices', () => {
@@ -84,4 +105,12 @@ test('encodes GS1 separators, ECI Unicode bytes and validates control options', 
   assert.throws(() => new CodeOneCore('A', { version: 'A-H', structuredAppend: { index: 3, count: 2 } }).generate(), /index must be/)
   assert.throws(() => new CodeOneCore('Grüße', { version: 'A-H', encoding: 'utf-8' }).generate(), /requires an ECI/)
   assert.throws(() => new CodeOneCore('1', { version: 'S', eci: 3 }).generate(), /not yet available/)
+})
+
+test('renders a large general Code One matrix as SVG', () => {
+  const symbol = new CodeOneCore('renderer', { version: 'H' }).generate()
+  const svg = new CodeOneSvgRenderer(symbol, { size: 268 }).render()
+  assert.match(svg, /width="268"/)
+  assert.match(svg, /aria-label="Code One H"/)
+  assert.equal((svg.match(/<rect /g) || []).length, symbol.modules.flat().filter(Boolean).length + 1)
 })

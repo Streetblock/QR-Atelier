@@ -35,8 +35,7 @@ export class CodeOneCore {
   generate() {
     const requested = this.options.version == null ? null : String(this.options.version).toUpperCase()
     if (requested?.startsWith('T')) {
-      rejectUnsupportedControlOptions(this.options, 'T')
-      return generateVersionT(this.data, requested)
+      return generateVersionT(this.data, requested, this.options)
     }
     if (requested === 'A-H' || VERSION_MAIN.some(version => version.name === requested)) {
       return generateMainVersion(this.data, requested, this.options)
@@ -165,20 +164,22 @@ function placeVersionS(codewords, version) {
   return modules
 }
 
-function generateVersionT(value, requested) {
-  const data = normalizeLatin1(value)
-  if (data.length > 90) throw new RangeError('Code One Version T accepts at most 90 Latin-1 characters.')
-  const encoded = encodeVersionTData(data)
-  const version = chooseVersionT(encoded.length, requested)
+function generateVersionT(value, requested, options) {
+  const data = normalizeMainData(value, options)
+  const controls = createControlPrefix(options, data)
+  if (controls.data.length > 90) throw new RangeError('Code One Version T accepts at most 90 encoded characters including ECI escapes.')
+  const selection = chooseEncoding(controls.data, VERSION_T, requested, 'T', options.mode, controls.prefix, controls.gs1)
+  const { version, encoded, mode } = selection
   const dataCodewords = [...encoded, ...Array(version.dataWords - encoded.length).fill(129)]
   const checkCodewords = reedSolomonInField(dataCodewords, version.checkWords, 0x12d, 256)
   const codewords = [...dataCodewords, ...checkCodewords]
   const modules = placeVersionT(codewords, version)
   return {
-    format: 'CodeOne', family: 'T', version: version.name, data,
+    format: 'CodeOne', family: 'T', version: version.name, data: value,
     width: modules[0].length, height: modules.length, modules,
     dataCodewords, checkCodewords, codewords,
-    encodingMode: selectVersionTMode(data), readyForScan: true,
+    encodingMode: mode, gs1: controls.gs1, eci: controls.eci,
+    structuredAppend: controls.structuredAppend, readyForScan: true,
   }
 }
 
@@ -202,23 +203,6 @@ function rejectUnsupportedControlOptions(options, family) {
   }
 }
 
-function selectVersionTMode(data) {
-  if (/^\d{90}$/.test(data)) return 'decimal'
-  if (/^[ A-Z0-9]+$/.test(data)) {
-    const remainder = data.length % 3
-    const codewordLength = 1 + Math.floor(data.length / 3) * 2 + (remainder === 1 ? 1 : remainder === 2 ? 2 : 0)
-    if (VERSION_T.some(version => version.dataWords === codewordLength)) return 'c40'
-  }
-  return 'ascii'
-}
-
-function encodeVersionTData(data) {
-  const mode = selectVersionTMode(data)
-  if (mode === 'decimal') return encodeDecimal(data)
-  if (mode === 'c40') return encodeC40(data)
-  return encodeAscii(data)
-}
-
 function encodeAscii(data, gs1 = false) {
   const codewords = []
   for (let i = 0; i < data.length;) {
@@ -233,48 +217,6 @@ function encodeAscii(data, gs1 = false) {
     else codewords.push(value + 1)
   }
   return codewords
-}
-
-function encodeC40(data) {
-  const values = []
-  for (const character of data) {
-    if (character === ' ') values.push(3)
-    else if (/\d/.test(character)) values.push(character.charCodeAt(0) - 44)
-    else values.push(character.charCodeAt(0) - 51)
-  }
-  const codewords = [230]
-  let position = 0
-  while (position + 2 < values.length) {
-    const packed = 1600 * values[position] + 40 * values[position + 1] + values[position + 2] + 1
-    codewords.push(packed >> 8, packed & 255)
-    position += 3
-  }
-  const remaining = values.length - position
-  if (remaining === 1) codewords.push(data.charCodeAt(position) + 1)
-  else if (remaining === 2) {
-    const packed = 1600 * values[position] + 40 * values[position + 1] + 1
-    codewords.push(packed >> 8, packed & 255)
-  }
-  return codewords
-}
-
-function encodeDecimal(data) {
-  let bits = '1111'
-  for (let i = 0; i < data.length; i += 3) bits += (Number(data.slice(i, i + 3)) + 1).toString(2).padStart(10, '0')
-  if (bits.length % 8 !== 0) throw new Error('Internal Code One decimal alignment error.')
-  const codewords = []
-  for (let i = 0; i < bits.length; i += 8) codewords.push(Number.parseInt(bits.slice(i, i + 8), 2))
-  return codewords
-}
-
-function chooseVersionT(length, requested) {
-  const minimum = VERSION_T.find(version => length <= version.dataWords)
-  if (!minimum) throw new RangeError(`Input requires ${length} codewords; Code One T-48 allows at most 38.`)
-  if (requested === 'T') return minimum
-  const version = VERSION_T.find(candidate => candidate.name === requested)
-  if (!version) throw new RangeError('Supported Code One T versions are T, T-16, T-32 and T-48.')
-  if (length > version.dataWords) throw new RangeError(`${requested} accepts at most ${version.dataWords} data codewords; input requires ${length}.`)
-  return version
 }
 
 function placeVersionT(codewords, version) {
@@ -375,13 +317,17 @@ function normalizeStructuredAppend(value) {
 }
 
 function chooseMainEncoding(data, requested, requestedMode, prefix = [], gs1 = false) {
+  return chooseEncoding(data, VERSION_MAIN, requested, 'A-H', requestedMode, prefix, gs1)
+}
+
+function chooseEncoding(data, allVersions, requested, automaticName, requestedMode, prefix = [], gs1 = false) {
   const mode = requestedMode == null ? 'auto' : String(requestedMode).toLowerCase()
   if (!['auto', 'ascii', 'c40', 'text', 'edi', 'decimal', 'byte'].includes(mode)) {
     throw new RangeError('Code One mode must be auto, ascii, c40, text, edi, decimal or byte.')
   }
-  const versions = requested === 'A-H'
-    ? VERSION_MAIN
-    : [VERSION_MAIN.find(version => version.name === requested)]
+  const versions = requested === automaticName
+    ? allVersions
+    : [allVersions.find(version => version.name === requested)]
   let shortest = Infinity
   for (const version of versions) {
     const remainingCapacity = version.dataWords - prefix.length
@@ -390,11 +336,12 @@ function chooseMainEncoding(data, requested, requestedMode, prefix = [], gs1 = f
     for (const candidate of candidates) shortest = Math.min(shortest, candidate.codewords.length)
     const fitting = candidates.filter(candidate => candidate.codewords.length <= version.dataWords)
     if (fitting.length) {
-      fitting.sort((left, right) => left.codewords.length - right.codewords.length)
+      const priority = { mixed: 0, decimal: 1, c40: 2, text: 3, edi: 4, byte: 5, ascii: 6 }
+      fitting.sort((left, right) => left.codewords.length - right.codewords.length || priority[left.mode] - priority[right.mode])
       return { version, encoded: fitting[0].codewords, mode: fitting[0].mode }
     }
   }
-  const name = requested === 'A-H' ? 'Code One H' : `Code One ${requested}`
+  const name = requested === automaticName ? `Code One ${versions.at(-1).name}` : `Code One ${requested}`
   const capacity = versions.at(-1).dataWords
   throw new RangeError(`${name} accepts at most ${capacity} data codewords; input requires ${shortest}.`)
 }
@@ -402,9 +349,9 @@ function chooseMainEncoding(data, requested, requestedMode, prefix = [], gs1 = f
 function createMainCandidates(data, capacity, mode, gs1) {
   const encoders = {
     ascii: () => encodeAscii(data, gs1),
-    c40: () => encodeTripletMode(data, capacity, 'c40'),
-    text: () => encodeTripletMode(data, capacity, 'text'),
-    edi: () => encodeTripletMode(data, capacity, 'edi'),
+    c40: () => encodeTripletMode(data, capacity, 'c40', gs1),
+    text: () => encodeTripletMode(data, capacity, 'text', gs1),
+    edi: () => encodeTripletMode(data, capacity, 'edi', gs1),
     decimal: () => encodeMainDecimal(data, capacity),
     byte: () => encodeByte(data, capacity),
   }
@@ -415,58 +362,153 @@ function createMainCandidates(data, capacity, mode, gs1) {
       if (mode !== 'auto') throw error
     }
   }
+  if (mode === 'auto') {
+    try { candidates.push({ mode: 'mixed', codewords: encodeMixed(data, gs1) }) } catch {}
+  }
   return candidates
 }
 
-function encodeTripletMode(data, capacity, mode) {
-  const definitions = {
-    c40: { latch: 230, pattern: /^[ A-Z0-9]+$/, value: c40Value },
-    text: { latch: 239, pattern: /^[ a-z0-9]+$/, value: textValue },
-    edi: { latch: 238, pattern: /^[\r*> 0-9A-Z]+$/, value: ediValue },
-  }
-  const definition = definitions[mode]
-  if (!definition.pattern.test(data)) throw new RangeError(`Code One ${mode.toUpperCase()} mode cannot encode this payload without shifts.`)
-  const values = [...data].map(definition.value)
-  const codewords = [definition.latch]
+function encodeMixed(data, gs1) {
+  const codewords = []
   let position = 0
-  while (position + 2 < values.length) {
-    const packed = 1600 * values[position] + 40 * values[position + 1] + values[position + 2] + 1
-    codewords.push(packed >> 8, packed & 255)
-    position += 3
+  let compacted = false
+  while (position < data.length) {
+    const rest = data.slice(position)
+    const decimal = rest.match(/^\d{12,}/)?.[0]
+    if (decimal) {
+      codewords.push(...encodeMainDecimal(decimal, Infinity))
+      position += decimal.length
+      compacted = true
+      continue
+    }
+
+    const byteRun = rest.match(/^[\x80-\xff]{2,}/)?.[0]
+    if (byteRun) {
+      codewords.push(...encodeByte(byteRun, Infinity))
+      position += byteRun.length
+      compacted = true
+      continue
+    }
+
+    const runs = [
+      ['c40', rest.match(/^[ A-Z0-9]{6,}/)?.[0]],
+      ['text', rest.match(/^[ a-z0-9]{6,}/)?.[0]],
+      ['edi', rest.match(/^[\r*> A-Z0-9]{6,}/)?.[0]],
+    ].map(([tripletMode, run]) => {
+      const decimalStart = run?.search(/\d{12,}/) ?? -1
+      return [tripletMode, decimalStart > 0 ? run.slice(0, decimalStart) : run]
+    })
+    const selected = runs.find(([, run]) => run)
+    if (selected) {
+      const [tripletMode, run] = selected
+      const length = run.length - run.length % 3
+      if (length >= 3) {
+        codewords.push(...encodeClosedTripletSegment(run.slice(0, length), tripletMode))
+        position += length
+        compacted = true
+        continue
+      }
+    }
+
+    if (position + 1 < data.length && /\d/.test(data[position]) && /\d/.test(data[position + 1])) {
+      codewords.push(Number(data.slice(position, position + 2)) + 130)
+      position += 2
+    } else {
+      codewords.push(...encodeAscii(data[position], gs1))
+      position++
+    }
   }
-  const remaining = values.length - position
-  const room = capacity - codewords.length
-  if (remaining === 1 && room === 1) {
-    codewords.push(data.charCodeAt(position) + 1)
-  } else if (remaining === 2 && room === 2) {
-    const packed = 1600 * values[position] + 40 * values[position + 1] + 1
-    codewords.push(packed >> 8, packed & 255)
-  } else {
-    if (codewords.length < capacity) codewords.push(255)
-    codewords.push(...encodeAscii(data.slice(position)))
-  }
+  if (!compacted) throw new RangeError('No compact Code One segments found.')
   return codewords
 }
 
-function c40Value(character) {
-  if (character === ' ') return 3
-  if (/\d/.test(character)) return character.charCodeAt(0) - 44
-  return character.charCodeAt(0) - 51
+function encodeClosedTripletSegment(data, mode) {
+  const latch = mode === 'c40' ? 230 : mode === 'text' ? 239 : 238
+  const values = [...data].flatMap(character => mode === 'edi'
+    ? [ediValue(character, false)]
+    : c40TextValues(character, mode, false))
+  if (values.length % 3 !== 0) throw new Error('Internal Code One triplet alignment error.')
+  const codewords = [latch]
+  for (let index = 0; index < values.length; index += 3) {
+    appendTriplet(codewords, values[index], values[index + 1], values[index + 2])
+  }
+  codewords.push(255)
+  return codewords
 }
 
-function textValue(character) {
-  if (character === ' ') return 3
-  if (/\d/.test(character)) return character.charCodeAt(0) - 44
-  return character.charCodeAt(0) - 83
+function encodeTripletMode(data, capacity, mode, gs1 = false) {
+  const definitions = {
+    c40: { latch: 230, values: character => c40TextValues(character, 'c40', gs1) },
+    text: { latch: 239, values: character => c40TextValues(character, 'text', gs1) },
+    edi: { latch: 238, values: character => [ediValue(character, gs1)] },
+  }
+  const definition = definitions[mode]
+  const characters = [...data]
+  const groups = characters.map(definition.values)
+  const values = groups.flat()
+  const packedCodewords = [definition.latch]
+  let valuePosition = 0
+  while (valuePosition + 2 < values.length) {
+    appendTriplet(packedCodewords, values[valuePosition], values[valuePosition + 1], values[valuePosition + 2])
+    valuePosition += 3
+  }
+  const remaining = values.length - valuePosition
+  const room = capacity - packedCodewords.length
+  if (remaining === 0) {
+    if (packedCodewords.length < capacity) packedCodewords.push(255)
+    return packedCodewords
+  }
+  if (remaining === 1 && room === 1 && groups.at(-1).length === 1) {
+    packedCodewords.push(...encodeAscii(characters.at(-1), gs1))
+    return packedCodewords
+  } else if (remaining === 2 && room === 2) {
+    appendTriplet(packedCodewords, values[valuePosition], values[valuePosition + 1], 0)
+    return packedCodewords
+  }
+
+  let characterPosition = groups.length
+  let prefixValueCount = values.length
+  while (characterPosition > 0 && prefixValueCount % 3 !== 0) prefixValueCount -= groups[--characterPosition].length
+  const codewords = [definition.latch]
+  for (let index = 0; index < prefixValueCount; index += 3) {
+    appendTriplet(codewords, values[index], values[index + 1], values[index + 2])
+  }
+  codewords.push(255, ...encodeAscii(characters.slice(characterPosition).join(''), gs1))
+  return codewords
 }
 
-function ediValue(character) {
+function appendTriplet(codewords, first, second, third) {
+  const packed = 1600 * first + 40 * second + third + 1
+  codewords.push(packed >> 8, packed & 255)
+}
+
+function c40TextValues(character, mode, gs1) {
+  const value = character.charCodeAt(0)
+  if (gs1 && value === 29) return [1, 27]
+  if (value >= 128) return [1, 30, ...c40TextValues(String.fromCharCode(value - 128), mode, false)]
+  if (value === 32) return [3]
+  if (value >= 48 && value <= 57) return [value - 44]
+  if (mode === 'c40' && value >= 65 && value <= 90) return [value - 51]
+  if (mode === 'text' && value >= 97 && value <= 122) return [value - 83]
+  if (value <= 31) return [0, value]
+  if (value >= 33 && value <= 47) return [1, value - 33]
+  if (value >= 58 && value <= 64) return [1, value - 43]
+  if (value >= 91 && value <= 95) return [1, value - 69]
+  if (mode === 'c40') return [2, value - 96]
+  if (value === 96) return [2, 0]
+  if (value >= 65 && value <= 90) return [2, value - 64]
+  return [2, value - 96]
+}
+
+function ediValue(character, gs1) {
+  if (gs1 && character.charCodeAt(0) === 29) throw new RangeError('Code One EDI mode cannot encode an inline GS1 separator.')
   if (character === '\r') return 0
   if (character === '*') return 1
   if (character === '>') return 2
   if (character === ' ') return 3
   if (/\d/.test(character)) return character.charCodeAt(0) - 44
-  return character.charCodeAt(0) - 51
+  if (/^[A-Z]$/.test(character)) return character.charCodeAt(0) - 51
+  throw new RangeError('Code One EDI mode accepts CR, space, *, >, digits and uppercase letters.')
 }
 
 function encodeByte(data, capacity) {

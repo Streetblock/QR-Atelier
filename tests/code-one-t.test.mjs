@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { CodeOneCore } from '../libs/CodeOneCore.js'
+import { CodeOneSvgRenderer } from '../libs/CodeOneSvg.js'
 
 const references = new Map([
   ['ABCDEFGHIJKLM', [
@@ -75,7 +76,48 @@ test('supports the full 90-digit T-48 decimal capacity', () => {
 test('selects and validates forced Version T sizes', () => {
   assert.equal(new CodeOneCore('ABC', { version: 'T' }).generate().version, 'T-16')
   assert.equal(new CodeOneCore('ABC', { version: 'T-32' }).generate().version, 'T-32')
-  assert.throws(() => new CodeOneCore('a'.repeat(11), { version: 'T-16' }).generate(), /input requires 11/)
+  assert.throws(() => new CodeOneCore('?'.repeat(11), { version: 'T-16' }).generate(), /input requires 11/)
   assert.throws(() => new CodeOneCore('\u20ac', { version: 'T' }).generate(), /Latin-1/)
   assert.throws(() => new CodeOneCore('1'.repeat(91), { version: 'T' }).generate(), /at most 90/)
+})
+
+test('supports every general high-level mode in Version T', () => {
+  const cases = [
+    ['ascii', 'A?'],
+    ['c40', 'ABCDEFGHIJKLM'],
+    ['text', 'abcdefghijklm'],
+    ['edi', '\r*>\r*>'],
+    ['decimal', '1234567890123'],
+    ['byte', '\x80\x80'],
+  ]
+  for (const [mode, data] of cases) {
+    const symbol = new CodeOneCore(data, { version: 'T', mode }).generate()
+    assert.equal(symbol.encodingMode, mode)
+    assert.equal(symbol.height, 16)
+  }
+})
+
+test('supports GS1, ECI and Structured Append in Version T', () => {
+  const gs1 = new CodeOneCore(`0104912345123459\x1d10ABC`, { version: 'T', gs1: true }).generate()
+  assert.equal(gs1.dataCodewords[0], 232)
+  assert.ok(gs1.dataCodewords.includes(232, 1))
+
+  const eci = new CodeOneCore('Grüße', { version: 'T', encoding: 'utf-8', eci: 26 }).generate()
+  assert.equal(eci.eci, 26)
+  assert.deepEqual(eci.dataCodewords.slice(0, 3), [129, 93, 93])
+
+  const sequence = new CodeOneCore('ABCDEFGHIJ', {
+    version: 'T',
+    structuredAppend: { index: 1, count: 15 },
+  }).generate()
+  assert.deepEqual(sequence.structuredAppend, { index: 1, count: 15 })
+  assert.deepEqual(sequence.dataCodewords.slice(0, 2), [14, 233])
+})
+
+test('renders Version T with its rectangular aspect ratio', () => {
+  const symbol = new CodeOneCore('ABCDEFGHIJKLM', { version: 'T' }).generate()
+  const svg = new CodeOneSvgRenderer(symbol, { size: 170 }).render()
+  assert.match(svg, /width="170"/)
+  assert.match(svg, /viewBox="0 0 21 20"/)
+  assert.match(svg, /aria-label="Code One T-16"/)
 })
