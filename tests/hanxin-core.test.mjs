@@ -92,16 +92,40 @@ test('merges a GS1 separator efficiently across numeric segment boundaries', () 
   ]);
 });
 
-test('uses binary GS1 segments for non-numeric element data', () => {
+test('uses only normative Text and extended Numeric segments inside GS1', () => {
   const result = new HanXinCore('10ABC\x1d21XYZ', { gs1: true }).generate();
-  assert.deepEqual(result.segments.map(({ name }) => name), ['binary', 'gs1-separator', 'binary']);
+  assert.deepEqual(result.segments.map(({ name }) => name), ['text', 'gs1-separator', 'numeric', 'text']);
   assert.equal(result.gs1, true);
+});
+
+test('matches the first normative GS1 Numeric-to-Text bit stream', () => {
+  const input = '01034531200000111719112510ABCD1234';
+  const expected = [
+    '11100001',
+    '0001', ...[10, 345, 312, 0, 1, 117, 191, 125, 10, 1022].map((value) => value.toString(2).padStart(10, '0')),
+    '0010', ...[10, 11, 12, 13, 1, 2, 3, 4, 63].map((value) => value.toString(2).padStart(6, '0')),
+    '11111111',
+  ].join('');
+  assert.equal(compactHanXin([...Buffer.from(input)], { gs1: true }).bits.map(Number).join(''), expected);
+});
+
+test('encodes FNC1 through the normative Text-to-extended-Numeric transition', () => {
+  const expected = [
+    '11100001',
+    '0010', ...[10, 63].map((value) => value.toString(2).padStart(6, '0')),
+    '0001', ...[1000, 211, 0, 1021].map((value) => value.toString(2).padStart(10, '0')),
+    '11111111',
+  ].join('');
+  const compacted = compactHanXin([...Buffer.from('A\x1d2110')], { gs1: true });
+  assert.equal(compacted.bits.map(Number).join(''), expected);
+  assert.deepEqual(compacted.segments.map(({ mode }) => mode), ['t', 'g', 'n']);
 });
 
 test('rejects malformed or unsupported GS1 input', () => {
   assert.throws(() => new HanXinCore('\x1d0109506000134352', { gs1: true }).generate(), /separators/);
   assert.throws(() => new HanXinCore('10ABC\x1d', { gs1: true }).generate(), /separators/);
   assert.throws(() => new HanXinCore('10ABC\x1d\x1d21XYZ', { gs1: true }).generate(), /separators/);
+  assert.throws(() => new HanXinCore('10ABC\x1dXYZ', { gs1: true }).generate(), /application identifier/);
   assert.throws(() => new HanXinCore('汉', { gs1: true }).generate(), /ASCII/);
   assert.throws(() => new HanXinCore('0109506000134352', { gs1: true, eci: 3 }).generate(), /ECI/);
   assert.throws(() => new HanXinCore('0109506000134352', { gs1: 'yes' }).generate(), /boolean/);

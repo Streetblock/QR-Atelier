@@ -421,31 +421,35 @@ function compactUriHanXin(units, eci) {
 
 function createGs1Sequence(units) {
   const sequence = [];
-  let byteStart = -1;
+  let textStart = -1;
   for (let position = 0; position < units.length;) {
     let digitCount = 0;
     while (position + digitCount < units.length && isDigit(units[position + digitCount])) digitCount++;
-    const numericThreshold = position + digitCount >= units.length ? 5 : 8;
+    const followsFnc1 = position > 0 && units[position - 1] === 0x1d;
+    const numericThreshold = followsFnc1 ? 1 : position + digitCount >= units.length ? 5 : 8;
     if (digitCount >= numericThreshold) {
-      if (byteStart >= 0) {
-        sequence.push({ mode: 'b', units: units.slice(byteStart, position) });
-        byteStart = -1;
+      if (textStart >= 0) {
+        sequence.push({ mode: 't', units: units.slice(textStart, position) });
+        textStart = -1;
       }
       sequence.push({ mode: 'n', units: units.slice(position, position + digitCount) });
       position += digitCount;
     } else if (units[position] === 0x1d) {
-      if (byteStart >= 0) {
-        sequence.push({ mode: 'b', units: units.slice(byteStart, position) });
-        byteStart = -1;
+      if (!isDigit(units[position + 1])) {
+        throw new RangeError('Han Xin GS1 separators must be followed by a numeric application identifier');
+      }
+      if (textStart >= 0) {
+        sequence.push({ mode: 't', units: units.slice(textStart, position) });
+        textStart = -1;
       }
       sequence.push({ mode: 'g', units: [0x1d] });
       position++;
     } else {
-      if (byteStart < 0) byteStart = position;
+      if (textStart < 0) textStart = position;
       position++;
     }
   }
-  if (byteStart >= 0) sequence.push({ mode: 'b', units: units.slice(byteStart) });
+  if (textStart >= 0) sequence.push({ mode: 't', units: units.slice(textStart) });
   return sequence;
 }
 
@@ -462,10 +466,15 @@ function compactGs1HanXin(units, eci) {
     const segment = sequence[index];
     const previous = sequence[index - 1];
     const next = sequence[index + 1];
-    if (segment.mode === 'b') {
-      output.append(3, 4);
-      output.append(segment.units.length, 13);
-      for (const byte of segment.units) output.append(byte, 8);
+    if (segment.mode === 't') {
+      output.append(2, 4);
+      let submode = 1;
+      for (const unit of segment.units) {
+        const required = textSubmode(unit);
+        if (required !== submode) { output.append(62, 6); submode = required; }
+        output.append(submode === 1 ? text1(unit) : text2(unit), 6);
+      }
+      output.append(63, 6);
     } else if (segment.mode === 'g') {
       const continuesFromNumeric = previous?.mode === 'n' && previous.units.length % 3 === 0;
       if (!continuesFromNumeric) output.append(1, 4);
