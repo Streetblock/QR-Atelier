@@ -72,16 +72,29 @@ export class GridMatrixCore {
     this.options = { ...options }
   }
 
+  static fromSegments(segments, options = {}) {
+    return new GridMatrixCore({ segments }, options)
+  }
+
   generate() {
-    const { bytes, eci } = normalizeInput(this.data, this.options.eci)
+    const payload = normalizePayload(this.data, this.options.eci)
     const controls = normalizeControls(this.options)
     const requestedMode = this.options.mode == null ? 'auto' : String(this.options.mode).toLowerCase()
     if (!['auto', 'byte'].includes(requestedMode)) {
       throw new RangeError("Grid Matrix mode must be 'auto' or 'byte'.")
     }
-    const { bits, modes } = requestedMode === 'byte'
-      ? { bits: encodeByteSegments(bytes, eci, controls.prefix), modes: Array(bytes.length).fill(BYTE) }
-      : encodeOptimized(bytes, eci, controls.prefix)
+    let bits = controls.prefix, modes = []
+    for (const segment of payload.segments) {
+      if (requestedMode === 'byte') {
+        bits = encodeByteSegments(segment.bytes, segment.eci, bits, false)
+        modes.push(...Array(segment.bytes.length).fill(BYTE))
+      } else {
+        const encoded = encodeOptimized(segment.bytes, segment.eci, bits, false)
+        bits = encoded.bits
+        modes.push(...encoded.modes)
+      }
+    }
+    padHighLevelBits(bits)
     const dataCodewords = bitsToCodewords(bits)
     const layers = chooseLayers(dataCodewords.length, this.options.layers)
     const eccLevel = chooseEccLevel(dataCodewords.length, layers, this.options.eccLevel)
@@ -93,7 +106,8 @@ export class GridMatrixCore {
       version: layers,
       layers,
       eccLevel,
-      eci,
+      eci: payload.segmented ? null : payload.segments[0].eci,
+      segments: payload.segmented ? payload.segments.map(segment => ({ eci: segment.eci, length: segment.bytes.length })) : null,
       readerInitialization: controls.readerInitialization,
       structuredAppend: controls.structuredAppend,
       encoding: requestedMode,
@@ -105,6 +119,25 @@ export class GridMatrixCore {
       codewords,
       readyForScan: true,
     }
+  }
+}
+
+function normalizePayload(value, requestedEci) {
+  const wrappedSegments = value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.segments)
+    ? value.segments : null
+  const directSegments = Array.isArray(value) && value.length > 0
+    && value.every(segment => segment && typeof segment === 'object' && !Array.isArray(segment) && 'data' in segment)
+    ? value : null
+  const segments = wrappedSegments || directSegments
+  if (!segments) return { segments: [normalizeInput(value, requestedEci)], segmented: false }
+  if (requestedEci != null) throw new RangeError('Use an ECI on each Grid Matrix segment instead of the global eci option.')
+  if (segments.length === 0) throw new RangeError('Grid Matrix segments must not be empty.')
+  return {
+    segments: segments.map((segment, index) => {
+      if (!('data' in segment)) throw new TypeError(`Grid Matrix segment ${index + 1} requires data.`)
+      return normalizeInput(segment.data, segment.eci)
+    }),
+    segmented: true,
   }
 }
 
@@ -218,7 +251,7 @@ function buildGb2312EncodeMap() {
   return map
 }
 
-function encodeByteSegments(bytes, eci, prefix = []) {
+function encodeByteSegments(bytes, eci, prefix = [], pad = true) {
   const bits = [...prefix]
   appendEci(bits, eci)
   const flatBytes = Array.from(bytes).flatMap(value => value > 0xFF ? [value >> 8, value & 0xFF] : [value])
@@ -229,12 +262,12 @@ function encodeByteSegments(bytes, eci, prefix = []) {
     for (const byte of block) appendBits(bits, byte, 8)
   }
   appendBits(bits, 0, 4) // End of data from byte mode.
-  while (bits.length % 7) bits.push(0)
+  if (pad) padHighLevelBits(bits)
   if (bits.length > 9191) throw new RangeError('Grid Matrix input exceeds the 1313 data-codeword limit.')
   return bits
 }
 
-function encodeOptimized(data, eci, prefix = []) {
+function encodeOptimized(data, eci, prefix = [], pad = true) {
   const bits = [...prefix]
   appendEci(bits, eci)
   const modes = defineModes(data)
@@ -338,9 +371,13 @@ function encodeOptimized(data, eci, prefix = []) {
   if (currentMode === BYTE) writeBitsAt(bits, byteCountPosition, byteCount - 1, 9)
   else if (currentMode === NUMERAL && numeralCount) writeBitsAt(bits, numeralPadPosition, 3 - numeralCount, 2)
   appendBits(bits, MODE_SWITCH[EOD][currentMode - 1], MODE_LENGTH[EOD][currentMode - 1])
-  while (bits.length % 7) bits.push(0)
+  if (pad) padHighLevelBits(bits)
   if (bits.length > 9191) throw new RangeError('Grid Matrix input exceeds the 1313 data-codeword limit.')
   return { bits, modes }
+}
+
+function padHighLevelBits(bits) {
+  while (bits.length % 7) bits.push(0)
 }
 
 function appendEci(bits, eci) {

@@ -30,6 +30,86 @@ test('matches the Grid Matrix Chinese-mode reference vector', () => {
   assert.deepEqual(symbol.modes, ['chinese', 'chinese'])
 })
 
+test('matches the complete Zint reference matrix including ECC and placement', () => {
+  const expected = [
+    '111111000000111111',
+    '101111001100101001',
+    '100101000010100001',
+    '111011011100101111',
+    '101011011000111011',
+    '111111000000111111',
+    '000000111111000000',
+    '001100100001001110',
+    '001110111111011110',
+    '001010100011000000',
+    '010100101001000000',
+    '000000111111000000',
+    '111111000000111111',
+    '101001001100101001',
+    '111001000000101111',
+    '111001000100110001',
+    '111111000000100001',
+    '111111000000111111',
+  ]
+  const actual = new GridMatrixCore('1234').generate().modules
+    .map(row => row.map(value => value ? '1' : '0').join(''))
+  assert.deepEqual(actual, expected)
+})
+
+test('matches the complete Zint multi-ECI segment reference matrix', () => {
+  const symbol = GridMatrixCore.fromSegments([
+    { data: Uint8Array.of(0xB6), eci: 0 },
+    { data: Uint8Array.of(0xB6), eci: 7 },
+    { data: Uint8Array.of(0xB6), eci: 29 },
+  ])
+  const expected = [
+    '111111000000111111000000111111',
+    '111111011110111111011110111111',
+    '101011011110111111011110111111',
+    '111101000000100001000000100001',
+    '110001000000100001000000100001',
+    '111111000000111111000000111111',
+    '000000111111000000111111000000',
+    '011000110111010000110001011110',
+    '000010111111000110111101011110',
+    '011000100001000110110001000000',
+    '011000100001001100100001000000',
+    '000000111111000000111111000000',
+    '111111000000111111000000111111',
+    '111011010000101001010000111111',
+    '111001000000100001000100111111',
+    '110001001100110111011100100001',
+    '111101000000110001000000100001',
+    '111111000000111111000000111111',
+    '000000111111000000111111000000',
+    '011100110001010100110001011010',
+    '001100110111010110111001000100',
+    '000110100001010000101011011100',
+    '000000100001000110110001001010',
+    '000000111111000000111111000000',
+    '111111000000111111000000111111',
+    '111001011000111101011110111111',
+    '110101010100111111010010100001',
+    '110001000000100011011000110101',
+    '110011010000100001010100101011',
+    '111111000000111111000000111111',
+  ]
+  const actual = symbol.generate().modules.map(row => row.map(value => value ? '1' : '0').join(''))
+  assert.deepEqual(actual, expected)
+})
+
+test('reports segment metadata and validates segmented input', () => {
+  const symbol = GridMatrixCore.fromSegments([
+    { data: 'Text', eci: 29 },
+    { data: '🙂', eci: 26 },
+  ]).generate()
+  assert.equal(symbol.eci, null)
+  assert.deepEqual(symbol.segments, [{ eci: 29, length: 4 }, { eci: 26, length: 4 }])
+  assert.throws(() => GridMatrixCore.fromSegments([]).generate(), /must not be empty/)
+  assert.throws(() => GridMatrixCore.fromSegments([{ data: 'A', eci: 3 }]).generate(), /currently supports/)
+  assert.throws(() => new GridMatrixCore([{ data: Uint8Array.of(1), eci: 3 }], { eci: 3 }).generate(), /each Grid Matrix segment/)
+})
+
 test('matches Zint high-level reference vectors for compact modes', () => {
   const vectors = [
     ['123', [0x10, 0x1E, 0x7F, 0x68], ['numeral', 'numeral', 'numeral']],
