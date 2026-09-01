@@ -4,20 +4,9 @@
 
 [Read the German version here](README_de.md)
 
-QR-Atelier is a minimalist, performant, and completely dependency-free QR Code studio. The project cleanly separates matrix logic from SVG rendering. Everything runs directly in the browser - no build steps, no bundlers, and no framework overhead.
+QR-Atelier is a minimalist collection of performant, dependency-free 2D barcode encoders and a browser-native studio. Every family keeps an independent core and optional renderer; applications may import one encoder or use the stable unified surface on `feat/unified-barcode-cores`.
 
-On `main`, the studio focuses on QR Code. Additional 2D barcode families live in feature branches:
-* `feat/aztec-code`
-* `feat/datamatrix`
-* `feat/datamatrix-legacy`
-* `feat/micro-qr-core`
-* `feat/maxi-code`
-* `feat/rmqr-core`
-
-The reusable native PDF417 foundation on `feat/pdf417-core` provides all 34
-MicroPDF417 variants plus a standard PDF417 core. See
-[`docs/pdf417-core.md`](docs/pdf417-core.md) for its low-level API, validation
-rules, reference coverage, and the planned ZPL `^BF`/`^B7` integration path.
+The unified branch contains QR Model 1/2, Micro QR, rMQR, Data Matrix ECC 200 and legacy ECC, Aztec, MaxiCode, PDF417 and all 34 MicroPDF417 variants. See [`docs/unified-cores.md`](docs/unified-cores.md) for stable imports and package boundaries. Family feature branches remain available for focused development.
 
 Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
 
@@ -25,7 +14,7 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 
 * Zero Dependencies: No `npm`, no Webpack, no framework. Just pure ES6 vanilla JavaScript, modern HTML, and CSS.
 * Live Preview: The selected barcode is instantly and efficiently re-rendered on every input thanks to built-in debouncing.
-* QR Code Studio: The main branch ships the QR Code experience.
+* Unified Studio: The registry-backed demo exposes the interactive encoders without coupling their cores.
 * In-depth Styling: Choose between different dot styles, finder shapes, and smooth SVG color gradients.
 * Center Logo Support: Upload your own logo for QR Code. The studio app automatically switches to error correction level H in the background.
 * Local Export: Direct download of the result as a vector (`SVG`) or raster image (`PNG` up to 2048x2048px).

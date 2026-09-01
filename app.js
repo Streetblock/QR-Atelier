@@ -195,8 +195,12 @@ class QRPlaygroundApp {
     this.isDownloading = true
     try {
       const size = this.getDownloadSize()
-      const svg = this.#createRenderer(size).render()
-      const blob = await this.#svgToPngBlob(svg, size)
+      const renderer = this.#createRenderer(size)
+      const svg = renderer.render()
+      const dimensions = typeof renderer.getOutputDimensions === 'function'
+        ? renderer.getOutputDimensions()
+        : { width: size, height: size }
+      const blob = await this.#svgToPngBlob(svg, dimensions)
       this.#triggerBlobDownload(blob, this.#buildDownloadFilename('png', size))
     } catch (error) {
       console.error('PNG Download fehlgeschlagen:', error)

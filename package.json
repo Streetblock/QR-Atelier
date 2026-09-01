@@ -3,7 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A zero-dependency barcode atelier for QR Code and related 2D barcode work.",
+  "description": "Independent zero-dependency QR, Data Matrix, Aztec, MaxiCode and PDF417-family encoder cores.",
+  "exports": {
+    ".": "./libs/index.js",
+    "./cores": "./libs/index.js",
+    "./formats": "./formats/index.js",
+    "./libs/*": "./libs/*",
+    "./formats/*": "./formats/*"
+  },
   "scripts": {
     "test": "node --test",
     "test:reference": "node scripts/run-reference-tests.mjs",
