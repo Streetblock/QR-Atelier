@@ -31,7 +31,7 @@ The project stays intentionally small and uses one core and one renderer per bar
 ### 1. `QRcore.js` and `QRsvg.js`
 The QR Code core and renderer.
 * Generates QR matrices with Reed-Solomon error correction.
-* Supports Numeric, Alphanumeric, and Byte mode plus ECI for UTF-8, ISO-8859-1, and Windows-1252. QR Kanji mode is not currently supported.
+* Supports Numeric, Alphanumeric, Byte, and manual Kanji mode plus ECI for UTF-8, ISO-8859-1, and Windows-1252.
 * Uses UTF-8 as the default Byte-mode encoding; library consumers can select another supported encoding through `QrCore` options.
 * Automatically selects a bit-efficient combination of Numeric, Alphanumeric, and Byte segments for each QR version range.
 * Supports QR Structured Append for splitting one message across 2 to 16 symbols, including the standard sequence and parity header.

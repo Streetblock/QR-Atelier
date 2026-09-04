@@ -104,6 +104,7 @@ const MODE_INDICATORS = {
   structuredAppend: 0x3,
   byte: 0x4,
   eci: 0x7,
+  kanji: 0x8,
 }
 const ALPHANUMERIC_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
 const DEFAULT_ENCODING = 'utf-8'
@@ -143,6 +144,7 @@ const WINDOWS_1252_EXTENSIONS = new Map([
 ])
 const PAD_CODEWORDS = [0xec, 0x11]
 const encoder = new TextEncoder()
+let shiftJisKanjiMap = null
 
 export const QrSegment = Object.freeze({
   numeric(data) {
@@ -156,6 +158,12 @@ export const QrSegment = Object.freeze({
   },
   bytes(bytes) {
     return createByteArraySegment(bytes)
+  },
+  kanji(data) {
+    return createSegment('kanji', String(data))
+  },
+  kanjiBytes(bytes) {
+    return createKanjiByteSegment(bytes)
   },
 })
 
@@ -527,11 +535,20 @@ function createSegment(mode, text, options = {}) {
     throw new Error(`Alphanumeric QR segments may only contain: ${ALPHANUMERIC_CHARSET}`)
   }
 
+  const kanjiValues = normalizedMode === 'kanji'
+    ? normalizeKanjiSegmentValues(normalizedText, options)
+    : null
+
   return {
     mode: normalizedMode,
     text: normalizedText,
     encoding: normalizedMode === 'byte' && (!hasRawBytes || options.encoding) ? normalizeEncoding(options.encoding) : null,
-    bytes: normalizedMode === 'byte' ? normalizeByteSegmentBytes(normalizedText, options) : null,
+    bytes: normalizedMode === 'byte'
+      ? normalizeByteSegmentBytes(normalizedText, options)
+      : normalizedMode === 'kanji' && hasRawBytes
+        ? normalizeKanjiBytes(options.bytes)
+        : undefined,
+    kanjiValues,
   }
 }
 
@@ -540,6 +557,13 @@ function createByteArraySegment(bytes) {
     throw new Error('Byte QR segments require an iterable of byte values.')
   }
   return createSegment('byte', '', { bytes: Array.from(bytes) })
+}
+
+function createKanjiByteSegment(bytes) {
+  if (!bytes || typeof bytes[Symbol.iterator] !== 'function') {
+    throw new Error('Kanji QR segments require an iterable of Shift JIS byte values.')
+  }
+  return createSegment('kanji', '', { bytes: Array.from(bytes) })
 }
 
 function appendSegments(bitBuffer, segments, version) {
@@ -562,6 +586,8 @@ function appendSegments(bitBuffer, segments, version) {
       appendNumericSegment(bitBuffer, segment.text)
     } else if (segment.mode === 'alphanumeric') {
       appendAlphanumericSegment(bitBuffer, segment.text)
+    } else if (segment.mode === 'kanji') {
+      appendKanjiSegment(bitBuffer, segment.kanjiValues)
     } else {
       appendByteSegment(bitBuffer, segment.bytes)
     }
@@ -587,6 +613,7 @@ function getCharacterCountBits(mode, version) {
     numeric: [10, 12, 14],
     alphanumeric: [9, 11, 13],
     byte: [8, 16, 16],
+    kanji: [8, 10, 12],
   }
   return bits[mode][group]
 }
@@ -596,6 +623,7 @@ function getVersionGroup(version) {
 }
 
 function getSegmentCharacterCount(segment) {
+  if (segment.mode === 'kanji') return segment.kanjiValues.length
   return segment.mode === 'byte' ? segment.bytes.length : segment.text.length
 }
 
@@ -608,6 +636,7 @@ function getSegmentDataBitLength(segment) {
   if (segment.mode === 'alphanumeric') {
     return Math.floor(segment.text.length / 2) * 11 + (segment.text.length % 2) * 6
   }
+  if (segment.mode === 'kanji') return segment.kanjiValues.length * 13
   return segment.bytes.length * 8
 }
 
@@ -633,6 +662,10 @@ function appendByteSegment(bitBuffer, bytes) {
   for (const value of bytes) {
     appendBits(bitBuffer, value, 8)
   }
+}
+
+function appendKanjiSegment(bitBuffer, values) {
+  for (const value of values) appendBits(bitBuffer, value, 13)
 }
 
 function withEciSegments(segments, options = {}) {
@@ -731,6 +764,93 @@ function normalizeByteSegmentBytes(text, options) {
   return encodeText(text, options.encoding)
 }
 
+function normalizeKanjiSegmentValues(text, options) {
+  const bytes = options.bytes === undefined
+    ? encodeShiftJisKanji(text)
+    : normalizeKanjiBytes(options.bytes)
+
+  if (bytes.length === 0) {
+    throw new Error('Kanji QR segments must contain at least one character.')
+  }
+
+  const values = []
+  for (let index = 0; index < bytes.length; index += 2) {
+    const code = bytes[index] * 0x100 + bytes[index + 1]
+    const trail = bytes[index + 1]
+    let adjusted
+    if (trail < 0x40 || trail === 0x7f || trail > 0xfc) {
+      adjusted = null
+    } else if (code >= 0x8140 && code <= 0x9ffc) {
+      adjusted = code - 0x8140
+    } else if (code >= 0xe040 && code <= 0xebbf) {
+      adjusted = code - 0xc140
+    }
+    if (adjusted === undefined || adjusted === null) {
+      throw new Error(`Shift JIS code 0x${code.toString(16).toUpperCase().padStart(4, '0')} is not valid in QR Kanji mode.`)
+    }
+    values.push(Math.floor(adjusted / 0x100) * 0xc0 + (adjusted % 0x100))
+  }
+  return values
+}
+
+function normalizeKanjiBytes(bytes) {
+  if (!bytes || typeof bytes[Symbol.iterator] !== 'function') {
+    throw new Error('Kanji QR segment bytes must be iterable.')
+  }
+  const normalized = Array.from(bytes, (value) => {
+    if (!Number.isInteger(value) || value < 0 || value > 255) {
+      throw new Error(`Invalid byte value for QR Kanji segment: ${value}`)
+    }
+    return value
+  })
+  if (normalized.length % 2 !== 0) {
+    throw new Error('Kanji QR segments require complete two-byte Shift JIS characters.')
+  }
+  return normalized
+}
+
+function encodeShiftJisKanji(text) {
+  if (typeof TextDecoder !== 'function') {
+    throw new Error('Unicode QR Kanji segments require TextDecoder support; use QrSegment.kanjiBytes instead.')
+  }
+  if (!shiftJisKanjiMap) shiftJisKanjiMap = buildShiftJisKanjiMap()
+
+  const bytes = []
+  for (const character of text) {
+    const code = shiftJisKanjiMap.get(character)
+    if (code === undefined) {
+      throw new Error(`Character "${character}" cannot be encoded in QR Kanji mode.`)
+    }
+    bytes.push(code >>> 8, code & 0xff)
+  }
+  return bytes
+}
+
+function buildShiftJisKanjiMap() {
+  let decoder
+  try {
+    decoder = new TextDecoder('shift_jis', { fatal: true })
+  } catch {
+    throw new Error('Unicode QR Kanji segments require a Shift JIS TextDecoder; use QrSegment.kanjiBytes instead.')
+  }
+
+  const result = new Map()
+  for (const [firstCode, lastCode] of [[0x8140, 0x9ffc], [0xe040, 0xebbf]]) {
+    for (let code = firstCode; code <= lastCode; code += 1) {
+      const lead = code >>> 8
+      const trail = code & 0xff
+      if (trail < 0x40 || trail === 0x7f || trail > 0xfc) continue
+      try {
+        const character = decoder.decode(Uint8Array.of(lead, trail))
+        if (Array.from(character).length === 1 && !result.has(character)) result.set(character, code)
+      } catch {
+        // Unassigned Shift JIS pairs are not valid QR Kanji characters.
+      }
+    }
+  }
+  return result
+}
+
 function encodeText(text, encoding = DEFAULT_ENCODING) {
   const normalized = normalizeEncoding(encoding)
   if (normalized === 'utf-8') {
@@ -772,7 +892,9 @@ function normalizeParityBytes(bytes) {
 
 function normalizeMode(mode, allowAuto = true) {
   const normalized = String(mode ?? 'auto').toLowerCase()
-  const supported = allowAuto ? ['auto', 'byte', 'numeric', 'alphanumeric'] : ['byte', 'numeric', 'alphanumeric']
+  const supported = allowAuto
+    ? ['auto', 'byte', 'numeric', 'alphanumeric', 'kanji']
+    : ['byte', 'numeric', 'alphanumeric', 'kanji']
   if (!supported.includes(normalized)) {
     throw new Error(`Unsupported QR segment mode: ${mode}`)
   }

@@ -31,7 +31,7 @@ Das Projekt bleibt bewusst klein und nutzt pro Barcode-Familie ein Kern- und ein
 ### 1. `QRcore.js` und `QRsvg.js`
 Der QR-Code-Kern und Renderer.
 * Generiert QR-Matrizen mit Reed-Solomon Fehlerkorrektur.
-* Unterstuetzt Numeric-, Alphanumeric- und Byte-Modus sowie ECI fuer UTF-8, ISO-8859-1 und Windows-1252. Der QR-Kanji-Modus wird gegenwaertig nicht unterstuetzt.
+* Unterstuetzt Numeric-, Alphanumeric-, Byte- und manuellen Kanji-Modus sowie ECI fuer UTF-8, ISO-8859-1 und Windows-1252.
 * Verwendet UTF-8 als Standardkodierung im Byte-Modus; Nutzer der Library koennen ueber die `QrCore`-Optionen eine andere unterstuetzte Kodierung waehlen.
 * Waehlt fuer jeden QR-Versionsbereich automatisch eine biteffiziente Kombination aus Numeric-, Alphanumeric- und Byte-Segmenten.
 * Unterstuetzt QR Structured Append zum Aufteilen einer Nachricht auf 2 bis 16 Symbole, einschliesslich des standardisierten Sequenz- und Paritaets-Headers.
