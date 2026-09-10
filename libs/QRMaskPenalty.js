@@ -1,6 +1,5 @@
-// ISO/IEC 18004 mask-pattern evaluation for standard QR Code symbols.
-
-const FINDER_LIKE_PATTERN = [true, false, true, true, true, false, true]
+// ISO/IEC 18004:2015, 7.8.3.1 mask evaluation on the complete symbol matrix.
+// See docs/qr-mask-scoring.md for the explicit N3 interpretation.
 
 export function calculateQrMaskPenalty(modules) {
   const size = modules.length
@@ -63,27 +62,27 @@ function calculateRunPenalty(getValue, length) {
 }
 
 function calculateFinderLikePatternPenalty(getValue, length) {
+  const runs = []
+  for (let index = 0; index < length; index += 1) {
+    const color = getValue(index)
+    const previous = runs[runs.length - 1]
+    if (previous && previous.color === color) previous.length += 1
+    else runs.push({ color, length: 1 })
+  }
+
   let penalty = 0
+  for (let start = 0; start + 4 < runs.length; start += 1) {
+    if (!runs[start].color) continue
+    const unit = runs[start].length
+    if (runs[start + 1].length !== unit || runs[start + 2].length !== 3 * unit
+      || runs[start + 3].length !== unit || runs[start + 4].length !== unit) continue
 
-  for (let start = 0; start <= length - FINDER_LIKE_PATTERN.length; start += 1) {
-    const matchesCore = FINDER_LIKE_PATTERN.every((value, offset) => getValue(start + offset) === value)
-    if (!matchesCore) continue
-
-    const afterStart = start + FINDER_LIKE_PATTERN.length
-    const hasLightBefore = isLightRange(getValue, start - 4, start, length)
-    const hasLightAfter = isLightRange(getValue, afterStart, afterStart + 4, length)
-
-    // N3 applies once to this finder-like occurrence. Modules beyond the
-    // matrix are light because a standard QR symbol is surrounded by its quiet zone.
-    if (hasLightBefore || hasLightAfter) penalty += 40
+    // Match complete dark/light runs, including scaled 1:1:3:1:1 ratios.
+    // Table 11 requires four actual light modules, not four ratio units.
+    // Missing runs at a matrix edge do not supply virtual quiet-zone modules.
+    const before = runs[start - 1]?.length ?? 0
+    const after = runs[start + 5]?.length ?? 0
+    if (before >= 4 || after >= 4) penalty += 40
   }
-
   return penalty
-}
-
-function isLightRange(getValue, start, end, length) {
-  for (let index = Math.max(start, 0); index < Math.min(end, length); index += 1) {
-    if (getValue(index)) return false
-  }
-  return true
 }

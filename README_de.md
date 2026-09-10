@@ -35,7 +35,7 @@ Der QR-Code-Kern und Renderer.
 * Verwendet UTF-8 als Standardkodierung im Byte-Modus; Nutzer der Library koennen ueber die `QrCore`-Optionen eine andere unterstuetzte Kodierung waehlen.
 * Waehlt fuer jeden QR-Versionsbereich automatisch eine biteffiziente Kombination aus Numeric-, Alphanumeric- und Byte-Segmenten.
 * Unterstuetzt QR Structured Append zum Aufteilen einer Nachricht auf 2 bis 16 Symbole, einschliesslich des standardisierten Sequenz- und Paritaets-Headers.
-* Waehlt automatisch die beste Maskierung.
+* Waehlt automatisch die Maskierung mit der niedrigsten Bewertung nach der dokumentierten [Auslegung von ISO/IEC 18004:2015](docs/qr-mask-scoring.md).
 * Rendert die QR-Matrix im gewaehlten Stil.
 
 ### 2. `app.js` und `styles.css`

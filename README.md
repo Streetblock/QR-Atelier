@@ -35,7 +35,7 @@ The QR Code core and renderer.
 * Uses UTF-8 as the default Byte-mode encoding; library consumers can select another supported encoding through `QrCore` options.
 * Automatically selects a bit-efficient combination of Numeric, Alphanumeric, and Byte segments for each QR version range.
 * Supports QR Structured Append for splitting one message across 2 to 16 symbols, including the standard sequence and parity header.
-* Automatically selects the best mask pattern.
+* Automatically selects the lowest-penalty mask using the documented [ISO/IEC 18004:2015 scoring interpretation](docs/qr-mask-scoring.md).
 * Renders the QR matrix in the chosen visual style.
 
 ### 2. `app.js` and `styles.css`
