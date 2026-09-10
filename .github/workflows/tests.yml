@@ -27,6 +27,15 @@ jobs:
       - name: Install JavaScript test dependencies
         run: npm ci --ignore-scripts
 
+      - name: Set up Java reference encoder
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install pinned ZXing reference
+        run: python scripts/setup-qr-references.py
+
       - name: Install Python reference-test dependencies
         if: ${{ hashFiles('requirements-test/*.txt') != '' }}
         run: |

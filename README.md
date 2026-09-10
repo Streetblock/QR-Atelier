@@ -43,6 +43,8 @@ The app controller and UI. Manages state, binds DOM events, and provides the int
 
 ## Installation & Usage
 
+For development, see the [independent QR encoder and mask-scoring tests](docs/qr-reference-comparison.md).
+
 1. Clone the repository
    ```bash
    git clone https://github.com/Streetblock/QR-Atelier.git

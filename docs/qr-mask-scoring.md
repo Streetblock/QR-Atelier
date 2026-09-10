@@ -63,6 +63,10 @@ change its matrix while preserving its encoded contents.
 
 ## Verification
 
+The [independent reference comparison](qr-reference-comparison.md) additionally
+executes Nayuki, Segno and ZXing Java against matching inputs and matrices. It
+documents their N3 disagreements and a Segno padding difference separately.
+
 Run `npm ci --ignore-scripts` followed by `npm test`.
 
 * `tests/qr-mask-iso.test.mjs` exercises matrix edges, four-module margins,

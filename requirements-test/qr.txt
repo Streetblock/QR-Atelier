@@ -1,0 +1,2 @@
+qrcodegen==1.8.0
+segno==1.6.6
