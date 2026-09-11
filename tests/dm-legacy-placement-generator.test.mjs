@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 David Block
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 const packedTables = JSON.parse(readFileSync(new URL('./fixtures/legacy-placement/packed-tables.json', import.meta.url), 'utf8'));

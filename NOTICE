@@ -1,0 +1,9 @@
+QR Atelier - Legacy Data Matrix core
+Copyright 2026 David Block
+
+The Legacy core and its listed test code are available under MIT OR Apache-2.0.
+See LICENSE.md for the exact scope, and LICENSE-MIT and LICENSE-APACHE for terms.
+
+The placement generator and cache wrapper originated in David Block's
+zpl-toolkit implementation, commit 2cc0830. Historical source details are
+preserved in THIRD_PARTY_NOTICES.md. No encoder dependency is required.

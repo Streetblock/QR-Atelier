@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 David Block
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 import {
   LEGACY_PLACEMENT_DATA_SIDES,
   placeLegacyBits as placeLegacyBitsWithGrid,

@@ -41,7 +41,7 @@ as conformant behavior until its test oracle is available.
 
 Exact local source files, hashes, page mappings, and research notes live below
 the ignored `dev/` directory. Norm text, figures, and copied tables MUST NOT be
-committed to this MIT-licensed repository.
+treated as material covered by the Legacy code license. The scoped MIT OR Apache-2.0 grant is defined in ../../LICENSE.md; it does not license the entire repository or external standards material.
 
 ### 2.2 Patent cross-check
 
