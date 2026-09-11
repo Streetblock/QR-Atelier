@@ -113,6 +113,8 @@ const ECC_140_OUTPUT_TAPS = Object.freeze([
 
 // The 276 visually verified bytes are followed by the single least-significant
 // zero bit shown in the source. Together they cover the largest 47x47 data area.
+// Byte 211 is BC, verified visually against FCD Annex L (PDF p.112)
+// and GOST Annex L (PDF p.92); the GOST text layer incorrectly reads BE.
 const LEGACY_MASTER_RANDOM_HEX = [
   '05 ff c7 31 88 a8 83 9c 64 87 9f 64 b3 e0 4d 9c 80 29 3a 90',
   'b3 8b 9e 90 45 bf f5 68 4b 08 cf 44 b8 d4 4c 5b a0 ab 72 52',
@@ -124,7 +126,7 @@ const LEGACY_MASTER_RANDOM_HEX = [
   'b0 41 6d 43 a4 63 f3 aa 7d af 35 57 c2 94 4a 65 0b 41 de b8',
   'e2 30 12 27 9b 66 2b 34 5b b8 99 e8 28 71 d0 95 6b 07 4d 3c',
   '7a b3 e5 29 b3 ba 8c cc 2d e0 c9 c0 22 ec 4c de f8 58 07 fc',
-  '19 f2 64 e2 c3 e2 d8 b9 fd 67 a0 be f5 2e c9 49 75 62 82 27',
+  '19 f2 64 e2 c3 e2 d8 b9 fd 67 a0 bc f5 2e c9 49 75 62 82 27',
   '10 f4 19 6f 49 f7 b3 84 14 ea eb e1 2a 31 ab 47 7d 08 29 ac',
   'bb 72 fa fa 62 b8 c8 d3 86 89 95 fd df cc 9c ad f1 d4 6c 64',
   '23 24 2a 56 1f 36 eb b7 d6 ff da 57 f4 50 79 08',
