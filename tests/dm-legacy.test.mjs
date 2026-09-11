@@ -383,7 +383,7 @@ test('preserves the complete 2209-bit legacy master random stream', () => {
   assert.equal(LEGACY_MASTER_RANDOM_BITS.slice(-33), '111101000101000001111001000010000')
   assert.equal(
     createHash('sha256').update(LEGACY_MASTER_RANDOM_BITS, 'ascii').digest('hex'),
-    '01321a358a45be5ed377766b44071db243e82f0d0c21e6b78578b357bfe18e49',
+    '0a2cda2a43eb77b610ced7c58d8194b51986cd6de3ba128e73c19208f1e24d86',
   )
   assert.equal(randomizeLegacyBits('0'.repeat(47 * 47)), LEGACY_MASTER_RANDOM_BITS)
   assert.throws(() => randomizeLegacyBits('0'.repeat(47 * 47 + 1)), /at most 2209 bits/)
@@ -469,4 +469,9 @@ test('generates the complete 13x13 ECC 050 reference matrix', () => {
   assert.equal(result.rows, 13)
   assert.equal(result.cols, 13)
   assert.deepEqual(rowsToStrings(result.modules), REFERENCE_SYMBOL_ROWS)
+})
+
+test('uses the visually confirmed BC random byte instead of the BE text-layer reading', () => {
+  assert.equal(LEGACY_MASTER_RANDOM_BITS.slice(211 * 8, 212 * 8), '10111100')
+  assert.equal(randomizeLegacyBits('0'.repeat(2209))[1694], '0')
 })

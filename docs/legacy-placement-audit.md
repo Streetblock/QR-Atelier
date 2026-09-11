@@ -60,3 +60,15 @@ differed from the corrected table. That correction was previously validated in
 the Toolkit against the source table and a physical 200-digit ECC 000 symbol.
 This port adds no new physical-printer evidence. Existing randomization, ECC,
 content encoding and the explicit ECC 200 editor default are unchanged.
+
+## Separate Annex L random-stream correction
+
+Byte 211 (zero-based) is BC, not BE. The user visually confirmed BC in
+the FCD PDF page 112 and GOST PDF page 92. The GOST text layer reads BE;
+the stored value retained that incorrect reading. This changes bit 1694
+(zero-based), outside all grids smaller than 45 modules including borders.
+Placement tables and the placement generator are unaffected.
+
+The complete 2,209-bit stream was compared with the Decoder's independently
+PDF-imported stream; its ASCII-bitstring SHA-256 is 0a2cda2a43eb77b610ced7c58d8194b51986cd6de3ba128e73c19208f1e24d86.
+The fixed regression expectation is not recomputed from the encoder at test time.
