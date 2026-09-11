@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 David Block
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 // Legacy placement is generated once per requested size and cached.
 // Full historical tables remain in tests/fixtures/legacy-placement only.
 import { generatePlacement } from './DMlegacyPlacementGenerator.js'

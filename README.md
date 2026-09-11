@@ -150,3 +150,12 @@ Ideas for new barcode styles, broader QR support, or UI improvements are welcome
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+## Legacy core license
+
+The Legacy Data Matrix core (ECC 000-140) and its explicitly listed test code
+are Copyright (c) 2026 David Block and available under **MIT OR Apache-2.0**,
+at your option. See [LICENSE.md](LICENSE.md) for the exact file list and
+[NOTICE](NOTICE) / [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for provenance.
+This is a scoped grant for the Legacy core, not a license for the entire
+repository, other encoders, the Studio/UI or external reference artifacts.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 David Block
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 // Empirically reconstructed from Legacy placement grids; not a quoted normative
 // algorithm. No placement constants or reference imports are used here.
 export function generatePlacement(symbolSide) {
