@@ -17,10 +17,11 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 ## Features
 
 * Zero Dependencies: Kein `npm`, kein Webpack, kein Framework. Nur reines ES6 Vanilla JavaScript, modernes HTML und CSS.
+* Beispielvorschau: Bei leerer Eingabe erscheint „Grüße aus dem QR Atelier!“ mit dem gewählten Stil und einer deutlichen Kennzeichnung. Der Export ist erst mit eigenem Inhalt verfügbar.
 * Live Preview: Der ausgewaehlte Barcode wird bei jeder Eingabe dank integriertem Debouncing sofort und performant neu gerendert.
 * QR-Code-Studio: Der Main-Branch liefert die QR-Code-Erfahrung.
 * Tiefgehendes Styling: Waehle zwischen verschiedenen Dot-Styles, Finder-Formen und weichen SVG-Farbverlaeufen.
-* Center Logo Support: Lade ein eigenes Logo fuer QR Code hoch. Die Studio-App wechselt im Hintergrund automatisch auf das Fehlerkorrektur-Level H.
+* Center Logo Support: Lade ein eigenes Logo fuer QR Code hoch. Die Studio-App zeigt bei geladenem Logo die aktive Fehlerkorrektur H an.
 * Lokaler Export: Direkter Download des Ergebnisses als Vektor (`SVG`) oder Rastergrafik (`PNG` bis zu 2048x2048px).
 * URL-Parameter: Fuelle das Studio direkt ueber die URL ab: `?url=https://dein-link.de`.
 
@@ -39,7 +40,7 @@ Der QR-Code-Kern und Renderer.
 * Rendert die QR-Matrix im gewaehlten Stil.
 
 ### 2. `app.js` und `styles.css`
-Der App-Controller und das UI. Steuert den State, bindet DOM-Events und sorgt fuer das Interface. Das Studio nutzt derzeit den UTF-8-Standard des Kerns und bietet keine Auswahl der Kodierung an. Wenn ein Center-Logo vorhanden ist, fordert die App das Fehlerkorrektur-Level H an; dies ist App-Verhalten und keine automatische Regel innerhalb von `QrCore`.
+Der App-Controller und das UI. Steuert den State, bindet DOM-Events und sorgt fuer das Interface. Die Vorschau bleibt neben der Arbeitsfläche sichtbar, auf kleinen Bildschirmen als kompakte angeheftete Ansicht. Die eingeklappten erweiterten Einstellungen bieten Fehlerkorrektur L/M/Q/H, automatische oder feste QR-Versionen 1–40, Masken 0–7 und UTF-8 / ISO-8859-1 / Windows-1252. Standard bleiben UTF-8 und Fehlerkorrektur Q. Mit Logo zeigt die Oberfläche die festgelegte Stufe H an; nach dem Entfernen gilt wieder die gewählte Stufe. Ungültige Eingaben leeren die Vorschau und sperren den Export bis zur Korrektur.
 
 ## Installation & Nutzung
 

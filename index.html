@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Playground</title>
+  <title>QR Atelier</title>
   <meta name="description" content="Dependency-freier QR Playground mit eigener QR-Core-Lib und SVG-Styling-Lib in reinem JavaScript.">
   
   <!-- Das ausgelagerte CSS einbinden -->
@@ -14,49 +14,25 @@
     <section class="hero">
       <article class="hero-copy">
         <span class="eyebrow">Dependency-free QR Atelier</span>
-        <p class="hero-kicker">Core matrix on the left brain. Styled SVG output on the right hand.</p>
-        <h1>Generate sharp QR codes with a browser-native studio, not a bloated toolchain.</h1>
+        <p class="hero-kicker">Dein Inhalt. Dein Stil. Dein QR-Code.</p>
+        <h1>Kleine Quadrate.<br>Große Möglichkeiten.</h1>
         <p class="hero-text">
-          Dieses Playground-Projekt trennt die QR-Logik sauber von der Darstellung. Reines JavaScript, direkte SVG-Ausgabe und eine Oberflaeche, die sich mehr nach Werkzeug als nach Formular anfuehlt.
+          Gestalte deinen QR-Code direkt im Browser. Mit Live-Vorschau, deinem Logo und Export als SVG oder PNG.
         </p>
-        <div class="feature-list">
-          <span class="feature-pill">qr-core erzeugt die Matrix</span>
-          <span class="feature-pill">qr-svg rendert Stil, Farbe und Finder</span>
-          <span class="feature-pill">Export als SVG oder PNG direkt im Browser</span>
-        </div>
       </article>
-
-      <aside class="hero-stage">
-        <div class="stage-meta">
-          <span class="stage-label">Live Preview</span>
-          <p class="stage-note">Byte-Mode, Version 1 bis 10, optimiert fuer kurze URLs und kompakte Texte.</p>
-        </div>
-
-        <div class="preview-shell">
-          <div class="preview-aura"></div>
-          <div id="qr-preview" class="preview-card" aria-live="polite">
-            <p id="qr-placeholder" class="placeholder" role="status">Gib unten eine URL oder Text ein, um deinen QR-Code sofort zu bauen.</p>
-          </div>
-        </div>
-
-        <div id="download-buttons" class="download-bar hidden">
-          <button id="btn-download-svg" class="action-button" aria-label="QR code als SVG herunterladen">SVG exportieren</button>
-          <button id="btn-download-png" class="action-button secondary" aria-label="QR code als PNG herunterladen">PNG exportieren</button>
-        </div>
-      </aside>
     </section>
 
     <section class="workspace">
       <section class="editor">
         <div class="editor-heading">
           <span class="section-tag">Generator</span>
-          <h2 class="section-title">Arbeitsflaeche</h2>
+          <h2 class="section-title">Arbeitsfläche</h2>
           <p class="section-copy">Text eingeben, Stil justieren, Logo setzen und direkt exportieren.</p>
         </div>
 
         <div class="editor-grid">
           <div class="field">
-            <label class="field-label" for="code-format">Code Format</label>
+            <label class="field-label" for="code-format">Codeformat</label>
             <select id="code-format" class="select-input">
               <option value="qr" selected>QR Code</option>
             </select>
@@ -76,7 +52,7 @@
           </div>
 
           <div class="field" id="field-dot-shape">
-            <label class="field-label" for="dot-shape">Dot Style</label>
+            <label class="field-label" for="dot-shape">Punktstil</label>
             <select id="dot-shape" class="select-input">
               <option value="rounded" selected>Rounded</option>
               <option value="dots">Dots</option>
@@ -89,7 +65,7 @@
           </div>
 
           <div class="field" id="field-corner-shape">
-            <label class="field-label" for="corner-shape">Finder Style</label>
+            <label class="field-label" for="corner-shape">Eckenstil</label>
             <select id="corner-shape" class="select-input">
               <option value="extra-rounded" selected>Extra Rounded</option>
               <option value="dot">Dot</option>
@@ -101,29 +77,29 @@
             <label class="field-label">Wi-Fi Optionen</label>
             <div class="editor-grid">
               <div class="field">
-                <label class="field-label" for="wifi-auth">Security</label>
+                <label class="field-label" for="wifi-auth">Verschlüsselung</label>
                 <select id="wifi-auth" class="select-input">
                   <option value="WPA" selected>WPA / WPA2</option>
                   <option value="WEP">WEP</option>
-                  <option value="nopass">Open Network</option>
+                  <option value="nopass">Offenes Netzwerk</option>
                 </select>
               </div>
               <div class="field">
-                <label class="field-label" for="wifi-password">Password</label>
-                <input type="password" id="wifi-password" class="text-input" placeholder="Network password" autocomplete="off">
+                <label class="field-label" for="wifi-password">Passwort</label>
+                <input type="password" id="wifi-password" class="text-input" placeholder="Netzwerkpasswort" autocomplete="off">
               </div>
               <div class="field">
-                <label class="field-label" for="wifi-hidden">Hidden Network</label>
+                <label class="field-label" for="wifi-hidden">Verstecktes Netzwerk</label>
                 <label class="checkbox-row" for="wifi-hidden">
                   <input type="checkbox" id="wifi-hidden" class="checkbox-input">
-                  <span>SSID is hidden</span>
+                  <span>SSID ist verborgen</span>
                 </label>
               </div>
             </div>
           </div>
 
           <div class="field">
-            <label class="field-label" for="download-size">Export Size</label>
+            <label class="field-label" for="download-size">Exportgröße</label>
             <select id="download-size" class="select-input size-select">
               <option value="256">256 x 256</option>
               <option value="512">512 x 512</option>
@@ -133,7 +109,7 @@
           </div>
 
           <div class="field" id="field-logo-upload">
-            <label class="field-label" for="logo-upload">Center Logo</label>
+            <label class="field-label" for="logo-upload">Logo in der Mitte</label>
             <input type="file" id="logo-upload" class="upload-input" accept="image/png,image/svg+xml,image/jpeg">
             <div class="logo-actions">
               <button type="button" id="btn-clear-logo" class="small-button">Logo entfernen</button>
@@ -141,34 +117,145 @@
             </div>
           </div>
 
-          <div class="field">
-            <label class="field-label" for="color-start">Farbe Start</label>
-            <div class="color-stack">
-              <input type="color" id="color-start" class="color-input" value="#0f172a">
-              <span class="color-code" id="color-start-hex">#0f172a</span>
+          <div class="color-fields field-wide">
+            <div class="field">
+              <label class="field-label" for="color-start">Farbe Start</label>
+              <div class="color-stack">
+                <input type="color" id="color-start" class="color-input" value="#0f172a">
+                <span class="color-code" id="color-start-hex">#0f172a</span>
+              </div>
             </div>
-          </div>
 
-          <div class="field">
-            <label class="field-label" for="color-end">Farbe Ende</label>
-            <div class="color-stack">
-              <input type="color" id="color-end" class="color-input" value="#0ea5e9">
-              <span class="color-code" id="color-end-hex">#0ea5e9</span>
+            <div class="field">
+              <label class="field-label" for="color-end">Farbe Ende</label>
+              <div class="color-stack">
+                <input type="color" id="color-end" class="color-input" value="#0ea5e9">
+                <span class="color-code" id="color-end-hex">#0ea5e9</span>
+              </div>
             </div>
           </div>
         </div>
+        <details class="advanced-settings">
+          <summary>Erweiterte Einstellungen <span>Fehlerkorrektur &amp; QR-Optionen</span></summary>
+          <div class="editor-grid">
+            <div class="field field-wide">
+              <label class="field-label" for="error-correction">Fehlerkorrektur</label>
+              <select id="error-correction" class="select-input" aria-describedby="ecc-help">
+                <option value="L">L · Gering</option>
+                <option value="M">M · Mittel</option>
+                <option value="Q" selected>Q · Hoch (Standard)</option>
+                <option value="H">H · Sehr hoch</option>
+              </select>
+              <p id="ecc-help" class="field-help">Höhere Fehlerkorrektur macht den Code robuster, benötigt aber mehr Platz.</p>
+            </div>
+            <div class="field">
+              <label class="field-label" for="qr-version">QR-Version</label>
+              <select id="qr-version" class="select-input" aria-describedby="qr-version-help">
+                <option value="0">Automatisch (1–40)</option>
+                <option value="1">Version 1 · 21 × 21</option>
+                <option value="2">Version 2 · 25 × 25</option>
+                <option value="3">Version 3 · 29 × 29</option>
+                <option value="4">Version 4 · 33 × 33</option>
+                <option value="5">Version 5 · 37 × 37</option>
+                <option value="6">Version 6 · 41 × 41</option>
+                <option value="7">Version 7 · 45 × 45</option>
+                <option value="8">Version 8 · 49 × 49</option>
+                <option value="9">Version 9 · 53 × 53</option>
+                <option value="10">Version 10 · 57 × 57</option>
+                <option value="11">Version 11 · 61 × 61</option>
+                <option value="12">Version 12 · 65 × 65</option>
+                <option value="13">Version 13 · 69 × 69</option>
+                <option value="14">Version 14 · 73 × 73</option>
+                <option value="15">Version 15 · 77 × 77</option>
+                <option value="16">Version 16 · 81 × 81</option>
+                <option value="17">Version 17 · 85 × 85</option>
+                <option value="18">Version 18 · 89 × 89</option>
+                <option value="19">Version 19 · 93 × 93</option>
+                <option value="20">Version 20 · 97 × 97</option>
+                <option value="21">Version 21 · 101 × 101</option>
+                <option value="22">Version 22 · 105 × 105</option>
+                <option value="23">Version 23 · 109 × 109</option>
+                <option value="24">Version 24 · 113 × 113</option>
+                <option value="25">Version 25 · 117 × 117</option>
+                <option value="26">Version 26 · 121 × 121</option>
+                <option value="27">Version 27 · 125 × 125</option>
+                <option value="28">Version 28 · 129 × 129</option>
+                <option value="29">Version 29 · 133 × 133</option>
+                <option value="30">Version 30 · 137 × 137</option>
+                <option value="31">Version 31 · 141 × 141</option>
+                <option value="32">Version 32 · 145 × 145</option>
+                <option value="33">Version 33 · 149 × 149</option>
+                <option value="34">Version 34 · 153 × 153</option>
+                <option value="35">Version 35 · 157 × 157</option>
+                <option value="36">Version 36 · 161 × 161</option>
+                <option value="37">Version 37 · 165 × 165</option>
+                <option value="38">Version 38 · 169 × 169</option>
+                <option value="39">Version 39 · 173 × 173</option>
+                <option value="40">Version 40 · 177 × 177</option>
+              </select>
+              <p id="qr-version-help" class="field-help">Automatisch wählt die kleinste passende Matrix.</p>
+            </div>
+            <div class="field">
+              <label class="field-label" for="qr-mask">Maske</label>
+              <select id="qr-mask" class="select-input" aria-describedby="qr-mask-help">
+                <option value="-1">Automatisch</option>
+                <option value="0">Maske 0</option>
+                <option value="1">Maske 1</option>
+                <option value="2">Maske 2</option>
+                <option value="3">Maske 3</option>
+                <option value="4">Maske 4</option>
+                <option value="5">Maske 5</option>
+                <option value="6">Maske 6</option>
+                <option value="7">Maske 7</option>
+              </select>
+              <p id="qr-mask-help" class="field-help">Automatisch wählt das am besten lesbare Muster.</p>
+            </div>
+            <div class="field field-wide">
+              <label class="field-label" for="qr-encoding">Zeichencodierung</label>
+              <select id="qr-encoding" class="select-input" aria-describedby="qr-encoding-help">
+                <option value="utf-8">UTF-8 (Standard)</option>
+                <option value="iso-8859-1">ISO-8859-1</option>
+                <option value="windows-1252">Windows-1252</option>
+              </select>
+              <p id="qr-encoding-help" class="field-help">UTF-8 unterstützt Umlaute, internationale Zeichen und Emojis.</p>
+            </div>
+          </div>
+        </details>
       </section>
 
+      <aside class="hero-stage" aria-label="QR-Code-Vorschau">
+        <div class="stage-meta">
+          <span class="stage-label">Live-Vorschau</span>
+          <p class="stage-note">Dein Ergebnis aktualisiert sich beim Bearbeiten.</p>
+        </div>
+
+        <div class="preview-shell">
+          <div class="preview-aura"></div>
+          <div id="qr-preview" class="preview-card" aria-live="polite">
+            <p id="qr-placeholder" class="placeholder" role="status">Dein QR-Code erscheint hier.</p>
+          </div>
+        </div>
+
+        <p id="qr-status" class="preview-status" role="status">Bereit für deinen Inhalt.</p>
+
+        <div id="download-buttons" class="download-bar hidden">
+          <button id="btn-download-svg" class="action-button" aria-label="QR code als SVG herunterladen">SVG exportieren</button>
+          <button id="btn-download-png" class="action-button secondary" aria-label="QR code als PNG herunterladen">PNG exportieren</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="library-info">
       <aside class="notes">
         <span class="section-tag">Library Scope</span>
-        <h2 class="section-title">Warum die Oberflaeche so reduziert bleibt</h2>
+        <h2 class="section-title">Direkt im Browser. Ganz bei dir.</h2>
         <p class="section-copy">
-          Die Demo soll zeigen, wie weit ihr mit zwei kleinen Plain-JS-Libs kommt, ohne dass die UI die eigentliche Library-Idee ueberlagert.
+          Deine Inhalte und Logos werden lokal verarbeitet. Für die Erstellung und den Export ist kein Upload nötig.
         </p>
         <ul class="notes-list">
           <li>Kein Framework, keine Bundler-Magie, keine Styling-Dependency.</li>
-          <li>Die QR-Matrix bleibt von der SVG-Aesthetik komplett getrennt.</li>
-          <li>Die Buehne rechts zeigt bewusst sofort das Resultat statt erst eine Tool-Karte.</li>
+          <li>Die QR-Matrix bleibt von der SVG-Ästhetik komplett getrennt.</li>
+          <li>Mit Logo wird Fehlerkorrektur H verwendet. Prüfe den fertigen Code vor dem Einsatz mit einem Scanner.</li>
         </ul>
       </aside>
     </section>

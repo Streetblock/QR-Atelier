@@ -1,6 +1,8 @@
 import { QrCore } from './libs/QRcore.js'
 import { QrSvgRenderer } from './libs/QRsvg.js'
 
+const EXAMPLE_PAYLOAD = 'Grüße aus dem QR Atelier!'
+
 class QRPlaygroundApp {
   constructor() {
     this.state = {
@@ -9,6 +11,9 @@ class QRPlaygroundApp {
         format: 'qr',
         contentMode: 'text',
         errorCorrectionLevel: 'Q',
+        version: 0,
+        mask: -1,
+        encoding: 'utf-8',
         colorStart: '#0f172a',
         colorEnd: '#0ea5e9',
         dotStyle: 'rounded',
@@ -27,7 +32,12 @@ class QRPlaygroundApp {
 
     this.ui = {
       container: document.getElementById('qr-preview'),
-      placeholder: document.getElementById('qr-placeholder'),
+      status: document.getElementById('qr-status'),
+      errorCorrection: document.getElementById('error-correction'),
+      eccHelp: document.getElementById('ecc-help'),
+      version: document.getElementById('qr-version'),
+      mask: document.getElementById('qr-mask'),
+      encoding: document.getElementById('qr-encoding'),
       downloadButtons: document.getElementById('download-buttons'),
       format: document.getElementById('code-format'),
       contentMode: document.getElementById('content-mode'),
@@ -61,20 +71,25 @@ class QRPlaygroundApp {
   #init() {
     this.#bindEvents()
     this.#parseUrlParams()
-    this.#syncFormatUi()
+    this.update()
   }
 
   #bindEvents() {
     this.ui.primaryInput.addEventListener('input', () => {
+      // Save immediately so another control cannot overwrite pending input.
+      if (this.state.options.contentMode === 'wifi') {
+        this.state.options.wifiSsid = this.ui.primaryInput.value
+      } else {
+        this.state.data = this.ui.primaryInput.value
+      }
       clearTimeout(this.debounceTimer)
-      this.debounceTimer = setTimeout(() => {
-        if (this.state.options.contentMode === 'wifi') {
-          this.update({ wifiSsid: this.ui.primaryInput.value.trim() })
-        } else {
-          this.update({ data: this.ui.primaryInput.value.trim() })
-        }
-      }, 180)
+      this.debounceTimer = setTimeout(() => this.update(), 180)
     })
+
+    this.ui.errorCorrection.addEventListener('change', (e) => this.update({ errorCorrectionLevel: e.target.value }))
+    this.ui.version.addEventListener('change', (e) => this.update({ version: Number(e.target.value) }))
+    this.ui.mask.addEventListener('change', (e) => this.update({ mask: Number(e.target.value) }))
+    this.ui.encoding.addEventListener('change', (e) => this.update({ encoding: e.target.value }))
 
     if (this.ui.format) {
       this.ui.format.addEventListener('change', (e) => this.update({ format: e.target.value }))
@@ -139,26 +154,31 @@ class QRPlaygroundApp {
     this.#syncFormatUi()
 
     const payload = this.#buildPayload()
-
-    if (!payload) {
-      this.ui.container.innerHTML = ''
-      this.ui.container.appendChild(this.ui.placeholder)
-      this.ui.placeholder.classList.remove('hidden')
-      this.ui.downloadButtons.classList.add('hidden')
-      this.state.currentSvg = ''
-      return
-    }
-
-    this.ui.placeholder.classList.add('hidden')
-    this.ui.downloadButtons.classList.remove('hidden')
+    const isExample = !payload
+    this.ui.downloadButtons.classList.toggle('hidden', isExample)
 
     try {
-      const renderer = this.#createRenderer(300)
-      this.state.currentSvg = renderer.render()
-      this.ui.container.innerHTML = this.state.currentSvg
+      const renderer = this.#createRenderer(300, payload || EXAMPLE_PAYLOAD)
+      const svg = renderer.render()
+      this.state.currentSvg = isExample ? '' : svg
+      this.ui.container.innerHTML = svg
+      const qr = renderer.qrCode
+      this.ui.status.textContent = isExample
+        ? 'Beispielvorschau – gib deinen eigenen Inhalt ein'
+        : `Version ${qr.version} · ${qr.size} × ${qr.size} Module · Fehlerkorrektur ${qr.errorCorrectionLevel}${this.state.options.logo ? ' (Logo)' : ''}`
     } catch (error) {
-      console.error('Fehler beim Generieren des Codes:', error)
-      this.ui.container.innerHTML = `<p style="color: var(--rose); text-align: center;">Ein Fehler ist aufgetreten:<br>${error.message}</p>`
+      this.state.currentSvg = ''
+      this.ui.downloadButtons.classList.add('hidden')
+      const message = document.createElement('p')
+      message.className = 'preview-error'
+      message.textContent = 'Kein QR-Code'
+      const explanation = error.message.includes('too large')
+        ? 'Der Inhalt passt nicht in diese QR-Version. Wähle eine größere Version, „Automatisch“ oder eine geringere Fehlerkorrektur.'
+        : error.message.includes('cannot be encoded')
+          ? 'Diese Zeichen passen nicht zur gewählten Zeichencodierung. Wähle UTF-8.'
+          : `Der QR-Code konnte nicht erstellt werden: ${error.message}`
+      this.ui.container.replaceChildren(message)
+      this.ui.status.textContent = explanation
     }
   }
 
@@ -167,7 +187,7 @@ class QRPlaygroundApp {
   }
 
   hasCode() {
-    return !!this.state.currentSvg
+    return !!this.state.currentSvg && !!this.#buildPayload()
   }
 
   async #downloadSVG() {
@@ -203,10 +223,16 @@ class QRPlaygroundApp {
     }
   }
 
-  #createRenderer(size) {
-    const payload = this.#buildPayload()
+  #createRenderer(size, payload = this.#buildPayload()) {
     const ecl = this.state.options.logo ? 'H' : this.state.options.errorCorrectionLevel
-    const qr = new QrCore(payload, { errorCorrectionLevel: ecl }).generate()
+    const { version, mask, encoding } = this.state.options
+    const qr = new QrCore(payload, {
+      errorCorrectionLevel: ecl,
+      minVersion: version || 1,
+      maxVersion: version || 40,
+      mask,
+      encoding,
+    }).generate()
     return new QrSvgRenderer(qr, { size, ...this.state.options })
   }
 
@@ -219,6 +245,12 @@ class QRPlaygroundApp {
     }
     if (this.ui.format) this.ui.format.value = this.state.options.format
     if (this.ui.contentMode) this.ui.contentMode.value = this.state.options.contentMode
+    const hasLogo = !!this.state.options.logo
+    this.ui.errorCorrection.value = hasLogo ? 'H' : this.state.options.errorCorrectionLevel
+    this.ui.errorCorrection.disabled = hasLogo
+    this.ui.eccHelp.textContent = hasLogo
+      ? 'Mit Logo ist H aktiv. Nach dem Entfernen gilt wieder deine gewählte Stufe. Prüfe den fertigen Code mit einem Scanner.'
+      : 'Höhere Fehlerkorrektur macht den Code robuster, benötigt aber mehr Platz.'
 
     const isWifi = this.state.options.contentMode === 'wifi'
 
