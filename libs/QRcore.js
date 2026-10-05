@@ -275,7 +275,8 @@ export class QrCore {
 
   #buildMatrix(segments, version, ecl, maskPreference) {
     const size = version * 4 + 17
-    const modules = createSquareArray(size, null)
+    // Remainder modules are light before masking, including during penalty scoring.
+    const modules = createSquareArray(size, false)
     const isFunction = createSquareArray(size, false)
 
     drawFunctionPatterns(modules, isFunction, version)

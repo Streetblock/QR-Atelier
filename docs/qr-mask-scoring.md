@@ -16,6 +16,11 @@ version information. The candidate with the smallest total penalty wins. Ties
 retain the lowest mask number. The external quiet zone is added by rendering;
 it contributes neither modules nor virtual light runs to mask scoring.
 
+Remainder modules start as light (`false`) before masking. They must already
+have their Boolean values during candidate scoring, not only when returning
+the final matrix. Leaving them as `null` can split light runs or 2×2 blocks
+under strict equality and therefore select a non-minimum candidate.
+
 The public `calculateQrMaskPenalty` function expects a complete, square QR
 module matrix without a quiet zone. It does not mutate the matrix.
 
@@ -76,9 +81,11 @@ Run `npm ci --ignore-scripts` followed by `npm test`.
 * `tests/qr-mask-selection.test.mjs` compares 1,000 deterministic matrices to a
   separate window/regular-expression scorer and checks N4 arithmetic for every
   possible dark-module count in all 40 QR versions. It verifies all eight full
-  candidates for versions 1, 2, 6, 7, 9, 10, 26, 27 and 40, across all four error
+  candidates for all 40 versions, across all four error
   correction levels, and checks that automatic selection takes the first minimum.
   ZXing independently decodes all these candidates from their module matrices.
+  Focused remainder-module regressions cover byte-mode `a` at version 2/M
+  (mask 6) and alphanumeric `ISO 18004:2024 / QR` at version 3/Q (mask 4).
 * Existing decoding tests continue to exercise rendered symbols, encodings,
   Kanji and structured append.
 

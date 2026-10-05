@@ -44,19 +44,19 @@ test('N4 agrees with integer interval arithmetic for every possible density in a
 })
 
 test('chooses the independently scored minimum of eight complete candidates and remains decodable', () => {
-  const versions = [1, 2, 6, 7, 9, 10, 26, 27, 40]
-  for (const [index, version] of versions.entries()) {
+  const versions = Array.from({ length: 40 }, (_, index) => index + 1)
+  for (const version of versions) for (const level of ['L', 'M', 'Q', 'H']) {
     const text = `ISO ${version}`
     const options = {
       mode: 'byte', encoding: 'iso-8859-1', eci: false,
       minVersion: version, maxVersion: version,
-      errorCorrectionLevel: ['L', 'M', 'Q', 'H'][index % 4],
+      errorCorrectionLevel: level,
     }
     const candidates = Array.from({ length: 8 }, (_, mask) => new QrCore(text, { ...options, mask }).generate())
     const scores = candidates.map(candidate => qrMaskScoreParts(candidate.modules).total)
     const best = scores.indexOf(Math.min(...scores))
     const automatic = new QrCore(text, options).generate()
-    assert.deepEqual(automatic.modules, candidates[best].modules, `version=${version}, scores=${scores}`)
+    assert.deepEqual(automatic.modules, candidates[best].modules, `version=${version}, level=${level}, scores=${scores}`)
     assert.equal(decode(automatic.modules), text)
     for (const [mask, candidate] of candidates.entries()) {
       assert.equal(calculateQrMaskPenalty(candidate.modules), scores[mask])
@@ -75,4 +75,24 @@ test('longer light margins add no duplicate N3 penalty and rotation preserves th
   assert.equal(calculateQrMaskPenalty(matrix), parts.total)
   const rotated = matrix.map((_, x) => matrix.map(row => row[x]).reverse())
   assert.equal(calculateQrMaskPenalty(rotated), parts.total)
+})
+
+test('scores remainder modules as light before selecting an automatic mask', () => {
+  const cases = [
+    { text: 'a', version: 2, level: 'M', mode: 'byte', expectedMask: 6 },
+    { text: 'ISO 18004:2024 / QR', version: 3, level: 'Q', mode: 'alphanumeric', expectedMask: 4 },
+  ]
+  for (const { text, version, level, mode, expectedMask } of cases) {
+    const options = {
+      mode, eci: false, errorCorrectionLevel: level,
+      minVersion: version, maxVersion: version,
+    }
+    const candidates = Array.from({ length: 8 }, (_, mask) => new QrCore(text, { ...options, mask }).generate())
+    const scores = candidates.map(candidate => qrMaskScoreParts(candidate.modules).total)
+    const best = scores.indexOf(Math.min(...scores))
+    assert.equal(best, expectedMask, `version=${version}, scores=${scores}`)
+    const automatic = new QrCore(text, options).generate()
+    assert.deepEqual(automatic.modules, candidates[best].modules, `version=${version}, scores=${scores}`)
+    assert.equal(decode(automatic.modules), text)
+  }
 })
