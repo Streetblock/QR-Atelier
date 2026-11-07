@@ -30,7 +30,7 @@ export class MaxiCodeSvgRenderer {
 
   render() {
     const layout = buildMaxiCodeLayout(this.style.size, this.style.margin, MAXICODE_WIDTH, MAXICODE_HEIGHT)
-    const { hexRadius, pitchX, pitchY, hexWidth, hexHeight, totalWidth, totalHeight, offsetX, offsetY, bullseyeCenterX, bullseyeCenterY, bullseyeOuterRadius, bullseyeClearRadius } = layout
+    const { hexRadius, pitchX, pitchY, hexWidth, hexHeight, totalWidth, totalHeight, offsetX, offsetY, bullseyeCenterX, bullseyeCenterY, bullseyeOuterRadius } = layout
     const gradientId = `maxicode-gradient-${Math.random().toString(36).slice(2, 10)}`
 
     let dataMarkup = ''
@@ -42,12 +42,6 @@ export class MaxiCodeSvgRenderer {
         const bit = MAXICODE_BITNR[y][x]
         const cx = offsetX + hexWidth / 2 + x * pitchX + rowShift
         const cy = offsetY + hexHeight / 2 + y * pitchY
-        const distanceToCenter = Math.hypot(cx - bullseyeCenterX, cy - bullseyeCenterY)
-
-        if (distanceToCenter < bullseyeClearRadius) {
-          continue
-        }
-
         if (bit >= 0 && this.maxiCode.modules[y][x]) {
           dataMarkup += hexPath(cx, cy, hexRadius, `url(#${gradientId})`)
         } else if (bit in FIXED_CELL_COLORS) {

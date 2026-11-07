@@ -707,10 +707,13 @@ const MAXICODE_BITNR = [
   [737, 736, 743, 742, 749, 748, 755, 754, 761, 760, 767, 766, 773, 772, 779, 778, 785, 784, 791, 790, 797, 796, 803, 802, 809, 808, 815, 814, 863, 862],
 ]
 
-const MAXICODE_BULLSEYE_RADIUS_FACTOR = 5.25
+// Keep the outer ring clear of the nearest data hexagons.
+const MAXICODE_BULLSEYE_RADIUS_FACTOR = 4.8
 const MAXICODE_BULLSEYE_RADIUS_TO_HEX_RADIUS_FACTOR = MAXICODE_BULLSEYE_RADIUS_FACTOR / 0.64
 const MAXICODE_BULLSEYE_SHIFT_FACTOR = 0.74
 const MAXICODE_BULLSEYE_CLEAR_FACTOR = 1.0
+// Preserve the clear-radius value returned by the legacy layout API.
+const MAXICODE_LEGACY_CLEAR_RADIUS_FACTOR = 5.25 / 0.64 + MAXICODE_BULLSEYE_CLEAR_FACTOR
 const MAXICODE_HEX_RADIUS_FACTOR = 0.8
 
 function buildMaxiCodeLayout(size, margin, width, height) {
@@ -743,7 +746,7 @@ function buildMaxiCodeLayout(size, margin, width, height) {
     bullseyeCenterX: centerX - pitchX * MAXICODE_BULLSEYE_SHIFT_FACTOR,
     bullseyeCenterY: centerY,
     bullseyeOuterRadius: hexRadius * MAXICODE_BULLSEYE_RADIUS_TO_HEX_RADIUS_FACTOR,
-    bullseyeClearRadius: hexRadius * (MAXICODE_BULLSEYE_RADIUS_TO_HEX_RADIUS_FACTOR + MAXICODE_BULLSEYE_CLEAR_FACTOR),
+    bullseyeClearRadius: hexRadius * MAXICODE_LEGACY_CLEAR_RADIUS_FACTOR,
   }
 }
 
