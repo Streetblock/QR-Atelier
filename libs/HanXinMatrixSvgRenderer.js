@@ -2,7 +2,7 @@ function escapeAttribute(value) {
   return String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
-export class BarcodeMatrixSvgRenderer {
+export class HanXinMatrixSvgRenderer {
   constructor(result, options = {}) {
     if (!result?.modules?.length || !result.modules.every((row) => Array.isArray(row) && row.length === result.modules[0].length)) {
       throw new TypeError('A rectangular boolean module matrix is required');
@@ -35,4 +35,4 @@ export class BarcodeMatrixSvgRenderer {
   }
 }
 
-export default BarcodeMatrixSvgRenderer;
+export default HanXinMatrixSvgRenderer;
