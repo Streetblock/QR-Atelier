@@ -19,9 +19,10 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 
 * Zero Dependencies: No `npm`, no Webpack, no framework. Just pure ES6 vanilla JavaScript, modern HTML, and CSS.
 * Live Preview: The selected barcode is instantly and efficiently re-rendered on every input thanks to built-in debouncing.
+* Example Preview: Empty inputs show “Grüße aus dem QR Atelier!” with the selected styling and a clear example label. Export is available only for your own content.
 * QR Code Studio: The main branch ships the QR Code experience.
 * In-depth Styling: Choose between different dot styles, finder shapes, and smooth SVG color gradients.
-* Center Logo Support: Upload your own logo for QR Code. The studio app automatically switches to error correction level H in the background.
+* Center Logo Support: Upload your own logo for QR Code. The studio app shows and uses error correction level H while a logo is present.
 * Local Export: Direct download of the result as a vector (`SVG`) or raster image (`PNG` up to 2048x2048px).
 * URL Parameters: Populate the studio directly via URL parameters: `?url=https://your-link.com`.
 
@@ -32,19 +33,21 @@ The project stays intentionally small and uses one core and one renderer per bar
 ### 1. `QRcore.js` and `QRsvg.js`
 The QR Code core and renderer.
 * Generates QR matrices with Reed-Solomon error correction.
-* Supports Numeric, Alphanumeric, and Byte mode plus ECI for UTF-8, ISO-8859-1, and Windows-1252. QR Kanji mode is not currently supported.
+* Supports Numeric, Alphanumeric, Byte, and manual Kanji mode plus ECI for UTF-8, ISO-8859-1, and Windows-1252.
 * Uses UTF-8 as the default Byte-mode encoding; library consumers can select another supported encoding through `QrCore` options.
 * Automatically selects a bit-efficient combination of Numeric, Alphanumeric, and Byte segments for each QR version range.
 * Supports QR Structured Append for splitting one message across 2 to 16 symbols, including the standard sequence and parity header.
-* Automatically selects the best mask pattern.
+* Automatically selects the lowest-penalty mask using the documented [ISO/IEC 18004:2015 scoring interpretation](docs/qr-mask-scoring.md).
 * Renders the QR matrix in the chosen visual style.
 
 ### 2. `app.js` and `styles.css`
-The app controller and UI. Manages state, binds DOM events, and provides the interface. The studio currently uses the core's UTF-8 default and does not expose an encoding selector. When a center logo is present, the app requests error correction level H; this is app behavior, not an automatic rule inside `QrCore`.
+The app controller and UI. Manages state, binds DOM events, and provides the interface. The preview stays visible alongside the editor, or as a compact sticky panel on small screens. Collapsed advanced settings expose error correction L/M/Q/H, automatic or fixed QR versions 1–40, masks 0–7, and UTF-8 / ISO-8859-1 / Windows-1252 encoding. UTF-8 and error correction Q remain the defaults. With a center logo, the UI visibly locks error correction to H and restores the selected level when the logo is removed. Invalid input clears the preview and disables export until corrected.
 
 On `feat/dotcode-core`, `DotCodeCore.js` supplies the independent native encoder and `DotCodeSvg.js` supplies the reusable circle-based vector renderer. See `docs/formats/dotcode.md` for its API and current boundaries.
 
 ## Installation & Usage
+
+For development, see the [independent QR encoder and mask-scoring tests](docs/qr-reference-comparison.md).
 
 1. Clone the repository
    ```bash

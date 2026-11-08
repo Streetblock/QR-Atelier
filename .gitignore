@@ -2,3 +2,4 @@
 /node_modules
 /examples/qr-low-level/generated
 /exports
+/.reference-deps

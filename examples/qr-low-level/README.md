@@ -19,5 +19,6 @@ examples/qr-low-level/browser.html
 The examples cover:
 
 - `mode: 'byte'` to bypass automatic numeric/alphanumeric compression.
+- `mode: 'kanji'` for manual Unicode-to-Shift-JIS Kanji encoding.
 - `encoding: 'iso-8859-1'` with ECI for bytes such as `C4 C4 C4`.
-- Manual `QrSegment.numeric`, `QrSegment.alphanumeric`, `QrSegment.byte`, and `QrSegment.bytes` usage.
+- Manual `QrSegment.numeric`, `QrSegment.alphanumeric`, `QrSegment.byte`, `QrSegment.bytes`, `QrSegment.kanji`, and `QrSegment.kanjiBytes` usage.
