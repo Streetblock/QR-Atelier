@@ -43,7 +43,7 @@ Der QR-Code-Kern und Renderer.
 ### 2. `app.js` und `styles.css`
 Der App-Controller und das UI. Steuert den State, bindet DOM-Events und sorgt fuer das Interface. Die Vorschau bleibt neben der Arbeitsfläche sichtbar, auf kleinen Bildschirmen als kompakte angeheftete Ansicht. Die eingeklappten erweiterten Einstellungen bieten Fehlerkorrektur L/M/Q/H, automatische oder feste QR-Versionen 1–40, Masken 0–7 und UTF-8 / ISO-8859-1 / Windows-1252. Standard bleiben UTF-8 und Fehlerkorrektur Q. Mit Logo zeigt die Oberfläche die festgelegte Stufe H an; nach dem Entfernen gilt wieder die gewählte Stufe. Ungültige Eingaben leeren die Vorschau und sperren den Export bis zur Korrektur.
 
-Auf `feat/dotcode-core` liefert `DotCodeCore.js` den unabhaengigen nativen Encoder und `DotCodeSvg.js` den wiederverwendbaren punktbasierten Vektor-Renderer. API und bekannte Grenzen stehen in `docs/formats/dotcode.md`.
+`DotCodeCore.js` erzeugt die DotCode-Matrix. `DotCodeSvg.js` rendert runde oder quadratische Module in Schwarz auf Weiß. Details stehen in der [DotCode-Dokumentation](docs/formats/dotcode.md) und im [Browserbeispiel](examples/dotcode/browser.html).
 
 ## Installation & Nutzung
 

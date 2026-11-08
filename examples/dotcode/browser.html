@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DotCode | QR Atelier</title>
+  <style>
+    body { margin: 2rem auto; max-width: 70rem; padding: 0 1rem; font: 1rem/1.5 system-ui, sans-serif; }
+    h1, figcaption { font-weight: 700; }
+    .examples { display: flex; flex-wrap: wrap; align-items: start; gap: 1rem; }
+    figure { box-sizing: border-box; min-width: 0; max-width: 100%; margin: 0; padding: 1rem; border: 1px solid #d1d5db; border-radius: .5rem; }
+    .symbol { display: grid; place-items: center; min-height: 10rem; }
+    .symbol svg { display: block; max-width: 100%; height: auto; }
+    figcaption { margin-top: .5rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>DotCode</h1>
+    <p>Derselbe Inhalt als runde und quadratische Module, jeweils schwarz auf weiß.</p>
+    <div class="examples" id="examples"></div>
+  </main>
+  <script type="module">
+    import { DotCodeCore } from '../../libs/DotCodeCore.js'
+    import { DotCodeSvgRenderer } from '../../libs/DotCodeSvg.js'
+
+    const symbol = new DotCodeCore('DotCode').generate()
+    const examples = [
+      { label: 'Runde Module', dotShape: 'circle' },
+      { label: 'Quadratische Module', dotShape: 'square' },
+    ]
+
+    for (const { label, dotShape } of examples) {
+      const svg = new DotCodeSvgRenderer(symbol, { dotShape }).render()
+
+      const figure = document.createElement('figure')
+      const preview = document.createElement('div')
+      preview.className = 'symbol'
+      preview.innerHTML = svg
+      const caption = document.createElement('figcaption')
+      caption.textContent = label
+      figure.append(preview, caption)
+      document.querySelector('#examples').append(figure)
+    }
+  </script>
+</body>
+</html>

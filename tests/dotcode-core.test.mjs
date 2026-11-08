@@ -38,10 +38,24 @@ test('GS1 separators use FNC1 and automatic sizing keeps alternating parity',()=
   assert.equal((symbol.width+symbol.height)%2,1)
 })
 
-test('SVG renderer emits one circle for every printed dot',()=>{
-  const symbol=new DotCodeCore('ABC').generate(),svg=new DotCodeSvgRenderer(symbol).render()
-  assert.equal((svg.match(/<circle /g)||[]).length,symbol.modules.flat().filter(Boolean).length)
-  assert.match(svg,/aria-label="DotCode"/)
+test('SVG renders black round or square modules on a white background', () => {
+  const symbol = new DotCodeCore('Dotcode').generate()
+  const litModules = symbol.modules.flat().filter(Boolean).length
+  const width = symbol.width + 6
+  const height = symbol.height + 6
+  const circleSvg = new DotCodeSvgRenderer(symbol).render()
+  const squareSvg = new DotCodeSvgRenderer(symbol, { dotShape: 'square', dotScale: 0.5 }).render()
+
+  for (const svg of [circleSvg, squareSvg]) {
+    assert.ok(svg.includes(`viewBox="0 0 ${width} ${height}"`))
+    assert.ok(svg.includes(`<rect width="${width}" height="${height}" fill="#ffffff"/><g fill="#000000">`))
+    assert.match(svg, /aria-label="DotCode"/)
+  }
+  assert.equal((circleSvg.match(/<circle /g) ?? []).length, litModules)
+  assert.doesNotMatch(circleSvg, /<rect x=/)
+  assert.equal((squareSvg.match(/<rect x=/g) ?? []).length, litModules)
+  assert.doesNotMatch(squareSvg, /<circle /)
+  assert.match(squareSvg, /<rect x="3\.25" y="3\.25" width="0\.5" height="0\.5"\/>/)
 })
 
 test('rejects invalid input and dimensions',()=>{

@@ -43,7 +43,7 @@ The QR Code core and renderer.
 ### 2. `app.js` and `styles.css`
 The app controller and UI. Manages state, binds DOM events, and provides the interface. The preview stays visible alongside the editor, or as a compact sticky panel on small screens. Collapsed advanced settings expose error correction L/M/Q/H, automatic or fixed QR versions 1–40, masks 0–7, and UTF-8 / ISO-8859-1 / Windows-1252 encoding. UTF-8 and error correction Q remain the defaults. With a center logo, the UI visibly locks error correction to H and restores the selected level when the logo is removed. Invalid input clears the preview and disables export until corrected.
 
-On `feat/dotcode-core`, `DotCodeCore.js` supplies the independent native encoder and `DotCodeSvg.js` supplies the reusable circle-based vector renderer. See `docs/formats/dotcode.md` for its API and current boundaries.
+`DotCodeCore.js` encodes DotCode matrices and `DotCodeSvg.js` renders round or square modules in black on white. See the [DotCode documentation](docs/formats/dotcode.md) and [browser example](examples/dotcode/browser.html).
 
 ## Installation & Usage
 
