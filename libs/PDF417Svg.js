@@ -1,6 +1,6 @@
 // Dependency-free SVG renderer shared by PDF417 and MicroPDF417 core results.
 
-import { buildBarcodeMatrixPath, validateBarcodeMatrix } from './BarcodeMatrixSvg.js'
+import { buildBarcodeMatrixPath, validateBarcodeMatrix } from './PDF417MatrixSvg.js'
 
 export class Pdf417SvgRenderer {
   static DEFAULT_STYLE = Object.freeze({

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { buildBarcodeMatrixPath, validateBarcodeMatrix } from '../libs/BarcodeMatrixSvg.js'
+import { buildBarcodeMatrixPath, validateBarcodeMatrix } from '../libs/PDF417MatrixSvg.js'
 import { MicroPdf417Core, Pdf417Core } from '../libs/PDF417core.js'
 import {
   MicroPDF417SvgRenderer,

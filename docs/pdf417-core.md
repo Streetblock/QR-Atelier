@@ -127,7 +127,7 @@ lookup for deterministic tests and future barcode adapters.
 
 | File | Responsibility |
 | --- | --- |
-| `libs/BarcodeMatrixSvg.js` | Symbology-neutral boolean-matrix validation and SVG path construction. |
+| `libs/PDF417MatrixSvg.js` | Boolean-matrix validation and SVG path construction for PDF417 and MicroPDF417. |
 | `libs/PDF417Compaction.js` | Shared text, byte, numeric, and automatic compaction. |
 | `libs/PDF417ErrorCorrection.js` | Generator-polynomial construction and Reed-Solomon ECC modulo 929. |
 | `libs/PDF417Patterns.js` | Shared 3 × 929 standard codeword patterns. |
