@@ -1,5 +1,7 @@
 import { formatRegistry } from './formats/index.js'
 
+const EXAMPLE_PAYLOAD = 'Grüße aus dem QR Atelier!'
+
 class QRPlaygroundApp {
   constructor() {
     this.state = {
@@ -8,6 +10,9 @@ class QRPlaygroundApp {
         format: 'qr',
         contentMode: 'text',
         errorCorrectionLevel: 'Q',
+        version: 0,
+        mask: -1,
+        encoding: 'utf-8',
         colorStart: '#0f172a',
         colorEnd: '#0ea5e9',
         dotStyle: 'rounded',
@@ -27,7 +32,13 @@ class QRPlaygroundApp {
     this.renderedFormatId = null
     this.ui = {
       container: document.getElementById('qr-preview'),
-      placeholder: document.getElementById('qr-placeholder'),
+      status: document.getElementById('qr-status'),
+      qrSettings: document.getElementById('field-qr-settings'),
+      errorCorrection: document.getElementById('error-correction'),
+      eccHelp: document.getElementById('ecc-help'),
+      version: document.getElementById('qr-version'),
+      mask: document.getElementById('qr-mask'),
+      encoding: document.getElementById('qr-encoding'),
       downloadButtons: document.getElementById('download-buttons'),
       format: document.getElementById('code-format'),
       formatOptions: document.getElementById('format-options'),
@@ -62,8 +73,8 @@ class QRPlaygroundApp {
   #init() {
     this.#populateFormatSelect()
     this.#bindEvents()
-    this.#parseUrlParams()
-    this.#syncUi()
+    this.state.data = new URLSearchParams(window.location.search).get('url') ?? ''
+    this.update()
   }
 
   #populateFormatSelect() {
@@ -79,18 +90,23 @@ class QRPlaygroundApp {
 
   #bindEvents() {
     this.ui.primaryInput.addEventListener('input', () => {
-      clearTimeout(this.debounceTimer)
-      this.debounceTimer = setTimeout(() => {
-        if (this.state.options.contentMode === 'wifi') {
-          this.update({ wifiSsid: this.ui.primaryInput.value.trim() })
-          return
-        }
+      const value = this.ui.primaryInput.value
+      if (this.state.options.contentMode === 'wifi') {
+        this.state.options.wifiSsid = value
+      } else {
         const format = formatRegistry.get(this.state.options.format)
-        const preserveWhitespace = format.preserveWhitespace?.(this.state.options) ?? false
-        this.update({ data: preserveWhitespace ? this.ui.primaryInput.value : this.ui.primaryInput.value.trim() })
-      }, 180)
+        this.state.data = format.preserveWhitespace?.(this.state.options) ? value : value.trim()
+      }
+      this.state.currentSvg = ''
+      this.ui.downloadButtons.classList.add('hidden')
+      clearTimeout(this.debounceTimer)
+      this.debounceTimer = setTimeout(() => this.update(), 180)
     })
 
+    this.ui.errorCorrection.addEventListener('change', (event) => this.update({ errorCorrectionLevel: event.target.value }))
+    this.ui.version.addEventListener('change', (event) => this.update({ version: Number(event.target.value) }))
+    this.ui.mask.addEventListener('change', (event) => this.update({ mask: Number(event.target.value) }))
+    this.ui.encoding.addEventListener('change', (event) => this.update({ encoding: event.target.value }))
     this.ui.format.addEventListener('change', (event) => this.update({ format: event.target.value }))
     this.ui.contentMode.addEventListener('change', (event) => this.update({ contentMode: event.target.value }))
     this.ui.dotShape.addEventListener('change', (event) => this.update({ dotStyle: event.target.value }))
@@ -133,37 +149,49 @@ class QRPlaygroundApp {
     this.ui.btnPNG.addEventListener('click', () => this.#downloadPNG())
   }
 
-  #parseUrlParams() {
-    const paramUrl = new URLSearchParams(window.location.search).get('url')
-    if (!paramUrl) return
-    this.ui.primaryInput.value = paramUrl
-    this.ui.primaryInput.dispatchEvent(new Event('input'))
-  }
-
   update(newOptions = {}) {
+    clearTimeout(this.debounceTimer)
     this.state.options = { ...this.state.options, ...newOptions }
     if (newOptions.data !== undefined) this.state.data = newOptions.data
     this.#syncUi()
 
-    const payload = this.#buildPayload()
-    if (!payload) {
-      this.ui.container.innerHTML = ''
-      this.ui.container.appendChild(this.ui.placeholder)
-      this.ui.placeholder.classList.remove('hidden')
-      this.ui.downloadButtons.classList.add('hidden')
-      this.state.currentSvg = ''
-      return
-    }
-
-    this.ui.placeholder.classList.add('hidden')
-    this.ui.downloadButtons.classList.remove('hidden')
+    const { format, logo } = this.state.options
+    const { label } = formatRegistry.get(format)
     try {
-      const renderer = this.#createRenderer(300)
-      this.state.currentSvg = renderer.render()
-      this.ui.container.innerHTML = this.state.currentSvg
+      const payload = this.#buildPayload()
+      const isExample = !payload && format === 'qr'
+      if (!payload && !isExample) {
+        this.state.currentSvg = ''
+        this.ui.container.replaceChildren()
+        this.ui.status.textContent = `Gib einen Inhalt für ${label} ein.`
+        this.ui.downloadButtons.classList.add('hidden')
+        return
+      }
+
+      const renderer = this.#createRenderer(300, payload || EXAMPLE_PAYLOAD)
+      const svg = renderer.render()
+      this.state.currentSvg = isExample ? '' : svg
+      this.ui.container.innerHTML = svg
+      this.ui.downloadButtons.classList.toggle('hidden', isExample)
+
+      if (isExample) {
+        this.ui.status.textContent = 'Beispielvorschau – gib deinen eigenen Inhalt ein'
+      } else if (format === 'qr' || format === 'qr-model-1') {
+        const { version, size, errorCorrectionLevel } = renderer.qrCode
+        this.ui.status.textContent = `Version ${version} · ${size} × ${size} Module · Fehlerkorrektur ${errorCorrectionLevel}${logo ? ' (Logo)' : ''}`
+      } else {
+        this.ui.status.textContent = label
+      }
     } catch (error) {
-      console.error('Fehler beim Generieren des Codes:', error)
-      this.ui.container.innerHTML = `<p style="color: var(--rose); text-align: center;">Ein Fehler ist aufgetreten:<br>${error.message}</p>`
+      this.state.currentSvg = ''
+      this.ui.downloadButtons.classList.add('hidden')
+      const message = document.createElement('p')
+      message.className = 'preview-error'
+      message.textContent = format === 'qr' ? 'Kein QR-Code' : label
+      this.ui.container.replaceChildren(message)
+      this.ui.status.textContent = format === 'qr'
+        ? explainQrError(error)
+        : `Der Code konnte nicht erstellt werden: ${error.message}`
     }
   }
 
@@ -200,8 +228,9 @@ class QRPlaygroundApp {
       const dimensions = typeof renderer.getOutputDimensions === 'function'
         ? renderer.getOutputDimensions()
         : { width: size, height: size }
+      const filename = this.#buildDownloadFilename('png', size)
       const blob = await this.#svgToPngBlob(svg, dimensions)
-      this.#triggerBlobDownload(blob, this.#buildDownloadFilename('png', size))
+      this.#triggerBlobDownload(blob, filename)
     } catch (error) {
       console.error('PNG Download fehlgeschlagen:', error)
       alert('Der PNG-Export ist fehlgeschlagen.')
@@ -210,9 +239,9 @@ class QRPlaygroundApp {
     }
   }
 
-  #createRenderer(size) {
+  #createRenderer(size, payload = this.#buildPayload()) {
     return formatRegistry.createRenderer(this.state.options.format, {
-      payload: this.#buildPayload(),
+      payload,
       size,
       options: this.state.options,
     })
@@ -224,6 +253,17 @@ class QRPlaygroundApp {
 
     const format = formatRegistry.get(this.state.options.format)
     const isWifi = this.state.options.contentMode === 'wifi'
+    this.#setVisible(this.ui.qrSettings, format.id === 'qr')
+    const hasLogo = format.capabilities.logo && Boolean(this.state.options.logo)
+    this.ui.errorCorrection.value = hasLogo ? 'H' : this.state.options.errorCorrectionLevel
+    this.ui.errorCorrection.disabled = hasLogo
+    this.ui.eccHelp.textContent = hasLogo
+      ? 'Mit Logo ist H aktiv. Nach dem Entfernen gilt wieder deine gewählte Stufe. Prüfe den fertigen Code mit einem Scanner.'
+      : 'Höhere Fehlerkorrektur macht den Code robuster, benötigt aber mehr Platz.'
+    this.ui.version.value = String(this.state.options.version)
+    this.ui.mask.value = String(this.state.options.mask)
+    this.ui.encoding.value = this.state.options.encoding
+
     this.ui.format.value = format.id
     this.ui.contentMode.value = this.state.options.contentMode
 
@@ -414,6 +454,16 @@ class QRPlaygroundApp {
       image.src = url
     })
   }
+}
+
+function explainQrError(error) {
+  if (error.message.includes('too large')) {
+    return 'Der Inhalt passt nicht in diese QR-Version. Wähle eine größere Version, „Automatisch“ oder eine geringere Fehlerkorrektur.'
+  }
+  if (error.message.includes('cannot be encoded')) {
+    return 'Diese Zeichen passen nicht zur gewählten Zeichencodierung. Wähle UTF-8.'
+  }
+  return `Der QR-Code konnte nicht erstellt werden: ${error.message}`
 }
 
 function resolve(value, options, fallback) {

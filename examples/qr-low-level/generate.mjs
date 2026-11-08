@@ -10,6 +10,7 @@ const outputDir = resolve(here, 'generated')
 mkdirSync(outputDir, { recursive: true })
 
 const latinCapitalAWithDiaeresis = '\u00C4'
+const japanInKanji = '\u65E5\u672C'
 
 const examples = [
   {
@@ -46,6 +47,12 @@ const examples = [
         QrSegment.bytes([0x20, 0x41]),
       ],
     }).generate(),
+  },
+  {
+    filename: '04-manual-kanji.svg',
+    title: 'Manual Kanji mode: Japan',
+    code: "new QrCore('\\u65E5\\u672C', { mode: 'kanji' }).generate()",
+    qr: new QrCore(japanInKanji, { mode: 'kanji' }).generate(),
   },
 ]
 

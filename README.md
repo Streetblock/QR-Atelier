@@ -15,8 +15,9 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 * Zero Dependencies: No `npm`, no Webpack, no framework. Just pure ES6 vanilla JavaScript, modern HTML, and CSS.
 * Live Preview: The selected barcode is instantly and efficiently re-rendered on every input thanks to built-in debouncing.
 * Unified Studio: The registry-backed demo exposes the interactive encoders without coupling their cores.
+* QR example preview: Empty QR Model 2 inputs show “Grüße aus dem QR Atelier!” with the selected styling and a clear example label. Export is available only for your own content.
 * In-depth Styling: Choose between different dot styles, finder shapes, and smooth SVG color gradients.
-* Center Logo Support: Upload your own logo for QR Code. The studio app automatically switches to error correction level H in the background.
+* Center Logo Support: Upload your own logo for QR Code. The studio app shows and uses error correction level H while a logo is present.
 * Local Export: Direct download of the result as a vector (`SVG`) or raster image (`PNG` up to 2048x2048px).
 * URL Parameters: Populate the studio directly via URL parameters: `?url=https://your-link.com`.
 
@@ -84,11 +85,11 @@ The project stays intentionally small and uses one core and one renderer per bar
 The QR Code core and renderer.
 * Generates QR matrices with Reed-Solomon error correction.
 * Supports QR Code Model 2 versions 1-40 by default and legacy QR Code Model 1 versions 1-14 through the `model: 1` option.
-* Supports Numeric, Alphanumeric, and Byte mode plus ECI for UTF-8, ISO-8859-1, and Windows-1252. QR Kanji mode is not currently supported.
+* Model 2 supports Numeric, Alphanumeric, Byte, and manual Kanji mode plus ECI for UTF-8, ISO-8859-1, and Windows-1252.
 * Uses UTF-8 as the default Byte-mode encoding; library consumers can select another supported encoding through `QrCore` options.
 * Automatically selects a bit-efficient combination of Numeric, Alphanumeric, and Byte segments for each QR version range.
 * Supports QR Structured Append for splitting one message across 2 to 16 symbols, including the standard sequence and parity header.
-* Automatically selects the best mask pattern.
+* Automatically selects the lowest-penalty mask using the documented [ISO/IEC 18004:2015 scoring interpretation](docs/qr-mask-scoring.md).
 * Renders the QR matrix in the chosen visual style.
 
 ### 2. `RMQRcore.js`
@@ -102,9 +103,11 @@ The separate ISO/IEC 23941 rectangular Micro QR core.
 * Kanji is not currently supported. Structured Append is not part of the rMQR mode set.
 
 ### 3. `app.js` and `styles.css`
-The app controller and UI. Manages state, binds DOM events, and provides the interface through the shared format registry. The studio uses the cores' UTF-8 defaults and exposes only the options declared by each format adapter.
+The studio uses a shared format registry and displays options for the selected format. The preview stays beside the editor on large screens and sticks near the top on small screens. The QR Model 2 settings include error correction L/M/Q/H, automatic or fixed versions 1–40, masks 0–7, and UTF-8, ISO-8859-1, and Windows-1252. UTF-8 and error correction Q are the defaults. A center logo sets error correction to H until removed. Invalid content clears the preview and disables export.
 
 ## Installation & Usage
+
+For development, see the [independent QR encoder and mask-scoring tests](docs/qr-reference-comparison.md).
 
 1. Clone the repository
    ```bash

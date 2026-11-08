@@ -21,11 +21,11 @@ test('counts an N3 occurrence with light areas on both sides only once', () => {
   assert.equal(calculateQrMaskPenalty(modules), 40)
 })
 
-test('uses the quiet zone for an N3 occurrence at the symbol boundary', () => {
+test('does not score the external quiet zone as matrix modules', () => {
   const modules = createCheckerboard(15)
   modules[0] = [...'101110110101010'].map((value) => value === '1')
 
-  assert.equal(calculateQrMaskPenalty(modules), 40)
+  assert.equal(calculateQrMaskPenalty(modules), 0)
 })
 
 test('applies standard N3 evaluation to columns', () => {
@@ -45,7 +45,7 @@ test('selects the standard minimum-penalty mask end to end', () => {
     eci: false,
   }
   const automatic = new QrCore('a', options).generate()
-  const expected = new QrCore('a', { ...options, mask: 0 }).generate()
+  const expected = new QrCore('a', { ...options, mask: 3 }).generate()
 
   assert.deepEqual(automatic.modules, expected.modules)
 })
