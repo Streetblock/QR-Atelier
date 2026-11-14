@@ -1,3 +1,4 @@
+import { BINARY_RS_FIELDS, encodeBinaryReedSolomon } from './internal/BinaryReedSolomon.js'
 // ==========================================
 // AztecCore.js - Dependency-free Aztec Code generator
 // ==========================================
@@ -9,6 +10,12 @@ const DEFAULT_OPTIONS = {
   maxLayers: 32,
   errorCorrectionPercent: 33,
 }
+
+const AZTEC_RS_FIELDS = Object.freeze({
+  4: BINARY_RS_FIELDS.AZTEC_4, 6: BINARY_RS_FIELDS.AZTEC_6,
+  8: BINARY_RS_FIELDS.AZTEC_8, 10: BINARY_RS_FIELDS.AZTEC_10,
+  12: BINARY_RS_FIELDS.AZTEC_12,
+})
 
 const MODE_UPPER = 0
 const MODE_LOWER = 1
@@ -57,7 +64,7 @@ export class AztecCore {
     if (eccWords <= 0) {
       throw new Error('Aztec planning produced non-positive ECC word count.')
     }
-    const checkWords = reedSolomonCheckWords(messageWords, eccWords, layerPlan.wordSize)
+    const checkWords = encodeBinaryReedSolomon(messageWords, eccWords, AZTEC_RS_FIELDS[layerPlan.wordSize])
     const messageBits = generateCheckWordsFromBits(stuffedBits, layerPlan.capacityBits, layerPlan.wordSize)
     const modeMessageBits = generateModeMessage(layerPlan.compact, layerPlan.layers, messageWords.length)
     const { modules, isFunction, matrixSize } = buildAztecMatrix(layerPlan, messageBits, modeMessageBits)
@@ -100,7 +107,7 @@ export class AztecCore {
 // complements every even-positioned mode bit, and places them around the compact bullseye.
 export function buildAztecRuneMatrix(value) {
   const dataWords = [value >>> 4, value & 0x0f]
-  const checkWords = reedSolomonCheckWords(dataWords, 5, 4)
+  const checkWords = encodeBinaryReedSolomon(dataWords, 5, BINARY_RS_FIELDS.AZTEC_4)
   const modeMessageBits = wordsToBits([...dataWords, ...checkWords], 4)
   for (let i = 0; i < modeMessageBits.length; i += 2) modeMessageBits[i] ^= 1
 
@@ -510,75 +517,6 @@ function bitsToWords(bits, wordSize) {
   return words
 }
 
-function reedSolomonCheckWords(dataWords, checkWordCount, wordSize) {
-  const gf = createGenericGF(wordSize)
-  const generator = rsGeneratorPoly(checkWordCount, gf)
-  const message = [...dataWords, ...new Array(checkWordCount).fill(0)]
-
-  for (let i = 0; i < dataWords.length; i += 1) {
-    const coef = message[i]
-    if (coef === 0) continue
-    const logCoef = gf.logTable[coef]
-    for (let j = 0; j < generator.length; j += 1) {
-      const g = generator[j]
-      if (g === 0) continue
-      const idx = i + j
-      const term = gf.expTable[(logCoef + gf.logTable[g]) % (gf.size - 1)]
-      message[idx] ^= term
-    }
-  }
-
-  return message.slice(dataWords.length)
-}
-
-function rsGeneratorPoly(degree, gf) {
-  let poly = [1]
-  for (let d = 0; d < degree; d += 1) {
-    const term = [1, gf.expTable[(d + gf.generatorBase) % (gf.size - 1)]]
-    poly = polyMultiply(poly, term, gf)
-  }
-  return poly
-}
-
-function polyMultiply(a, b, gf) {
-  const out = new Array(a.length + b.length - 1).fill(0)
-  for (let i = 0; i < a.length; i += 1) {
-    for (let j = 0; j < b.length; j += 1) {
-      if (a[i] === 0 || b[j] === 0) continue
-      const exp = (gf.logTable[a[i]] + gf.logTable[b[j]]) % (gf.size - 1)
-      out[i + j] ^= gf.expTable[exp]
-    }
-  }
-  return out
-}
-
-function createGenericGF(wordSize) {
-  const config = {
-    4: { primitive: 0x13, size: 16, generatorBase: 1 },
-    6: { primitive: 0x43, size: 64, generatorBase: 1 },
-    8: { primitive: 0x12d, size: 256, generatorBase: 1 },
-    10: { primitive: 0x409, size: 1024, generatorBase: 1 },
-    12: { primitive: 0x1069, size: 4096, generatorBase: 1 },
-  }[wordSize]
-  if (!config) throw new Error(`Unsupported Aztec word size: ${wordSize}`)
-
-  const expTable = new Array(config.size)
-  const logTable = new Array(config.size)
-  let x = 1
-  for (let i = 0; i < config.size; i += 1) {
-    expTable[i] = x
-    x <<= 1
-    if (x >= config.size) {
-      x ^= config.primitive
-      x &= config.size - 1
-    }
-  }
-  for (let i = 0; i < config.size - 1; i += 1) {
-    logTable[expTable[i]] = i
-  }
-  return { ...config, expTable, logTable }
-}
-
 function toBits(value, length) {
   const bits = new Array(length)
   for (let i = length - 1; i >= 0; i -= 1) {
@@ -700,7 +638,7 @@ function generateCheckWordsFromBits(inputBits, totalBits, wordSize) {
   const messageWords = bitsToWords(inputBits, wordSize)
   while (messageWords.length < totalWords) messageWords.push(0)
   const checkWordCount = totalWords - messageSizeInWords
-  const checkWords = reedSolomonCheckWords(messageWords.slice(0, messageSizeInWords), checkWordCount, wordSize)
+  const checkWords = encodeBinaryReedSolomon(messageWords.slice(0, messageSizeInWords), checkWordCount, AZTEC_RS_FIELDS[wordSize])
   const allWords = [...messageWords.slice(0, messageSizeInWords), ...checkWords]
   const startPad = totalBits % wordSize
   const outBits = new Array(startPad).fill(0)
