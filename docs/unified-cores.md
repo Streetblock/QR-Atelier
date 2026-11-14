@@ -36,3 +36,36 @@ The archive allowlist contains library/formats code, declarations, this contract
 Run `npm test` and the existing `npm run test:reference` for encoder behavior. `npm run test:types` checks positive and negative public API cases. `npm run test:package` packs with lifecycle scripts disabled, installs only the local zero-dependency artifact into a fresh bounded consumer, checks the exports, compiles the public types and measures a write-free browser bundle. No test downloads an oracle or installs tools.
 
 CI uses the pinned development tools. Local verification may set `QR_ATELIER_TOOLING_ROOT` to an existing package with the same TypeScript/esbuild versions. `QR_ATELIER_TEST_TMP_ROOT` may select a workspace output directory for the temporary packed consumer; otherwise it is under this checkout's ignored output directory. Temporary consumers are removed after verification.
+
+## Shared binary Reed-Solomon arithmetic
+
+QR Model 1/2, Micro QR and rMQR use one private binary-field RS module under
+`libs/internal/`. The public encoder APIs, encoding defaults, masks, codewords,
+matrices and returned metadata remain unchanged. Package exports intentionally
+deny direct imports of this internal module; it is not a public math API.
+
+The internal fixed field presets distinguish QR's GF(256) polynomial
+`0x11d` / generator start 0 from the other binary fields. Data Matrix, Aztec
+and MaxiCode retain their existing arithmetic during this first migration
+stage. PDF417's prime-field helper and Legacy Data Matrix's CRC/convolution
+pipeline are separate. Format-specific framing and interleaving stay in each
+encoder rather than moving into the shared arithmetic module.
+
+The shared implementation initializes field tables lazily and caches only
+requested exact generator degrees. Each of its six possible field states
+retains at most eight generator entries and 8192 coefficient words, without a
+chain of every lower-degree polynomial.
+
+`tests/fixtures/encoder-baseline-372f456.json` preserves 753 complete public
+results from the previous unified implementation at commit
+`372f456f7f42d980732681f86c3827f2a0b37aec`. Hashes cover matrices, word/bit
+fields, all other metadata and typed-array identities. This is explicitly a
+previous-output regression baseline, not independent standards proof; its
+expectations are not regenerated during tests. All affected and untouched
+families participate, including all 256 Aztec Runes and large forced symbols.
+
+Direct RS tests also compare deterministic/seeded vectors with a separate
+test-only polynomial oracle and the existing ZXing development encoder,
+including pinned known vectors and full-layer-32 Aztec parity degrees. These
+references add no production dependency. Existing external family reference
+tests remain the independent encoding evidence.

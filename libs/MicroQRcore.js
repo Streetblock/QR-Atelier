@@ -1,3 +1,4 @@
+import { BINARY_RS_FIELDS, encodeBinaryReedSolomon } from './internal/BinaryReedSolomon.js'
 // ==========================================
 // MicroQRcore.js - Dependency-free Micro QR generator
 // Compact build for M1-M4 with ECC + mask + format info
@@ -309,7 +310,7 @@ function makeFinalMessageBits(symbol, dataBits) {
   }
 
   const eccCount = layout.total - layout.data
-  const eccCodewords = reedSolomonRemainder(dataCodewords, eccCount)
+  const eccCodewords = encodeBinaryReedSolomon(dataCodewords, eccCount, BINARY_RS_FIELDS.QR_256)
 
   const finalBits = []
   let nibble = null
@@ -450,46 +451,6 @@ function evaluateMicroMask(matrix) {
     sumRow += matrix[size - 1][i]
   }
   return sumCol <= sumRow ? sumCol * 16 + sumRow : sumRow * 16 + sumCol
-}
-
-function reedSolomonRemainder(data, degree) {
-  const divisor = reedSolomonGenerator(degree)
-  const result = new Array(degree).fill(0)
-
-  for (const value of data) {
-    const factor = value ^ result.shift()
-    result.push(0)
-    for (let i = 0; i < divisor.length; i += 1) {
-      result[i] ^= multiplyFiniteField(divisor[i], factor)
-    }
-  }
-
-  return result
-}
-
-function reedSolomonGenerator(degree) {
-  let result = [1]
-  let root = 1
-  for (let i = 0; i < degree; i += 1) {
-    const next = new Array(result.length + 1).fill(0)
-    for (let j = 0; j < result.length; j += 1) {
-      next[j] ^= multiplyFiniteField(result[j], root)
-      next[j + 1] ^= result[j]
-    }
-    result = next
-    root = multiplyFiniteField(root, 0x02)
-  }
-  result.pop()
-  return result.reverse()
-}
-
-function multiplyFiniteField(x, y) {
-  let z = 0
-  for (let i = 7; i >= 0; i -= 1) {
-    z = (z << 1) ^ ((z >>> 7) * 0x11d)
-    if (((y >>> i) & 1) !== 0) z ^= x
-  }
-  return z
 }
 
 function bitsToCodewords(bits) {

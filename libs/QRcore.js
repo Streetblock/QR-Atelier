@@ -1,3 +1,4 @@
+import { BINARY_RS_FIELDS, encodeBinaryReedSolomon } from './internal/BinaryReedSolomon.js'
 // ==========================================
 // QrCore.js - Dependency-free QR Code Matrix Generator
 // ==========================================
@@ -415,7 +416,7 @@ function createCodewords(segments, version, ecl, model) {
     offset += block.dataCount
   }
 
-  const eccBlocks = dataBlocks.map((block, index) => reedSolomonRemainder(block, blocks[index].eccCount))
+  const eccBlocks = dataBlocks.map((block, index) => encodeBinaryReedSolomon(block, blocks[index].eccCount, BINARY_RS_FIELDS.QR_256))
   const codewords = []
   const maxDataCount = Math.max(...dataBlocks.map((block) => block.length))
   const maxEccCount = Math.max(...eccBlocks.map((block) => block.length))
@@ -1275,51 +1276,6 @@ function drawVersionBits(modules, isFunction, version) {
     setFunctionModule(modules, isFunction, a, b, bit)
     setFunctionModule(modules, isFunction, b, a, bit)
   }
-}
-
-function reedSolomonRemainder(data, degree) {
-  const divisor = reedSolomonGenerator(degree)
-  const result = new Array(degree).fill(0)
-
-  for (const value of data) {
-    const factor = value ^ result.shift()
-    result.push(0)
-    divisor.forEach((coefficient, index) => {
-      result[index] ^= multiplyFiniteField(coefficient, factor)
-    })
-  }
-
-  return result
-}
-
-function reedSolomonGenerator(degree) {
-  let result = [1]
-  let root = 1
-  for (let i = 0; i < degree; i += 1) {
-    const next = new Array(result.length + 1).fill(0)
-    for (let j = 0; j < result.length; j += 1) {
-      next[j] ^= multiplyFiniteField(result[j], root)
-      next[j + 1] ^= result[j]
-    }
-    result = next
-    root = multiplyFiniteField(root, 0x02)
-  }
-  
-  // FIX: Wir entfernen die führende 1 (höchste Potenz) am Ende des Arrays 
-  // und drehen das Array um, damit wir von x^(n-1) bis x^0 absteigen.
-  result.pop()
-  return result.reverse()
-}
-
-function multiplyFiniteField(x, y) {
-  let z = 0
-  for (let i = 7; i >= 0; i -= 1) {
-    z = (z << 1) ^ ((z >>> 7) * 0x11d)
-    if (((y >>> i) & 1) !== 0) {
-      z ^= x
-    }
-  }
-  return z
 }
 
 function appendBits(bitBuffer, value, length) {

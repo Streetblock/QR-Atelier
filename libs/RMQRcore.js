@@ -1,3 +1,4 @@
+import { BINARY_RS_FIELDS, encodeBinaryReedSolomon } from './internal/BinaryReedSolomon.js'
 // ISO/IEC 23941 rMQR matrix generator (Numeric, Alphanumeric, Byte/ECI and FNC1 modes).
 
 const HEIGHTS = [7,7,7,7,7,9,9,9,9,9,11,11,11,11,11,11,13,13,13,13,13,13,15,15,15,15,15,17,17,17,17,17]
@@ -400,7 +401,7 @@ function addErrorCorrection(data, versionIndex, ecl) {
   for (let i = 0; i < blockCount; i += 1) {
     const length = shortData + (i >= shortCount ? 1 : 0)
     const blockData = data.slice(offset, offset + length)
-    blocks.push({ data: blockData, ecc: reedSolomonRemainder(blockData, eccLength) })
+    blocks.push({ data: blockData, ecc: encodeBinaryReedSolomon(blockData, eccLength, BINARY_RS_FIELDS.QR_256) })
     offset += length
   }
   const result = []
@@ -493,35 +494,3 @@ function appendBits(target, value, length) {
 }
 
 function bitLength(value) { return value === 0 ? 0 : 32 - Math.clz32(value) }
-
-function reedSolomonRemainder(data, degree) {
-  const divisor = reedSolomonGenerator(degree)
-  const result = new Array(degree).fill(0)
-  for (const value of data) {
-    const factor = value ^ result.shift()
-    result.push(0)
-    divisor.forEach((coefficient, index) => { result[index] ^= multiplyFiniteField(coefficient, factor) })
-  }
-  return result
-}
-
-function reedSolomonGenerator(degree) {
-  let result = [1], root = 1
-  for (let i = 0; i < degree; i += 1) {
-    const next = new Array(result.length + 1).fill(0)
-    for (let j = 0; j < result.length; j += 1) { next[j] ^= multiplyFiniteField(result[j], root); next[j + 1] ^= result[j] }
-    result = next
-    root = multiplyFiniteField(root, 2)
-  }
-  result.pop()
-  return result.reverse()
-}
-
-function multiplyFiniteField(x, y) {
-  let result = 0
-  for (let i = 7; i >= 0; i -= 1) {
-    result = (result << 1) ^ ((result >>> 7) * 0x11d)
-    result ^= ((y >>> i) & 1) * x
-  }
-  return result
-}
