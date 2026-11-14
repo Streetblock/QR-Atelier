@@ -1,53 +1,38 @@
-# Unified barcode core surface
+# Integrated encoder package
 
-The branch `feat/unified-barcode-cores` collects the independently usable encoder cores developed on the family branches. It does not combine their algorithms into one stateful super-encoder. Each family remains a separate ES module and can still be imported directly.
+Main contains the unified independent encoder set. Family feature branches and their focused documents remain available for development history. The package remains private; this integration does not broaden the grants in LICENSE.md or publish it to a registry.
 
-## Stable imports
-
-Consumers that need several families should use the package root or the equivalent `cores` subpath:
+## Public imports
 
 ```js
-import {
-  QrCore,
-  MicroQrCore,
-  RMqrCore,
-  DmCore,
-  AztecCore,
-  AztecRuneCore,
-  MaxiCodeCore,
-  Pdf417Core,
-  MicroPdf417Core,
-} from 'qr-atelier'
+import { QrCore } from 'qr-atelier/qr';
+import { DmCore } from 'qr-atelier/data-matrix';
+import { DmSvgRenderer } from 'qr-atelier/renderers/data-matrix';
+const symbol = new DmCore('Example', { shape: 'square' }).generate();
+const svg = new DmSvgRenderer(symbol).render();
 ```
 
-Direct imports remain supported for small consumers and backwards compatibility:
+- `qr`: QR Model 1/2, explicit segments and structured-append parity.
+- `microqr` and `rmqr`: their independent cores and rMQR segment helpers.
+- `data-matrix`: ECC200 and explicit DMRE, raw bytes and ECI segments.
+- `legacy-data-matrix`: the separate ECC000/050/080/100/140 API.
+- `aztec` and `aztec-rune`: separate encoders.
+- `maxicode`: MaxiCode plus the existing raw-input and UPS helpers.
+- `pdf417`: PDF417/MicroPDF417 and compaction helpers.
+- `renderers` and `renderers/{qr,microqr,data-matrix,aztec,maxicode}`: optional SVG output.
 
-```js
-import { DmCore } from 'qr-atelier/libs/DMcore.js'
-import { AztecCore } from 'qr-atelier/libs/AztecCore.js'
-```
+The root preserves its existing runtime exports. `./cores` is now deliberately encoder-only. Existing `./libs/*` and `./formats` paths remain supported. ESM is the implementation format; no CommonJS copy is generated. Public declaration files describe the actual family options and result shapes without requiring DOM or Node declarations. Numeric capacity/version limits still have runtime checks.
 
-The root surface also exports the legacy Data Matrix generator, structured control helpers, UPS MaxiCode helpers and the family SVG renderers. Internal placement tables and low-level error-correction implementation details are deliberately not all promoted to the stable root API.
+## Boundaries and compatibility
 
-## Included families
+Family subpaths avoid loading unused encoder tables. A root barrel import can still retain unrelated module initialization; no global `sideEffects:false` assertion is made. The pure cores entry excludes SVG renderers, while the compatibility root includes them. Core code has no production dependencies. TypeScript/esbuild and the independent decoder are development/test tools only.
 
-| Family | Core | Notes |
-| --- | --- | --- |
-| QR Code | `QrCore` | Model 2 versions 1–40; legacy Model 1 versions 1–14 |
-| Micro QR | `MicroQrCore` | M1–M4 |
-| rMQR | `RMqrCore` | all 32 standard sizes, ECI and FNC1 modes |
-| Data Matrix | `DmCore` | ECC 200, classic rectangles, DMRE, ECI and structured controls |
-| Legacy Data Matrix | `generateLegacyDataMatrix` | ECC 000/050/080/100/140 compatibility |
-| Aztec | `AztecCore` | compact and full symbols |
-| Aztec Rune | `AztecRuneCore` | 11 × 11 symbols for integers 0–255 |
-| MaxiCode | `MaxiCodeCore` | modes 2–6, ECI, Structured Append and UPS Format 07 helpers |
-| PDF417 | `Pdf417Core` | standard and truncated layouts |
-| MicroPDF417 | `MicroPdf417Core` | all 34 standardized variants |
+Packaging does not change encoding defaults, charset/ECI behavior, masks, codewords or matrices. Consumers such as Toolkit retain their explicit literal-byte, GS1, ZPL and device qualification adapters. Replacing an adapted encoder requires its own compatibility proof; a package import alone does not establish printer behavior.
 
-## Boundaries
+The archive allowlist contains library/formats code, declarations, this contract, README files and the existing license/notice files. Studio HTML/CSS/app code, examples, reference environments and test fixtures are not library payload.
 
-- Encoder cores are DOM- and Canvas-free.
-- SVG renderers are optional presentation modules and do not change the matrix returned by a core.
-- The browser studio uses `formats/index.js`; this registry is a demo/authoring adapter, not the encoder API.
-- Optional ZXing, Segno, Zint and BWIPP comparisons remain reference-test dependencies only.
-- Family feature branches remain useful for focused development. This integration branch is the consumption point for applications that need several families at once.
+## Verification
+
+Run `npm test` and the existing `npm run test:reference` for encoder behavior. `npm run test:types` checks positive and negative public API cases. `npm run test:package` packs with lifecycle scripts disabled, installs only the local zero-dependency artifact into a fresh bounded consumer, checks the exports, compiles the public types and measures a write-free browser bundle. No test downloads an oracle or installs tools.
+
+CI uses the pinned development tools. Local verification may set `QR_ATELIER_TOOLING_ROOT` to an existing package with the same TypeScript/esbuild versions. `QR_ATELIER_TEST_TMP_ROOT` may select a workspace output directory for the temporary packed consumer; otherwise it is under this checkout's ignored output directory. Temporary consumers are removed after verification.

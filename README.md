@@ -4,11 +4,15 @@
 
 [Read the German version here](README_de.md)
 
-QR-Atelier is a minimalist collection of performant, dependency-free 2D barcode encoders and a browser-native studio. Every family keeps an independent core and optional renderer; applications may import one encoder or use the stable unified surface on `feat/unified-barcode-cores`.
+QR-Atelier is a minimalist collection of performant, dependency-free 2D barcode encoders and a browser-native studio. Every family keeps an independent core and optional renderer; applications may import one encoder or use the integrated package on Main.
 
-The unified branch contains QR Model 1/2, Micro QR, rMQR, Data Matrix ECC 200 and legacy ECC, Aztec, Aztec Rune, MaxiCode, PDF417 and all 34 MicroPDF417 variants. See [`docs/unified-cores.md`](docs/unified-cores.md) for stable imports and package boundaries. Family feature branches remain available for focused development.
+The integrated Main package contains QR Model 1/2, Micro QR, rMQR, Data Matrix ECC 200 and legacy ECC, Aztec, Aztec Rune, MaxiCode, PDF417 and all 34 MicroPDF417 variants. See [`docs/unified-cores.md`](docs/unified-cores.md) for stable imports and package boundaries. Family feature branches remain available for focused development.
 
 Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
+
+## Package use
+
+Import one family, for example `qr-atelier/qr` or `qr-atelier/data-matrix`. `qr-atelier/cores` contains only encoders; the root keeps its existing encoder and SVG exports. See [the package contract](docs/unified-cores.md). The package remains private and its existing scoped license notices remain unchanged.
 
 ## Features
 
@@ -21,9 +25,9 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 * Local Export: Direct download of the result as a vector (`SVG`) or raster image (`PNG` up to 2048x2048px).
 * URL Parameters: Populate the studio directly via URL parameters: `?url=https://your-link.com`.
 
-## Data Matrix ECC 000-140 (this branch)
+## Data Matrix ECC 000-140
 
-This branch contains an experimental, dependency-free encoder core for the
+The repository contains an experimental, dependency-free encoder core for the
 historic Data Matrix ECC 000, ECC 050, ECC 080, ECC 100, and ECC 140 family.
 It is intentionally separate from the modern ECC 200 and DMRE core. The legacy
 encoder currently exposes a JavaScript API for browser and Node.js use; it is

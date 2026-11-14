@@ -4,11 +4,15 @@
 
 [Read the English version here](README.md)
 
-QR-Atelier ist eine minimalistische Sammlung performanter, abhaengigkeitsfreier 2D-Barcode-Encoder mit browserbasiertem Studio. Jede Familie behaelt einen eigenstaendigen Core und einen optionalen Renderer; Anwendungen koennen nur einen Encoder oder die stabile gemeinsame Oberflaeche auf `feat/unified-barcode-cores` importieren.
+QR-Atelier ist eine minimalistische Sammlung performanter, abhaengigkeitsfreier 2D-Barcode-Encoder mit browserbasiertem Studio. Jede Familie behaelt einen eigenstaendigen Core und einen optionalen Renderer; Anwendungen koennen nur einen Encoder oder die stabile gemeinsame Oberflaeche des auf Main integrierten Pakets importieren.
 
-Der gemeinsame Branch enthaelt QR Model 1/2, Micro QR, rMQR, Data Matrix ECC 200 und Legacy ECC, Aztec, Aztec Rune, MaxiCode, PDF417 sowie alle 34 MicroPDF417-Varianten. Stabile Imports und Paketgrenzen beschreibt [`docs/unified-cores.md`](docs/unified-cores.md). Die Familienbranches bleiben fuer fokussierte Weiterentwicklung bestehen.
+Das auf Main integrierte Paket enthaelt QR Model 1/2, Micro QR, rMQR, Data Matrix ECC 200 und Legacy ECC, Aztec, Aztec Rune, MaxiCode, PDF417 sowie alle 34 MicroPDF417-Varianten. Stabile Imports und Paketgrenzen beschreibt [`docs/unified-cores.md`](docs/unified-cores.md). Die Familienbranches bleiben fuer fokussierte Weiterentwicklung bestehen.
 
 Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Streetblock/QR-Atelier)
+
+## Paket verwenden
+
+Eine Familie direkt importieren, etwa `qr-atelier/qr` oder `qr-atelier/data-matrix`. `qr-atelier/cores` enthaelt nur Encoder; der Haupteinstieg behaelt die bisherigen Encoder- und SVG-Exporte. Siehe [Paketvertrag](docs/unified-cores.md). Das Paket bleibt privat; die bestehenden abgegrenzten Lizenzangaben bleiben unveraendert.
 
 ## Features
 
@@ -21,9 +25,9 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 * Lokaler Export: Direkter Download des Ergebnisses als Vektor (`SVG`) oder Rastergrafik (`PNG` bis zu 2048x2048px).
 * URL-Parameter: Fuelle das Studio direkt ueber die URL ab: `?url=https://dein-link.de`.
 
-## Data Matrix ECC 000-140 (dieser Branch)
+## Data Matrix ECC 000-140
 
-Dieser Branch enthaelt einen experimentellen, dependency-freien Encoder-Core
+Das Repository enthaelt einen experimentellen, dependency-freien Encoder-Core
 fuer die historische Data-Matrix-Familie ECC 000, ECC 050, ECC 080, ECC 100
 und ECC 140. Er bleibt bewusst vom modernen ECC-200- und DMRE-Core getrennt.
 Der Legacy-Encoder stellt derzeit eine JavaScript-API fuer Browser und Node.js

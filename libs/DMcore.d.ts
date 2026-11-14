@@ -1,0 +1,2 @@
+export { DM_ECC200_SYMBOL_SIZES, DMRE_SYMBOL_SIZES, DmCore } from './internal/public-types.js';
+export type { ModuleMatrix, MatrixResult, ByteArray, ByteInput, TextEncoding, DataMatrixInput, DataMatrixEncoding, DataMatrixDimension, DataMatrixSegment, DataMatrixStructuredAppend, DataMatrixStructuredAppendResult, DataMatrixOptions, DataMatrixSize, DataMatrixSymbol, DataMatrixEciSegment, DataMatrixResult } from './internal/public-types.js';

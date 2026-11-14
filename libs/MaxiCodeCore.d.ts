@@ -1,0 +1,2 @@
+export { encodeMaxiCodeEci, encodeMaxiCodeStructuredAppend, MaxiCodeCore, MAXICODE_HEIGHT, MAXICODE_WIDTH, MAXICODE_BITNR, MAXICODE_BULLSEYE_RADIUS_FACTOR, MAXICODE_BULLSEYE_RADIUS_TO_HEX_RADIUS_FACTOR, MAXICODE_BULLSEYE_SHIFT_FACTOR, MAXICODE_BULLSEYE_CLEAR_FACTOR, MAXICODE_HEX_RADIUS_FACTOR, MAXICODE_GO_GRID, MAXICODE_FIXED_TEMPLATE, buildMaxiCodeLayout, MAXICODE_CHARSETS } from './internal/public-types.js';
+export type { ModuleMatrix, MatrixResult, MaxiCodeStructuredAppend, MaxiCodeOptions, MaxiCodeResult, MaxiCodeLayout } from './internal/public-types.js';

@@ -5,18 +5,126 @@
   "type": "module",
   "description": "Independent zero-dependency QR, Data Matrix, Aztec, MaxiCode and PDF417-family encoder cores.",
   "exports": {
-    ".": "./libs/index.js",
-    "./cores": "./libs/index.js",
-    "./formats": "./formats/index.js",
+    ".": {
+      "types": "./libs/index.d.ts",
+      "import": "./libs/index.js",
+      "default": "./libs/index.js"
+    },
+    "./cores": {
+      "types": "./libs/cores.d.ts",
+      "import": "./libs/cores.js",
+      "default": "./libs/cores.js"
+    },
+    "./qr": {
+      "types": "./libs/QRcore.d.ts",
+      "import": "./libs/QRcore.js",
+      "default": "./libs/QRcore.js"
+    },
+    "./microqr": {
+      "types": "./libs/MicroQRcore.d.ts",
+      "import": "./libs/MicroQRcore.js",
+      "default": "./libs/MicroQRcore.js"
+    },
+    "./rmqr": {
+      "types": "./libs/RMQRcore.d.ts",
+      "import": "./libs/RMQRcore.js",
+      "default": "./libs/RMQRcore.js"
+    },
+    "./data-matrix": {
+      "types": "./libs/DMcore.d.ts",
+      "import": "./libs/DMcore.js",
+      "default": "./libs/DMcore.js"
+    },
+    "./legacy-data-matrix": {
+      "types": "./libs/DMlegacy.d.ts",
+      "import": "./libs/DMlegacy.js",
+      "default": "./libs/DMlegacy.js"
+    },
+    "./aztec": {
+      "types": "./libs/AztecCore.d.ts",
+      "import": "./libs/AztecCore.js",
+      "default": "./libs/AztecCore.js"
+    },
+    "./aztec-rune": {
+      "types": "./libs/AztecRuneCore.d.ts",
+      "import": "./libs/AztecRuneCore.js",
+      "default": "./libs/AztecRuneCore.js"
+    },
+    "./maxicode": {
+      "types": "./libs/maxicode.d.ts",
+      "import": "./libs/maxicode.js",
+      "default": "./libs/maxicode.js"
+    },
+    "./pdf417": {
+      "types": "./libs/pdf417.d.ts",
+      "import": "./libs/pdf417.js",
+      "default": "./libs/pdf417.js"
+    },
+    "./renderers": {
+      "types": "./libs/renderers.d.ts",
+      "import": "./libs/renderers.js",
+      "default": "./libs/renderers.js"
+    },
+    "./renderers/qr": {
+      "types": "./libs/QRsvg.d.ts",
+      "import": "./libs/QRsvg.js",
+      "default": "./libs/QRsvg.js"
+    },
+    "./renderers/microqr": {
+      "types": "./libs/MicroQRsvg.d.ts",
+      "import": "./libs/MicroQRsvg.js",
+      "default": "./libs/MicroQRsvg.js"
+    },
+    "./renderers/data-matrix": {
+      "types": "./libs/DMsvg.d.ts",
+      "import": "./libs/DMsvg.js",
+      "default": "./libs/DMsvg.js"
+    },
+    "./renderers/aztec": {
+      "types": "./libs/AztecSvg.d.ts",
+      "import": "./libs/AztecSvg.js",
+      "default": "./libs/AztecSvg.js"
+    },
+    "./renderers/maxicode": {
+      "types": "./libs/MaxiCodeSvg.d.ts",
+      "import": "./libs/MaxiCodeSvg.js",
+      "default": "./libs/MaxiCodeSvg.js"
+    },
+    "./formats": {
+      "types": "./formats/index.d.ts",
+      "import": "./formats/index.js",
+      "default": "./formats/index.js"
+    },
+    "./libs/internal/*": null,
     "./libs/*": "./libs/*",
-    "./formats/*": "./formats/*"
+    "./formats/*": "./formats/*",
+    "./package.json": "./package.json"
   },
   "scripts": {
     "test": "node --test",
     "test:reference": "node scripts/run-reference-tests.mjs",
-    "generate:pdf417-patterns": "node scripts/generate-pdf417-patterns.mjs"
+    "generate:pdf417-patterns": "node scripts/generate-pdf417-patterns.mjs",
+    "test:package": "node --test --test-concurrency=1 tests/package-contract.test.mjs",
+    "test:types": "node scripts/check-types.mjs"
   },
   "devDependencies": {
-    "@zxing/library": "0.23.0"
-  }
+    "@zxing/library": "0.23.0",
+    "typescript": "5.9.3",
+    "esbuild": "0.28.2"
+  },
+  "types": "./libs/index.d.ts",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "files": [
+    "libs/",
+    "formats/",
+    "README.md",
+    "README_de.md",
+    "docs/unified-cores.md",
+    "LICENSE.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+    "NOTICE",
+    "THIRD_PARTY_NOTICES.md",
+    "licenses/"
+  ]
 }
