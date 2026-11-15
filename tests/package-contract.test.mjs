@@ -65,6 +65,8 @@ assert.equal(root.QrCore, qr.QrCore); assert.equal(cores.QrCore, qr.QrCore); ass
 assert.equal(LegacyDm, dm.DmCore); assert.equal(root.DmSvgRenderer, DmSvgRenderer);
 assert.ok(!Object.keys(cores).some(key => key.endsWith('SvgRenderer')));
 assert.equal(renderers.QrSvgRenderer, QrSvgRenderer);
+assert.deepEqual(maxi.MaxiCodeCore.measureCarrierSecondary('A'.repeat(85)), { codewords: 85, capacity: 84, fits: false });
+assert.deepEqual(cores.MaxiCodeCore.measureCarrierSecondary('123456789'), { codewords: 6, capacity: 84, fits: true });
 assert.equal(pdf.PDF417Core, pdf.Pdf417Core); assert.equal(pdf.MicroPDF417Core, pdf.MicroPdf417Core);
 const symbols = [new qr.QrCore('ABC').generate(), new micro.MicroQrCore('123').generate(), new rmqr.RMqrCore('ABC').generate(),
   new dm.DmCore('ABC').generate(), legacy.generateLegacyDataMatrix('A'), new aztec.AztecCore('ABC').generate(),

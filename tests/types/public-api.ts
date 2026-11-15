@@ -46,6 +46,11 @@ const aztec = new AztecCore('ABC', { mode: 'compact', minLayers: 1, maxLayers: 4
 const stuffed: readonly number[] = aztec.stuffedBits;
 const rune = new AztecRuneCore('255').generate();
 const runeGrid: ModuleMatrix = buildAztecRuneMatrix(0).modules;
+const carrierCount: number = MaxiCodeCore.measureCarrierSecondary('ABC').codewords;
+const carrierCapacity: 84 = MaxiCodeCore.measureCarrierSecondary('ABC').capacity;
+const carrierFits: boolean = MaxiCodeCore.measureCarrierSecondary('ABC').fits;
+// @ts-expect-error Carrier message measurement requires a string.
+MaxiCodeCore.measureCarrierSecondary(null);
 const maxi = new MaxiCodeCore(parseMaxiCodeRawInput('ABC<GS>'), { mode: 4, structuredAppend: { index: 1, count: 2 } }).generate();
 const bytes: Uint8Array = maxi.codewords.subarray(0, 2);
 const elementSize: number = maxi.codewords.BYTES_PER_ELEMENT;

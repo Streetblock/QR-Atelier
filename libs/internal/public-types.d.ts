@@ -226,7 +226,12 @@ export interface MaxiCodeOptions {
 export interface MaxiCodeResult extends MatrixResult {
   readonly data: string; readonly mode: 2 | 3 | 4 | 5 | 6; readonly size: 33; readonly width: 30; readonly codewords: Readonly<Uint8Array>;
 }
+export interface MaxiCodeSecondaryMeasurement {
+  readonly codewords: number; readonly capacity: 84; readonly fits: boolean;
+}
 export class MaxiCodeCore {
+  /** Raw ISO-8859-1 carrier data; controls are preserved, pad codewords excluded. */
+  static measureCarrierSecondary(secondary: string): MaxiCodeSecondaryMeasurement;
   constructor(data: string, options?: MaxiCodeOptions);
   readonly data: string; readonly options: MaxiCodeOptions;
   generate(): MaxiCodeResult;

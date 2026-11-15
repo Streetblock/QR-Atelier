@@ -117,3 +117,12 @@ may explicitly select `'literal'` to preserve both the numeric value and the
 original digit count for a qualified native device profile. Prefix-padding a
 ZIP string cannot preserve both fields and is not used as a compatibility
 shortcut. Other country codes, postal lengths and modes retain their behavior.
+
+
+`MaxiCodeCore.measureCarrierSecondary(text)` measures the raw mode 2/3
+secondary with the same high-level encoder used to generate symbols. The result
+contains `codewords`, `capacity: 84`, and `fits`; it excludes pad codewords but
+includes any required latch before padding. Controls are preserved and input
+uses ISO-8859-1 without ECI or structured append. Overflow returns `fits: false`;
+invalid input or unsupported characters throw instead of being classified as
+overflow. No symbol or Reed-Solomon payload is generated for this measurement.

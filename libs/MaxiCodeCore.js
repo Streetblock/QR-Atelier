@@ -107,6 +107,16 @@ export class MaxiCodeCore {
     }
   }
 
+  /** Measure raw mode 2/3 message data, including any latch needed before padding. */
+  static measureCarrierSecondary(secondary) {
+    if (typeof secondary !== 'string') {
+      throw new TypeError('MaxiCode secondary must be a string.')
+    }
+    const encoder = new MaxiCodeCore(secondary, { preserveControls: true })
+    const { codewords } = encoder.#prepareMessage(secondary, CARRIER_MESSAGE_LENGTH)
+    return { codewords: codewords.length, capacity: CARRIER_MESSAGE_LENGTH, fits: codewords.length <= CARRIER_MESSAGE_LENGTH }
+  }
+
   generate() {
     const postalPolicy = this.options.mode2PostalCodePolicy ?? 'us-zip-plus4'
     if (!['us-zip-plus4', 'literal'].includes(postalPolicy)) {
@@ -142,6 +152,18 @@ export class MaxiCodeCore {
   }
 
   #encodeMessage(text, maximumLength, mode) {
+    const { codewords, paddingSet } = this.#prepareMessage(text, maximumLength)
+    if (codewords.length > maximumLength) {
+      throw new Error(`MaxiCode mode ${mode} supports up to ${maximumLength} codewords of message data.`)
+    }
+    const padCodeword = CHARSET_MAPS[paddingSet].get(CONTROL.PAD)
+    while (codewords.length < maximumLength) {
+      codewords.push(padCodeword)
+    }
+    return codewords
+  }
+
+  #prepareMessage(text, maximumLength) {
     const source = String(text)
     const normalized = this.options.preserveControls
       ? source
@@ -171,25 +193,12 @@ export class MaxiCodeCore {
     }
     const { codewords, finalSet } = segmented
 
-    if (codewords.length > maximumLength) {
-      throw new Error(`MaxiCode mode ${mode} supports up to ${maximumLength} codewords of message data.`)
-    }
-
     let paddingSet = finalSet
     if (!CHARSET_MAPS[paddingSet].has(CONTROL.PAD) && codewords.length < maximumLength) {
       codewords.push(...this.#latchSequence(paddingSet, 0))
       paddingSet = 0
     }
-    if (codewords.length > maximumLength) {
-      throw new Error(`MaxiCode mode ${mode} supports up to ${maximumLength} codewords of message data.`)
-    }
-
-    const padCodeword = CHARSET_MAPS[paddingSet].get(CONTROL.PAD)
-    while (codewords.length < maximumLength) {
-      codewords.push(padCodeword)
-    }
-
-    return codewords
+    return { codewords, paddingSet }
   }
 
   #encodeCharacters(text) {
