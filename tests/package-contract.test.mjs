@@ -27,7 +27,7 @@ test('the actual packed artifact has bounded payload, typed family imports and n
       assert.doesNotMatch(item.path, /(?:^|\/)(?:node_modules|tests|examples|reference-tests|output|\.reference-deps)(?:\/|$)/u);
     }
     for (const path of ['libs/cores.js', 'libs/index.d.ts', 'libs/QRcore.d.ts', 'libs/DMcore.d.ts', 'libs/internal/public-types.d.ts',
-      'libs/renderers.js', 'LICENSE.md', 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE', 'THIRD_PARTY_NOTICES.md']) {
+      'libs/renderers.js', 'libs/PDF417Svg.js', 'libs/PDF417Svg.d.ts', 'libs/PDF417MatrixSvg.js', 'libs/PDF417MatrixSvg.d.ts', 'LICENSE.md', 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE', 'THIRD_PARTY_NOTICES.md']) {
       assert.ok(packed.files.some(item => item.path === path), path);
     }
     await writeFile(join(consumer, 'package.json'), JSON.stringify({ name: 'qa-private-packed-consumer', private: true, type: 'module',
@@ -59,12 +59,22 @@ import { MicroQrSvgRenderer } from 'qr-atelier/renderers/microqr';
 import { DmSvgRenderer } from 'qr-atelier/renderers/data-matrix';
 import { AztecSvgRenderer } from 'qr-atelier/renderers/aztec';
 import { MaxiCodeSvgRenderer } from 'qr-atelier/renderers/maxicode';
+import { Pdf417SvgRenderer, PDF417SvgRenderer, MicroPdf417SvgRenderer, MicroPDF417SvgRenderer, buildPdf417Path } from 'qr-atelier/renderers/pdf417';
+import { buildBarcodeMatrixPath, validateBarcodeMatrix } from 'qr-atelier/libs/PDF417MatrixSvg.js';
+import { Pdf417SvgRenderer as DirectPdfSvg } from 'qr-atelier/libs/PDF417Svg.js';
 import { DmCore as LegacyDm } from 'qr-atelier/libs/DMcore.js';
 import { formatRegistry } from 'qr-atelier/formats';
 assert.equal(root.QrCore, qr.QrCore); assert.equal(cores.QrCore, qr.QrCore); assert.equal(root.DmCore, dm.DmCore);
 assert.equal(LegacyDm, dm.DmCore); assert.equal(root.DmSvgRenderer, DmSvgRenderer);
 assert.ok(!Object.keys(cores).some(key => key.endsWith('SvgRenderer')));
 assert.equal(renderers.QrSvgRenderer, QrSvgRenderer);
+assert.equal(renderers.Pdf417SvgRenderer, Pdf417SvgRenderer); assert.equal(root.PDF417SvgRenderer, Pdf417SvgRenderer);
+assert.equal(DirectPdfSvg, Pdf417SvgRenderer); assert.equal(PDF417SvgRenderer, Pdf417SvgRenderer);
+assert.equal(MicroPDF417SvgRenderer, Pdf417SvgRenderer); assert.equal(MicroPdf417SvgRenderer, Pdf417SvgRenderer);
+assert.equal(root.buildPdf417Path, buildPdf417Path);
+assert.equal(buildPdf417Path([[true]]), buildBarcodeMatrixPath([[true]]));
+assert.deepEqual(validateBarcodeMatrix([[true]]), { rows: 1, columns: 1 });
+assert.ok(!Object.keys(pdf).some(key => key.endsWith('SvgRenderer')));
 assert.deepEqual(maxi.MaxiCodeCore.measureCarrierSecondary('A'.repeat(85)), { codewords: 85, capacity: 84, fits: false });
 assert.deepEqual(cores.MaxiCodeCore.measureCarrierSecondary('123456789'), { codewords: 6, capacity: 84, fits: true });
 assert.equal(pdf.PDF417Core, pdf.Pdf417Core); assert.equal(pdf.MicroPDF417Core, pdf.MicroPdf417Core);
@@ -78,7 +88,7 @@ const dmre = new dm.DmCore('ABC', { shape: 'dmre', symbolSize: '8x48' }).generat
 assert.ok(symbols[7].codewords instanceof Uint8Array); assert.ok(symbols[8].bytes instanceof Uint8Array);
 assert.equal(new rmqr.RMqrCore('ABC', { aimApplicationIndicator: 'A' }).generate().segments.find(segment => segment.mode === 'fnc1Second').applicationIndicator, 'A');
 for (const renderer of [new QrSvgRenderer(symbols[0]), new MicroQrSvgRenderer(symbols[1]), new DmSvgRenderer(symbols[3]),
-  new AztecSvgRenderer(symbols[5]), new MaxiCodeSvgRenderer(symbols[7])]) assert.match(renderer.render(), /^<svg\\b/u);
+  new AztecSvgRenderer(symbols[5]), new MaxiCodeSvgRenderer(symbols[7]), new Pdf417SvgRenderer(symbols[8]), new MicroPDF417SvgRenderer(symbols[9])]) assert.match(renderer.render(), /^<svg\\b/u);
 assert.ok(formatRegistry.has('qr'));
 await assert.rejects(import('qr-atelier/libs/internal/BinaryReedSolomon.js'), error => error.code === 'ERR_PACKAGE_PATH_NOT_EXPORTED');
 await assert.rejects(import('qr-atelier/libs/internal/public-types.js'), error => error.code === 'ERR_PACKAGE_PATH_NOT_EXPORTED');
@@ -97,6 +107,18 @@ await assert.rejects(import('qr-atelier/libs/internal/public-types.js'), error =
       assert.ok(bundle.outputFiles[0].contents.length > 0);
       assert.ok(!Object.keys(bundle.metafile.inputs).some(file => forbidden.test(file)), JSON.stringify(bundle.metafile.inputs));
     }
+    const pdfRendererBundle = await esbuild.build({ absWorkingDir: consumer, stdin: {
+      contents: `export { Pdf417SvgRenderer, buildPdf417Path } from 'qr-atelier/renderers/pdf417';`, resolveDir: consumer },
+      platform: 'browser', format: 'esm', bundle: true, write: false, metafile: true, logLevel: 'silent' });
+    assert.ok(pdfRendererBundle.outputFiles[0].contents.length > 0);
+    assert.ok(!Object.keys(pdfRendererBundle.metafile.inputs).some(file => /QRcore|DMcore|AztecCore|MaxiCodeCore|PDF417core|PDF417Compaction|ReedSolomon|formats/iu.test(file)),
+      JSON.stringify(pdfRendererBundle.metafile.inputs));
+    const pdfCoreBundle = await esbuild.build({ absWorkingDir: consumer, stdin: {
+      contents: `export { Pdf417Core } from 'qr-atelier/pdf417';`, resolveDir: consumer },
+      platform: 'browser', format: 'esm', bundle: true, write: false, metafile: true, logLevel: 'silent' });
+    assert.ok(!Object.keys(pdfCoreBundle.metafile.inputs).some(file => /Svg|svg|QRcore|DMcore|AztecCore|MaxiCodeCore|formats/u.test(file)),
+      JSON.stringify(pdfCoreBundle.metafile.inputs));
+
   } finally {
     const target = resolve(consumer);
     if (!target.startsWith(temporaryRoot + sep) || !basename(target).startsWith('qa-package-')) throw new Error('Refusing cleanup outside bounded test consumer.');

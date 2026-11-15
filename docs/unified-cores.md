@@ -19,9 +19,37 @@ const svg = new DmSvgRenderer(symbol).render();
 - `aztec` and `aztec-rune`: separate encoders.
 - `maxicode`: MaxiCode plus the existing raw-input and UPS helpers.
 - `pdf417`: PDF417/MicroPDF417 and compaction helpers.
-- `renderers` and `renderers/{qr,microqr,data-matrix,aztec,maxicode}`: optional SVG output.
+- `renderers` and `renderers/{qr,microqr,data-matrix,aztec,maxicode,pdf417}`: optional SVG output.
 
 The root preserves its existing runtime exports. `./cores` is now deliberately encoder-only. Existing `./libs/*` and `./formats` paths remain supported. ESM is the implementation format; no CommonJS copy is generated. Public declaration files describe the actual family options and result shapes without requiring DOM or Node declarations. Numeric capacity/version limits still have runtime checks.
+
+## PDF417 and MicroPDF417 SVG
+
+```js
+import { Pdf417Core, MicroPdf417Core } from 'qr-atelier/pdf417';
+import { Pdf417SvgRenderer } from 'qr-atelier/renderers/pdf417';
+const symbol = new Pdf417Core('PDF417 VECTOR', { columns: 3 }).generate();
+const svg = new Pdf417SvgRenderer(symbol).render();
+const microSvg = new Pdf417SvgRenderer(new MicroPdf417Core('MICRO', { variant: '2x11' }).generate()).render();
+```
+
+The optional renderer accepts either family's existing result. The aliases
+`PDF417SvgRenderer`, `MicroPdf417SvgRenderer` and `MicroPDF417SvgRenderer` refer
+to the same class. `buildPdf417Path(matrix, options)` returns only the vector path.
+Both are also available from `renderers` and the compatibility root; `cores`
+and `pdf417` remain encoder-only. Direct `libs/PDF417Svg.js` and
+`libs/PDF417MatrixSvg.js` imports include declarations.
+
+`moduleSize` defaults to 1, the row-height ratio to 3 for PDF417 and 2 for
+MicroPDF417, and the quiet margin to 2 modules on every side. `background: null`
+omits the background rectangle. `width`/`height` set the SVG viewport; the
+default SVG aspect-ratio behavior is retained. This does not establish physical
+printer/module-size qualification. Paint strings and accessibility text are XML
+escaped; caller-selected paint strings may still reference external SVG resources.
+
+Finite positive scale is preserved without decimal truncation. Sparse or
+non-boolean matrices and underflowing/overflowing derived geometry throw.
+This renderer imports no encoder and changes no matrix, codeword or ECC policy.
 
 ## Boundaries and compatibility
 

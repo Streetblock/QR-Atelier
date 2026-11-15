@@ -98,7 +98,12 @@
     "./libs/internal/*": null,
     "./libs/*": "./libs/*",
     "./formats/*": "./formats/*",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./renderers/pdf417": {
+      "types": "./libs/PDF417Svg.d.ts",
+      "import": "./libs/PDF417Svg.js",
+      "default": "./libs/PDF417Svg.js"
+    }
   },
   "scripts": {
     "test": "node --test",

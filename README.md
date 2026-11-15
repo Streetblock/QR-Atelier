@@ -14,6 +14,8 @@ Repository: [https://github.com/Streetblock/QR-Atelier](https://github.com/Stree
 
 Import one family, for example `qr-atelier/qr` or `qr-atelier/data-matrix`. `qr-atelier/cores` contains only encoders; the root keeps its existing encoder and SVG exports. See [the package contract](docs/unified-cores.md). The package remains private and its existing scoped license notices remain unchanged.
 
+PDF417 and MicroPDF417 also have an optional typed SVG renderer at `qr-atelier/renderers/pdf417`; encoder-only imports remain separate.
+
 ## Features
 
 * Zero Dependencies: No `npm`, no Webpack, no framework. Just pure ES6 vanilla JavaScript, modern HTML, and CSS.

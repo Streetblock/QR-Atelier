@@ -131,3 +131,31 @@ type CheckedOptions = Assert<IsAny<NonNullable<ConstructorParameters<typeof DmCo
 type CheckedModules = Assert<IsAny<ReturnType<QrCore['generate']>['modules'][number][number]> extends false ? true : false>;
 void [explicit, shared, same, grid, qrResult, separator, segments, dmResult, legacyPath, normalizedFileId, legacy, encodedBits,
   placement, stuffed, runeGrid, bytes, elementSize, fixedCoordinate, layoutScale, ups, payload, pdfBytes, pdfAlias, microPdfAlias, cluster, compacted, svg];
+
+import { Pdf417SvgRenderer as RootPdfSvg, MicroPDF417SvgRenderer as RootMicroPdfSvg } from 'qr-atelier';
+import { Pdf417SvgRenderer as BarrelPdfSvg, buildPdf417Path as BarrelPdfPath } from 'qr-atelier/renderers';
+import { Pdf417SvgRenderer, PDF417SvgRenderer, MicroPdf417SvgRenderer, MicroPDF417SvgRenderer, buildPdf417Path } from 'qr-atelier/renderers/pdf417';
+import type { Pdf417SvgStyle, Pdf417MatrixPathOptions } from 'qr-atelier/renderers/pdf417';
+import { Pdf417SvgRenderer as DirectPdfSvg } from 'qr-atelier/libs/PDF417Svg.js';
+import { buildBarcodeMatrixPath, validateBarcodeMatrix } from 'qr-atelier/libs/PDF417MatrixSvg.js';
+const pdfStyle: Pdf417SvgStyle = { moduleSize: 2, rowHeight: null, margin: 2, foreground: '#123456', background: null, width: 400, height: null, ariaLabel: 'PDF417' };
+const pdfPathOptions: Pdf417MatrixPathOptions = { moduleSize: 0.5, rowHeight: 3, margin: 0 };
+new Pdf417SvgRenderer(pdf, pdfStyle).render(); new PDF417SvgRenderer(microPdf).render();
+new MicroPdf417SvgRenderer(microPdf).render(); new MicroPDF417SvgRenderer(pdf).render();
+new RootPdfSvg(pdf).render(); new RootMicroPdfSvg(microPdf).render(); new BarrelPdfSvg(pdf).render(); new DirectPdfSvg(pdf).render();
+const pdfPath: string = buildPdf417Path(pdf.modules, pdfPathOptions);
+const barrelPdfPath: string = BarrelPdfPath(microPdf.modules);
+const neutralPdfPath: string = buildBarcodeMatrixPath(pdf.modules, pdfPathOptions);
+const matrixDimensions: number = validateBarcodeMatrix(pdf.modules).columns;
+const defaultRowHeight: number | null = Pdf417SvgRenderer.DEFAULT_STYLE.rowHeight;
+// @ts-expect-error A QR result is not a PDF417/MicroPDF417 result.
+new Pdf417SvgRenderer(qr);
+// @ts-expect-error Row height is numeric.
+new Pdf417SvgRenderer(pdf, { rowHeight: 'three' });
+// @ts-expect-error Unknown renderer options are rejected.
+new Pdf417SvgRenderer(pdf, { quietZone: 2 });
+// @ts-expect-error SVG paint must be a string or null for the background.
+new Pdf417SvgRenderer(pdf, { background: 42 });
+// @ts-expect-error A path requires boolean matrix modules.
+buildPdf417Path([[1]]);
+void [pdfPath, barrelPdfPath, neutralPdfPath, matrixDimensions, defaultRowHeight];

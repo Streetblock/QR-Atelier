@@ -385,3 +385,28 @@ export class MaxiCodeSvgRenderer {
   constructor(result: MatrixResult, options?: SvgStyle);
   render(): string;
 }
+
+export interface Pdf417MatrixPathOptions {
+  readonly moduleSize?: number;
+  readonly rowHeight?: number | null;
+  readonly margin?: number;
+}
+export interface Pdf417SvgStyle extends Pdf417MatrixPathOptions {
+  readonly foreground?: string;
+  readonly background?: string | null;
+  readonly width?: number | null;
+  readonly height?: number | null;
+  readonly ariaLabel?: string | null;
+}
+export class Pdf417SvgRenderer {
+  static readonly DEFAULT_STYLE: Readonly<Required<Pdf417SvgStyle>>;
+  constructor(result: Pdf417Result | MicroPdf417Result, options?: Pdf417SvgStyle);
+  readonly pdf417: Pdf417Result | MicroPdf417Result;
+  readonly symbology: 'PDF417' | 'MicroPDF417';
+  readonly style: Readonly<Pdf417SvgStyle>;
+  render(): string;
+}
+export { Pdf417SvgRenderer as PDF417SvgRenderer, Pdf417SvgRenderer as MicroPdf417SvgRenderer, Pdf417SvgRenderer as MicroPDF417SvgRenderer };
+export function buildPdf417Path(modules: ModuleMatrix, options?: Pdf417MatrixPathOptions): string;
+export function buildBarcodeMatrixPath(modules: ModuleMatrix, options?: Pdf417MatrixPathOptions): string;
+export function validateBarcodeMatrix(modules: ModuleMatrix): Readonly<{ rows: number; columns: number }>;
