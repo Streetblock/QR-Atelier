@@ -1,10 +1,10 @@
+import { BINARY_RS_FIELDS, encodeBinaryReedSolomon } from './internal/BinaryReedSolomon.js'
 // ==========================================
 // MaxiCodeCore.js - Dependency-free MaxiCode generator
 // ==========================================
 
 const MAXICODE_WIDTH = 30
 const MAXICODE_HEIGHT = 33
-let MAXICODE_FIELD_64 = null
 
 const MAXICODE_CHARSETS = [
   '\rABCDEFGHIJKLMNOPQRSTUVWXYZ' + '\uFFFA' + '\u001C' + '\u001D' + '\u001E' + '\uFFFB' + ' ' + '\uFFFC' + '"#$%&\'()*+,-./0123456789:' + '\uFFF1' + '\uFFF2' + '\uFFF3' + '\uFFF4' + '\uFFF8',
@@ -456,10 +456,9 @@ export class MaxiCodeCore {
   }
 
   #encodeReedSolomon(codewords, ecLength) {
-    const encoder = new ReedSolomonEncoder(MAXICODE_FIELD_64)
-    const ints = Int32Array.from(codewords)
-    encoder.encode(ints, ecLength)
-    codewords.set(ints)
+    const dataLength = codewords.length - ecLength
+    const parity = encodeBinaryReedSolomon(codewords.subarray(0, dataLength), ecLength, BINARY_RS_FIELDS.MAXICODE)
+    codewords.set(parity, dataLength)
   }
 
   #codewordsToModules(codewords) {
@@ -474,200 +473,6 @@ export class MaxiCodeCore {
       }
     }
     return modules
-  }
-}
-
-class GenericGFPoly {
-  constructor(field, coefficients) {
-    if (!coefficients.length) {
-      throw new Error('Empty polynomial')
-    }
-    this.field = field
-    if (coefficients.length > 1 && coefficients[0] === 0) {
-      let firstNonZero = 1
-      while (firstNonZero < coefficients.length && coefficients[firstNonZero] === 0) firstNonZero += 1
-      this.coefficients = firstNonZero === coefficients.length ? [0] : coefficients.slice(firstNonZero)
-    } else {
-      this.coefficients = coefficients
-    }
-  }
-
-  getDegree() {
-    return this.coefficients.length - 1
-  }
-
-  isZero() {
-    return this.coefficients[0] === 0
-  }
-
-  multiply(other) {
-    if (this.field !== other.field) throw new Error('Field mismatch')
-    if (this.isZero() || other.isZero()) return this.field.getZero()
-    const product = new Array(this.coefficients.length + other.coefficients.length - 1).fill(0)
-    for (let i = 0; i < this.coefficients.length; i += 1) {
-      const aCoeff = this.coefficients[i]
-      for (let j = 0; j < other.coefficients.length; j += 1) {
-        product[i + j] = GenericGF.addOrSubtract(product[i + j], this.field.multiply(aCoeff, other.coefficients[j]))
-      }
-    }
-    return new GenericGFPoly(this.field, product)
-  }
-
-  multiplyByMonomial(degree, coefficient) {
-    if (degree < 0) throw new Error('degree < 0')
-    if (coefficient === 0) return this.field.getZero()
-    const product = new Array(this.coefficients.length + degree).fill(0)
-    for (let i = 0; i < this.coefficients.length; i += 1) {
-      product[i] = this.field.multiply(this.coefficients[i], coefficient)
-    }
-    return new GenericGFPoly(this.field, product)
-  }
-
-  divide(other) {
-    if (other.isZero()) throw new Error('Divide by 0')
-
-    let quotient = this.field.getZero()
-    let remainder = this
-    const denominatorLeadingTerm = other.getCoefficient(other.getDegree())
-    const inverseDenominatorLeadingTerm = this.field.inverse(denominatorLeadingTerm)
-
-    while (remainder.getDegree() >= other.getDegree() && !remainder.isZero()) {
-      const degreeDifference = remainder.getDegree() - other.getDegree()
-      const scale = this.field.multiply(remainder.getCoefficient(remainder.getDegree()), inverseDenominatorLeadingTerm)
-      const term = other.multiplyByMonomial(degreeDifference, scale)
-      const iterationQuotient = this.field.buildMonomial(degreeDifference, scale)
-      quotient = quotient.addOrSubtract(iterationQuotient)
-      remainder = remainder.addOrSubtract(term)
-    }
-
-    return [quotient, remainder]
-  }
-
-  addOrSubtract(other) {
-    if (this.field !== other.field) throw new Error('Field mismatch')
-    if (this.isZero()) return other
-    if (other.isZero()) return this
-
-    let smaller = this.coefficients
-    let larger = other.coefficients
-    if (smaller.length > larger.length) {
-      ;[smaller, larger] = [larger, smaller]
-    }
-
-    const sumDiff = new Array(larger.length).fill(0)
-    const lengthDiff = larger.length - smaller.length
-    for (let i = 0; i < lengthDiff; i += 1) sumDiff[i] = larger[i]
-    for (let i = lengthDiff; i < larger.length; i += 1) {
-      sumDiff[i] = GenericGF.addOrSubtract(smaller[i - lengthDiff], larger[i])
-    }
-    return new GenericGFPoly(this.field, sumDiff)
-  }
-
-  getCoefficient(degree) {
-    return this.coefficients[this.coefficients.length - 1 - degree]
-  }
-}
-
-class GenericGF {
-  constructor(primitive, size, generatorBase) {
-    this.primitive = primitive
-    this.size = size
-    this.generatorBase = generatorBase
-    this.expTable = new Array(size)
-    this.logTable = new Array(size)
-    let x = 1
-    for (let i = 0; i < size; i += 1) {
-      this.expTable[i] = x
-      x *= 2
-      if (x >= size) {
-        x ^= primitive
-        x &= size - 1
-      }
-    }
-    for (let i = 0; i < size - 1; i += 1) {
-      this.logTable[this.expTable[i]] = i
-    }
-    this.zero = new GenericGFPoly(this, [0])
-    this.one = new GenericGFPoly(this, [1])
-  }
-
-  static addOrSubtract(a, b) {
-    return a ^ b
-  }
-
-  getZero() {
-    return this.zero
-  }
-
-  getOne() {
-    return this.one
-  }
-
-  buildMonomial(degree, coefficient) {
-    if (degree < 0) throw new Error('degree < 0')
-    if (coefficient === 0) return this.zero
-    const coefficients = new Array(degree + 1).fill(0)
-    coefficients[0] = coefficient
-    return new GenericGFPoly(this, coefficients)
-  }
-
-  exp(a) {
-    return this.expTable[a]
-  }
-
-  inverse(a) {
-    if (a === 0) throw new Error('inverse(0)')
-    return this.expTable[this.size - this.logTable[a] - 1]
-  }
-
-  multiply(a, b) {
-    if (a === 0 || b === 0) return 0
-    return this.expTable[(this.logTable[a] + this.logTable[b]) % (this.size - 1)]
-  }
-}
-
-MAXICODE_FIELD_64 = new GenericGF(0b1000011, 64, 1)
-
-class ReedSolomonEncoder {
-  constructor(field) {
-    this.field = field
-    this.cachedGenerators = [new GenericGFPoly(field, [1])]
-  }
-
-  buildGenerator(degree) {
-    if (degree >= this.cachedGenerators.length) {
-      let lastGenerator = this.cachedGenerators[this.cachedGenerators.length - 1]
-      for (let d = this.cachedGenerators.length; d <= degree; d += 1) {
-        const nextGenerator = lastGenerator.multiply(
-          new GenericGFPoly(this.field, [1, this.field.exp(d - 1 + this.field.generatorBase)]),
-        )
-        this.cachedGenerators.push(nextGenerator)
-        lastGenerator = nextGenerator
-      }
-    }
-    return this.cachedGenerators[degree]
-  }
-
-  encode(toEncode, ecBytes) {
-    if (ecBytes === 0) throw new Error('No error correction bytes')
-    const dataBytes = toEncode.length - ecBytes
-    if (dataBytes <= 0) throw new Error('No data bytes provided')
-
-    const generator = this.buildGenerator(ecBytes)
-    const infoCoefficients = new Int32Array(dataBytes)
-    infoCoefficients.set(toEncode.subarray(0, dataBytes))
-    let info = new GenericGFPoly(this.field, Array.from(infoCoefficients))
-    info = info.multiplyByMonomial(ecBytes, 1)
-    const remainder = info.divide(generator)[1]
-    const coefficients = remainder.coefficients
-    const numZeroCoefficients = ecBytes - coefficients.length
-
-    for (let i = 0; i < numZeroCoefficients; i += 1) {
-      toEncode[dataBytes + i] = 0
-    }
-    for (let i = 0; i < coefficients.length; i += 1) {
-      toEncode[dataBytes + numZeroCoefficients + i] = coefficients[i]
-    }
   }
 }
 

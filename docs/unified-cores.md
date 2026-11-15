@@ -39,8 +39,8 @@ CI uses the pinned development tools. Local verification may set `QR_ATELIER_TOO
 
 ## Shared binary Reed-Solomon arithmetic
 
-QR Model 1/2, Micro QR, rMQR, Data Matrix ECC200/DMRE and Aztec (including Rune)
-use one private binary-field RS module under
+QR Model 1/2, Micro QR, rMQR, Data Matrix ECC200/DMRE, Aztec (including Rune)
+and MaxiCode use one private binary-field RS module under
 `libs/internal/`. The public encoder APIs, encoding defaults, masks, codewords,
 matrices and returned metadata remain unchanged. Package exports intentionally
 deny direct imports of this internal module; it is not a public math API.
@@ -49,8 +49,9 @@ The internal fixed field presets distinguish QR's GF(256) polynomial
 `0x11d` / generator start 0 from Data Matrix/Aztec-8's `0x12d` / start 1.
 Aztec data words use the existing 6/8/10/12-bit fields; its mode messages and
 Rune use the 4-bit field. Data Matrix retains its classic/DMRE block and special
-144-by-144 interleaving rules. MaxiCode retains its existing arithmetic during
-this migration stage. PDF417's prime-field helper and Legacy Data Matrix's CRC/convolution
+144-by-144 interleaving rules. MaxiCode uses the same GF(64) preset as Aztec-6
+while retaining its primary/even/odd streams and Uint8Array codewords.
+PDF417's prime-field helper and Legacy Data Matrix's CRC/convolution
 pipeline are separate. Format-specific framing and interleaving stay in each
 encoder rather than moving into the shared arithmetic module.
 
