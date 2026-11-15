@@ -36,6 +36,16 @@ test('ZXing decodes MaxiCode modes 2 through 5', () => {
       options: { mode: 3, postalCode: 'K1A0B1', countryCode: '124', serviceClass: '001' },
       expected: 'K1A0B1\x1d124\x1d001\x1dCARRIER MODE THREE',
     },
+    {
+      data: 'LITERAL ZIP FIVE',
+      options: { mode: 2, postalCode: '12345', countryCode: '840', serviceClass: '001', mode2PostalCodePolicy: 'literal' },
+      expected: '12345\x1d840\x1d001\x1dLITERAL ZIP FIVE',
+    },
+    {
+      data: 'LITERAL ZIP ZERO',
+      options: { mode: 2, postalCode: '00123', countryCode: '840', serviceClass: '001', mode2PostalCodePolicy: 'literal' },
+      expected: '00123\x1d840\x1d001\x1dLITERAL ZIP ZERO',
+    },
     { data: 'GENERAL MODE FOUR 123', options: { mode: 4 } },
     { data: 'ENHANCED MODE FIVE 123', options: { mode: 5 } },
   ]

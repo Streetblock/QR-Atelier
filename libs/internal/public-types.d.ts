@@ -218,6 +218,7 @@ export class AztecRuneCore {
 export interface MaxiCodeStructuredAppend { readonly index: number; readonly count: number }
 export interface MaxiCodeOptions {
   readonly mode?: 2 | 3 | 4 | 5 | 6; readonly preserveControls?: boolean;
+  readonly mode2PostalCodePolicy?: 'us-zip-plus4' | 'literal';
   readonly encoding?: 'iso-8859-1' | 'latin1' | 'latin-1' | 'utf-8' | 'utf8'; readonly eci?: number | null | false;
   readonly structuredAppend?: MaxiCodeStructuredAppend | null | false;
   readonly postalCode?: string | number; readonly countryCode?: string | number; readonly serviceClass?: string | number;

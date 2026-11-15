@@ -110,3 +110,10 @@ reference detector assumes Model 2 version information from version 7 onward;
 pure-symbol readback bypasses that detector limitation. Its Model 1 codeword
 reader also has a separate count mismatch for versions 13 and 14. These
 reference limitations do not relax any production acceptance checks.
+
+MaxiCode mode 2 defaults to the existing `mode2PostalCodePolicy:
+'us-zip-plus4'`: five-digit US ZIPs expand with four trailing zeroes. A caller
+may explicitly select `'literal'` to preserve both the numeric value and the
+original digit count for a qualified native device profile. Prefix-padding a
+ZIP string cannot preserve both fields and is not used as a compatibility
+shortcut. Other country codes, postal lengths and modes retain their behavior.

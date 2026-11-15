@@ -108,6 +108,10 @@ export class MaxiCodeCore {
   }
 
   generate() {
+    const postalPolicy = this.options.mode2PostalCodePolicy ?? 'us-zip-plus4'
+    if (!['us-zip-plus4', 'literal'].includes(postalPolicy)) {
+      throw new TypeError('Unsupported MaxiCode mode 2 postal-code policy.')
+    }
     const mode = this.#normalizeMode(this.options.mode)
     const messageLength = mode === 2 || mode === 3
       ? CARRIER_MESSAGE_LENGTH
@@ -371,7 +375,8 @@ export class MaxiCodeCore {
       }
       // ISO/IEC 16023 Annex B.1: for country code 840, an unknown ZIP+4
       // extension is represented by four trailing zeroes.
-      if (countryCode === 840 && postalCode.length === 5) postalCode += '0000'
+      if (countryCode === 840 && postalCode.length === 5
+        && (this.options.mode2PostalCodePolicy ?? 'us-zip-plus4') === 'us-zip-plus4') postalCode += '0000'
       this.#setIntAtPositions(primary, [33, 34, 35, 36, 25, 26, 27, 28, 29, 30, 19, 20, 21, 22, 23, 24, 13, 14, 15, 16, 17, 18, 7, 8, 9, 10, 11, 12, 1, 2], Number(postalCode))
       this.#setIntAtPositions(primary, [39, 40, 41, 42, 31, 32], postalCode.length)
     } else {

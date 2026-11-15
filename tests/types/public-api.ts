@@ -100,6 +100,9 @@ new DmCore(null, { segments: [{ data: 'A' }], macro: 'auto' });
 new AztecCore('A', { mode: 'square' });
 // @ts-expect-error MaxiCode modes start at two.
 new MaxiCodeCore('A', { mode: 1 });
+new MaxiCodeCore('A', { mode: 2, postalCode: '12345', countryCode: '840', serviceClass: '001', mode2PostalCodePolicy: 'literal' });
+// @ts-expect-error Postal-code policy is explicit and bounded.
+new MaxiCodeCore('A', { mode2PostalCodePolicy: 'guess' });
 // @ts-expect-error Choose one UPS Format07 source.
 new UpsMaxiCodeEncoder({ trackingNumber: '1234567890', shipperId: 'ABC123', format07Bytes: new Uint8Array(32), format07Payload: 'X', mode: 2, postalCode: '12345', countryCode: 840, serviceClass: 1 });
 // @ts-expect-error PDF417 does not define correction level nine.
