@@ -249,7 +249,14 @@ export class QrCore {
       maxVersion,
       model,
     )
-    const modules = this.#buildMatrix(segments, version, errorCorrectionLevel, this.options.mask, model)
+    const scoringRemainder = this.options.maskScoringRemainder ?? 'light'
+    const evaluator = this.options.maskPenaltyEvaluator ?? calculateQrMaskPenalty
+    if (!['light', 'legacy-null'].includes(scoringRemainder)) throw new TypeError('Unsupported QR scoring remainder policy.')
+    if (typeof evaluator !== 'function') throw new TypeError('QR mask penalty evaluator must be callable.')
+    if (this.options.includeMaskMetadata !== undefined && typeof this.options.includeMaskMetadata !== 'boolean') {
+      throw new TypeError('QR mask metadata selection must be boolean.')
+    }
+    const { modules, mask } = this.#buildMatrix(segments, version, errorCorrectionLevel, this.options.mask, model, evaluator, scoringRemainder)
 
     return {
       data: this.data,
@@ -259,6 +266,7 @@ export class QrCore {
       errorCorrectionLevel,
       structuredAppend,
       modules,
+      ...(this.options.includeMaskMetadata === true ? { mask } : {}),
     }
   }
 
@@ -314,10 +322,12 @@ export class QrCore {
     throw new Error('Input is too large for the configured QR version range.')
   }
 
-  #buildMatrix(segments, version, ecl, maskPreference, model) {
+  #buildMatrix(segments, version, ecl, maskPreference, model, evaluator, scoringRemainder) {
     const size = version * 4 + 17
     // Remainder modules are light before masking, including during penalty scoring.
-    const modules = createSquareArray(size, false)
+    // Null remainder cells retain historical caller scoring when explicitly
+    // requested. Default ISO scoring continues to use actual light modules.
+    const modules = createSquareArray(size, scoringRemainder === 'legacy-null' ? null : false)
     const isFunction = createSquareArray(size, false)
 
     drawFunctionPatterns(modules, isFunction, version, model)
@@ -338,7 +348,8 @@ export class QrCore {
         if (model === 2 && version >= 7) {
           drawVersionBits(candidate, isFunction, version)
         }
-        const penalty = calculateQrMaskPenalty(candidate)
+        const penalty = evaluator(candidate)
+        if (!Number.isFinite(penalty) || penalty < 0) throw new RangeError('QR mask penalty must be a finite nonnegative number.')
         if (penalty < bestPenalty) {
           bestPenalty = penalty
           selectedMask = mask
@@ -352,7 +363,7 @@ export class QrCore {
       drawVersionBits(modules, isFunction, version)
     }
 
-    return modules.map((row) => row.map(Boolean))
+    return { modules: modules.map((row) => row.map(Boolean)), mask: selectedMask }
   }
 }
 
@@ -1051,7 +1062,7 @@ function drawFunctionPatterns(modules, isFunction, version, model) {
     }
   }
 
-  if (version >= 7) {
+  if (model === 2 && version >= 7) {
     for (let i = 0; i < 6; i += 1) {
       for (let j = 0; j < 3; j += 1) {
         setFunctionModule(modules, isFunction, size - 11 + j, i, false)

@@ -8,7 +8,7 @@ const BASE256 = 5
 const SHIFT2 = new Set(Array.from('!"#$%&\'()*+,-./:;<=>?@[\\]^_').map((character) => character.charCodeAt(0)))
 
 export function encodeMinimalDataMatrix(bytes, capacities, prefixCodewords = [], options = {}) {
-  const input = new DmInput(bytes, capacities, prefixCodewords, options.fnc1 ?? null, options.specialCodewords)
+  const input = new DmInput(bytes, capacities, prefixCodewords, options.fnc1 ?? null, options.modes, options.specialCodewords)
   const edges = Array.from({ length: input.length + 1 }, () => new Array(6).fill(null))
   addEdges(input, edges, 0, null)
 
@@ -41,6 +41,9 @@ export function encodeMinimalDataMatrix(bytes, capacities, prefixCodewords = [],
 
 function addEdges(input, edges, from, previous) {
   if (input.isSpecial(from)) {
+    // A marker is an ASCII token. Full EDIFACT groups may cross into ASCII
+    // only when their qualified implicit-unlatch rule actually fits the tail.
+    if (previous !== null && previous.endMode() === EDIFACT) return
     addEdge(edges, new Edge(input, ASCII, from, 1, previous))
     return
   }
@@ -49,23 +52,25 @@ function addEdges(input, edges, from, previous) {
     const asciiLength = isDigit(character) && input.has(from, 2) && isDigit(input.at(from + 1)) ? 2 : 1
     addEdge(edges, new Edge(input, ASCII, from, asciiLength, previous))
 
-    for (const mode of [C40, TEXT]) {
+    for (const mode of [C40, TEXT].filter(candidate => input.allows(candidate))) {
       const segment = c40SegmentLength(input, from, mode === C40)
       if (segment.length > 0) addEdge(edges, new Edge(input, mode, from, segment.length, previous, segment.words))
     }
-    if (input.has(from, 3) && [0, 1, 2].every((offset) => isNativeX12(input.at(from + offset)))) {
+    if (input.allows(X12) && input.has(from, 3) && [0, 1, 2].every((offset) => isNativeX12(input.at(from + offset)))) {
       addEdge(edges, new Edge(input, X12, from, 3, previous))
     }
-    if (!input.isFnc1(from)) addEdge(edges, new Edge(input, BASE256, from, 1, previous))
+    if (input.allows(BASE256) && !input.isFnc1(from)) addEdge(edges, new Edge(input, BASE256, from, 1, previous))
   }
 
-  let length = 0
-  while (length < 3 && input.has(from + length, 1) && isNativeEdifact(input.at(from + length))) {
-    length += 1
-    addEdge(edges, new Edge(input, EDIFACT, from, length, previous))
-  }
-  if (length === 3 && input.has(from, 4) && isNativeEdifact(input.at(from + 3))) {
-    addEdge(edges, new Edge(input, EDIFACT, from, 4, previous))
+  if (input.allows(EDIFACT)) {
+    let length = 0
+    while (length < 3 && input.has(from + length, 1) && isNativeEdifact(input.at(from + length))) {
+      length += 1
+      addEdge(edges, new Edge(input, EDIFACT, from, length, previous))
+    }
+    if (length === 3 && input.has(from, 4) && isNativeEdifact(input.at(from + 3))) {
+      addEdge(edges, new Edge(input, EDIFACT, from, 4, previous))
+    }
   }
 }
 
@@ -98,7 +103,7 @@ function c40SegmentLength(input, from, c40) {
 }
 
 class DmInput {
-  constructor(bytes, capacities, prefixCodewords, fnc1, specialCodewords) {
+  constructor(bytes, capacities, prefixCodewords, fnc1, modes, specialCodewords) {
     this.characters = Array.from(bytes)
     if (!this.characters.every((value) => Number.isInteger(value) && value >= 0 && value <= 255)) {
       throw new Error('Data Matrix input must be a byte sequence.')
@@ -107,6 +112,11 @@ class DmInput {
     this.prefixCodewords = prefixCodewords
     this.fnc1 = fnc1
     this.specialCodewords = specialCodewords instanceof Map ? specialCodewords : new Map()
+    const names = ['ascii', 'c40', 'text', 'x12', 'edifact', 'base256']
+    if (modes != null && (!Array.isArray(modes) || modes.some(mode => !names.includes(mode)))) {
+      throw new TypeError('Data Matrix modes must be an array of supported compaction names.')
+    }
+    this.modes = modes == null ? null : new Set(modes.map(mode => names.indexOf(mode)))
     this.length = this.characters.length
   }
 
@@ -119,7 +129,7 @@ class DmInput {
   }
 
   isFnc1(position) {
-    return this.fnc1 !== null && this.at(position) === this.fnc1
+    return this.specialCodewords.get(position)?.[0] === 232 || (this.fnc1 !== null && this.at(position) === this.fnc1)
   }
 
   isSpecial(position) {
@@ -128,6 +138,10 @@ class DmInput {
 
   special(position) {
     return this.specialCodewords.get(position) ?? null
+  }
+
+  allows(mode) {
+    return this.modes === null || this.modes.has(mode)
   }
 
   capacityFor(minimum) {
@@ -207,6 +221,22 @@ class Edge {
     const from = this.from + this.length
     const remaining = this.input.length - from
     if (remaining > 4 || remaining < 1) return 0
+    if (Array.from({ length: remaining }, (_, offset) => from + offset).some(position => this.input.isSpecial(position))) {
+      // Zero sentinels stand for complete ASCII codeword tokens, not one raw
+      // character. Count their full cost before permitting an implicit unlatch.
+      let cost = 0
+      for (let position = from; position < this.input.length; position++) {
+        if (this.input.isSpecial(position)) cost += this.input.special(position).length
+        else if (isExtended(this.input.at(position))) return 0
+        else if (position + 1 < this.input.length && !this.input.isSpecial(position + 1)
+          && isDigit(this.input.at(position)) && isDigit(this.input.at(position + 1))) {
+          cost++
+          position++
+        } else cost++
+        if (cost > 2) return 0
+      }
+      return cost
+    }
     if (remaining === 1) return isExtended(this.input.at(from)) ? 0 : 1
     if (remaining === 2) {
       if (isExtended(this.input.at(from)) || isExtended(this.input.at(from + 1))) return 0
@@ -295,7 +325,9 @@ function buildResult(solution) {
   }
   const unpaddedLength = bytes.length
   const capacity = solution.input.capacityFor(bytes.length)
-  if (bytes.length < capacity) bytes.push(129)
+  const terminalSpecial = solution.input.special(solution.input.length - 1)
+  const terminalPad = terminalSpecial?.length === 1 && terminalSpecial[0] === 129
+  if (bytes.length < capacity && !terminalPad) bytes.push(129)
   while (bytes.length < capacity) bytes.push(randomizePad(bytes.length + 1))
   return { codewords: bytes, unpaddedLength }
 }

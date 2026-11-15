@@ -7,6 +7,8 @@ import { BASELINE_REVISION, CANONICALIZATION, digestResult, generateCase, loadCo
 const root = process.env.QR_ATELIER_ROOT ?? fileURLToPath(new URL('../', import.meta.url));
 const baselineBytes = await readFile(new URL('./fixtures/encoder-baseline-372f456.json', import.meta.url));
 const baseline = JSON.parse(baselineBytes.toString('utf8'));
+const model1Correction = JSON.parse(await readFile(new URL('./fixtures/qr-model1-version-area-corrections.json', import.meta.url), 'utf8'));
+const correctionsById = new Map(model1Correction.corrections.map(item => [item.id, item]));
 const cores = await loadCores(root);
 
 test('the pinned previous-output corpus declares exact provenance and complete required coverage', () => {
@@ -14,6 +16,13 @@ test('the pinned previous-output corpus declares exact provenance and complete r
   assert.equal(baseline.format, 'qr-atelier-prior-output-baseline');
   assert.equal(baseline.source.revision, BASELINE_REVISION);
   assert.equal(baseline.canonicalization, CANONICALIZATION);
+  assert.equal(correctionsById.size, 32);
+  assert.equal(baseline.cases.filter(item => !correctionsById.has(item.id)).length, 721);
+  for (const correction of model1Correction.corrections) {
+    const original = baseline.cases.find(item => item.id === correction.id);
+    assert.ok(original && original.family === 'qr-model-1' && original.options.minVersion >= 7 && original.options.maxVersion <= 14, correction.id);
+    assert.deepEqual(correction.originalExpected, original.expected, correction.id);
+  }
   assert.equal(new Set(baseline.cases.map(item => item.id)).size, baseline.cases.length);
   const qr = (family, model, maximum) => {
     const forced = baseline.cases.filter(item => item.family === family && item.options.model === model);
@@ -44,13 +53,13 @@ test('the pinned previous-output corpus declares exact provenance and complete r
 });
 
 for (const family of ['qr-model-2', 'qr-model-1', 'micro-qr', 'rmqr', 'data-matrix', 'dmre', 'aztec', 'aztec-rune', 'maxicode']) {
-  test(`${family} preserves complete public results, modules, words and metadata from the pinned previous output`, () => {
+  test(`${family} preserves pinned complete results or its explicitly recorded Model 1 correction`, () => {
     const cases = baseline.cases.filter(item => item.family === family);
     assert.ok(cases.length > 0);
     for (const request of cases) {
       const before = structuredClone(request);
       const actual = digestResult(generateCase(cores, request));
-      assert.deepEqual(actual, request.expected, request.id);
+      assert.deepEqual(actual, correctionsById.get(request.id)?.expected ?? request.expected, request.id);
       assert.deepEqual(request, before, `${request.id}: input mutation`);
     }
   });

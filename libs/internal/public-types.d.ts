@@ -36,6 +36,9 @@ export interface QrOptions {
   readonly eci?: boolean;
   readonly segments?: readonly QrDataSegment[];
   readonly structuredAppend?: QrStructuredAppend | null | false;
+  readonly maskPenaltyEvaluator?: (candidate: readonly (readonly (boolean | null)[])[]) => number;
+  readonly maskScoringRemainder?: 'light' | 'legacy-null';
+  readonly includeMaskMetadata?: boolean;
 }
 export interface QrResult extends MatrixResult {
   readonly data: string;
@@ -44,6 +47,7 @@ export interface QrResult extends MatrixResult {
   readonly size: number;
   readonly errorCorrectionLevel: QrCorrection;
   readonly structuredAppend: QrStructuredAppend | null;
+  readonly mask?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 }
 export class QrCore {
   constructor(data: string, options?: QrOptions);
@@ -140,6 +144,10 @@ export interface DataMatrixOptions {
   readonly readerProgramming?: boolean; readonly structuredAppend?: DataMatrixStructuredAppend | null;
   readonly minSize?: DataMatrixDimension | null; readonly maxSize?: DataMatrixDimension | null;
   readonly symbolSize?: DataMatrixDimension | null;
+  readonly rows?: number | null; readonly columns?: number | null;
+  readonly modes?: readonly ('ascii' | 'c40' | 'text' | 'x12' | 'edifact' | 'base256')[] | null;
+  /** Each marker replaces one explicit zero-byte placeholder; the caller owns protocol semantics. */
+  readonly specialCodewords?: ReadonlyMap<number, ByteArray> | Readonly<Record<number, ByteArray>> | null;
 }
 export interface DataMatrixSize {
   readonly rows: number; readonly cols: number; readonly rectangular: boolean; readonly dmre: boolean;
@@ -166,8 +174,8 @@ export interface DataMatrixResult extends MatrixResult {
 }
 export class DmCore {
   constructor(data: DataMatrixInput, options?: Omit<DataMatrixOptions, 'segments'> & { readonly segments?: null });
-  constructor(data: null | undefined | '', options: Omit<DataMatrixOptions, 'segments' | 'macro'> & {
-    readonly segments: readonly DataMatrixSegment[]; readonly macro?: 5 | 6 | null;
+  constructor(data: null | undefined | '', options: Omit<DataMatrixOptions, 'segments' | 'macro' | 'specialCodewords'> & {
+    readonly segments: readonly DataMatrixSegment[]; readonly macro?: 5 | 6 | null; readonly specialCodewords?: null;
   });
   readonly data: DataMatrixInput | null | undefined; readonly options: DataMatrixOptions;
   generate(): DataMatrixResult;

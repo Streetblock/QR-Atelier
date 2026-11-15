@@ -21,6 +21,9 @@ import type { ModuleMatrix, QrResult, DataMatrixResult } from 'qr-atelier';
 const qr = new QrCore('VALUE', { model: 2, mode: 'byte', encoding: 'utf-8', mask: 7, errorCorrectionLevel: 'H',
   structuredAppend: { position: 1, total: 2, parity: calculateQrStructuredAppendParity('VALUE') } }).generate();
 const explicit = new QrCore(null, { segments: [QrSegment.numeric('123'), QrSegment.byte('字'), QrSegment.bytes([65]), QrSegment.kanji('漢字')] });
+const customMask = new QrCore('ABC', { includeMaskMetadata: true, maskScoringRemainder: 'legacy-null',
+  maskPenaltyEvaluator: candidate => candidate.flat().filter(Boolean).length }).generate();
+const selectedMask: number | undefined = customMask.mask;
 const shared: typeof QrCore = RootQr; const same: typeof QrCore = PureQr;
 const grid: ModuleMatrix = qr.modules; const qrResult: QrResult = qr;
 const micro = new MicroQrCore('漢字', { preferredMode: 'kanji', minVersion: 'M4', maxVersion: 'M4', mask: 3 }).generate();
@@ -31,6 +34,8 @@ const aim = new RMqrCore('ABC', { aimApplicationIndicator: 'A' }).generate();
 const applicationIndicator: string | undefined = aim.segments.find(segment => segment.mode === 'fnc1Second')?.applicationIndicator;
 const dm = new DmCore(new Uint8Array([65, 66]), { eci: null, shape: 'square', symbolSize: { rows: 14, cols: 14 } }).generate();
 const dmre = new DmCore('ABC', { shape: 'dmre', symbolSize: '8x48' }).generate();
+new DmCore(Uint8Array.of(65, 0), { eci: null, rows: 0, columns: 18, modes: ['ascii'],
+  specialCodewords: new Map([[1, Uint8Array.of(232)]]) }).generate();
 const segments = new DmCore(null, { segments: [{ data: '字', encoding: 'utf-8', eci: 26 }], macro: null }).generate();
 const dmResult: DataMatrixResult = dm; const legacyPath: typeof DmCore = LegacyPathDm;
 const normalizedFileId: number | undefined = dm.structuredAppend?.fileId;
@@ -83,6 +88,12 @@ new DmCore('A', { eci: true });
 new DmCore(null);
 // @ts-expect-error Explicit Data Matrix segments cannot be combined with nonempty data.
 new DmCore('A', { segments: [{ data: 'B' }] });
+// @ts-expect-error Segments and external codeword markers are separate input contracts.
+new DmCore(null, { segments: [{ data: 'ABC' }], specialCodewords: new Map([[0, [232]]]) });
+// @ts-expect-error Compaction names are explicit.
+new DmCore('ABC', { modes: ['unknown'] });
+// @ts-expect-error Scoring callbacks return a number.
+new QrCore('ABC', { maskPenaltyEvaluator: () => 'bad' });
 // @ts-expect-error Macro auto is not accepted with segments.
 new DmCore(null, { segments: [{ data: 'A' }], macro: 'auto' });
 // @ts-expect-error Aztec mode is a bounded family option.

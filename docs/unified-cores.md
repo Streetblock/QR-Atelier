@@ -1,6 +1,6 @@
 # Integrated encoder package
 
-Main contains the unified independent encoder set. Family feature branches and their focused documents remain available for development history. The package remains private; this integration does not broaden the grants in LICENSE.md or publish it to a registry.
+`feat/unified-barcode-cores` contains the shared independent encoder set. Main retains its separate previous scope. Family feature branches and their focused documents remain available for development history. The package remains private; this integration does not broaden the grants in LICENSE.md or publish it to a registry.
 
 ## Public imports
 
@@ -42,7 +42,8 @@ CI uses the pinned development tools. Local verification may set `QR_ATELIER_TOO
 QR Model 1/2, Micro QR, rMQR, Data Matrix ECC200/DMRE, Aztec (including Rune)
 and MaxiCode use one private binary-field RS module under
 `libs/internal/`. The public encoder APIs, encoding defaults, masks, codewords,
-matrices and returned metadata remain unchanged. Package exports intentionally
+and returned metadata remain unchanged by arithmetic extraction. The explicit
+Model 1 correction below supersedes the affected prior matrices. Package exports intentionally
 deny direct imports of this internal module; it is not a public math API.
 
 The internal fixed field presets distinguish QR's GF(256) polynomial
@@ -73,3 +74,39 @@ test-only polynomial oracle and the existing ZXing development encoder,
 including pinned known vectors and full-layer-32 Aztec parity degrees. These
 references add no production dependency. Existing external family reference
 tests remain the independent encoding evidence.
+
+## Explicit native compatibility controls
+
+QR callers may opt into `includeMaskMetadata` to obtain the selected `mask`.
+Default result objects keep their previous fields. A trusted
+`maskPenaltyEvaluator` can score each complete automatic-mask candidate; scores
+must be finite and nonnegative. `maskScoringRemainder: 'legacy-null'` retains
+historical nullable remainder cells during scoring for existing device profiles.
+The default remains actual light remainder modules and the ISO scorer. Explicit
+masks bypass scoring. Returned module grids always contain booleans.
+
+Data Matrix raw byte arrays with `eci: null` retain exact bytes without an
+implicit ECI. `specialCodewords` is a map or numeric-keyed record whose values
+contain codewords 1 through 254. Each offset must identify an explicit zero-byte
+placeholder. The caller owns protocol interpretation; these markers cannot be
+combined with semantic `segments`. The optional `modes` allowlist restricts
+compaction choices; ASCII remains available, and an empty list selects only
+ASCII. `rows` and `columns` independently constrain symbol dimensions; zero or
+null means automatic. Capacity, shape, marker and byte validation remain active.
+
+Native multi-codeword markers after EDIFACT count their complete ASCII cost
+before an implicit unlatch is allowed. A regression that previously decoded an
+ECI tail as extra text is covered by exact independent text and byte readback,
+at the same symbol dimensions. An explicit terminal PAD starts padding once.
+
+Model 1 versions 7 through 14 must not reserve Model 2 version-information
+regions. The consumer migration corrects that historical feature-branch error
+to match the existing Toolkit native path. The original 753-result fixture is
+immutable; a separate versioned correction fixture qualifies the 32 affected
+Model 1 requests, while the other prior results remain strict regression checks.
+This establishes compatibility with the previous Toolkit path, not new
+independent qualification for every Model 1 version. The ZXing-C++ 3.1.0
+reference detector assumes Model 2 version information from version 7 onward;
+pure-symbol readback bypasses that detector limitation. Its Model 1 codeword
+reader also has a separate count mismatch for versions 13 and 14. These
+reference limitations do not relax any production acceptance checks.

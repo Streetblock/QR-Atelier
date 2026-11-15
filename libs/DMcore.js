@@ -130,6 +130,12 @@ export class DmCore {
       throw new Error('Data Matrix Structured Append cannot be combined with Reader Programming.')
     }
     const input = segmentedInput ?? encodeInputBytes(macroInput.payload, this.options.encoding, this.options.eci)
+    if (segmentedInput && this.options.specialCodewords != null) {
+      throw new Error('External Data Matrix codeword markers cannot be combined with segments.')
+    }
+    const specialCodewords = this.options.specialCodewords == null
+      ? input.specialCodewords
+      : normalizeSpecialCodewords(this.options.specialCodewords, input.bytes)
     const leadingGs1 = gs1 && (!structuredAppend || structuredAppend.metadata.position === 1)
     const prefixCodewords = [
       ...(structuredAppend?.codewords ?? []),
@@ -140,7 +146,8 @@ export class DmCore {
     ]
     const encoded = encodeMinimalDataMatrix(input.bytes, capacities, prefixCodewords, {
       fnc1: gs1 ? 29 : null,
-      specialCodewords: input.specialCodewords,
+      modes: this.options.modes,
+      specialCodewords,
     })
     const symbol = chooseSymbol(encoded.codewords.length, constraints)
     const dataCodewords = encoded.codewords
@@ -178,6 +185,8 @@ function normalizeSymbolConstraints(options) {
   const minSize = parseDimensions(options.minSize, 'minSize')
   const maxSize = parseDimensions(options.maxSize, 'maxSize')
   const symbolSize = parseDimensions(options.symbolSize, 'symbolSize')
+  const rows = normalizeOptionalDimension(options.rows, 'rows')
+  const columns = normalizeOptionalDimension(options.columns, 'columns')
   if (minSize && maxSize && (minSize.rows > maxSize.rows || minSize.cols > maxSize.cols)) {
     throw new Error('minSize must fit within maxSize.')
   }
@@ -185,7 +194,35 @@ function normalizeSymbolConstraints(options) {
     throw new Error(`Unsupported Data Matrix symbol size: ${symbolSize.rows}x${symbolSize.cols}`)
   }
   if (typeof options.dmre !== 'boolean') throw new Error('dmre must be a boolean.')
-  return { shape, dmre: options.dmre, minSize, maxSize, symbolSize }
+  return { shape, dmre: options.dmre, minSize, maxSize, symbolSize, rows, columns }
+}
+
+function normalizeOptionalDimension(value, name) {
+  if (value == null || value === '' || Number(value) === 0) return null
+  const dimension = Number(value)
+  if (!Number.isSafeInteger(dimension) || dimension < 1) throw new Error(`${name} must be a positive integer or zero.`)
+  return dimension
+}
+
+function normalizeSpecialCodewords(value, bytes) {
+  if (!(value instanceof Map) && (typeof value !== 'object' || value === null || Array.isArray(value))) {
+    throw new TypeError('Data Matrix codeword markers must be a map or record.')
+  }
+  const markers = new Map()
+  for (const [key, words] of value instanceof Map ? value : Object.entries(value)) {
+    const position = Number(key)
+    if (!Number.isSafeInteger(position) || position < 0 || position >= bytes.length || markers.has(position)) {
+      throw new RangeError('Data Matrix codeword marker must identify one distinct input byte.')
+    }
+    if (bytes[position] !== 0) throw new RangeError('Data Matrix codeword marker requires a zero-byte placeholder.')
+    if (!Array.isArray(words) && !(words instanceof Uint8Array)) throw new TypeError('Data Matrix codewords must be a numeric array.')
+    const codewords = Array.from(words)
+    if (!codewords.length || codewords.some(word => !Number.isInteger(word) || word < 1 || word > 254)) {
+      throw new RangeError('Data Matrix codewords must contain integers from 1 through 254.')
+    }
+    markers.set(position, codewords)
+  }
+  return markers
 }
 
 function normalizeGs1(value) {
@@ -443,6 +480,8 @@ function filterSymbols(constraints) {
     if (constraints.shape === 'square' && candidate.rectangular) return false
     if (constraints.shape === 'rectangle' && !candidate.rectangular) return false
     if (constraints.symbolSize && (candidate.rows !== constraints.symbolSize.rows || candidate.cols !== constraints.symbolSize.cols)) return false
+    if (constraints.rows && candidate.rows !== constraints.rows) return false
+    if (constraints.columns && candidate.cols !== constraints.columns) return false
     return (
       (!constraints.minSize || (candidate.rows >= constraints.minSize.rows && candidate.cols >= constraints.minSize.cols)) &&
       (!constraints.maxSize || (candidate.rows <= constraints.maxSize.rows && candidate.cols <= constraints.maxSize.cols))
