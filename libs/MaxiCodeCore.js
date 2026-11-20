@@ -710,7 +710,13 @@ const MAXICODE_BITNR = [
 // Keep the outer ring clear of the nearest data hexagons.
 const MAXICODE_BULLSEYE_RADIUS_FACTOR = 4.8
 const MAXICODE_BULLSEYE_RADIUS_TO_HEX_RADIUS_FACTOR = MAXICODE_BULLSEYE_RADIUS_FACTOR / 0.64
-const MAXICODE_BULLSEYE_SHIFT_FACTOR = 0.74
+// The 30.5-column layout envelope puts column 14 at center minus 0.75 pitches.
+const MAXICODE_BULLSEYE_SHIFT_FACTOR = 0.75
+// ISO/IEC 16023, 4.11.4/Table 8: nominal R6..R1, normalized to the outer ring.
+// Relative rendering geometry only; the caller still owns physical scale.
+const MAXICODE_BULLSEYE_RING_RATIOS = Object.freeze(
+  [3.87, 3.20, 2.53, 1.86, 1.18, 0.51].map((radius) => radius / 3.87),
+)
 const MAXICODE_BULLSEYE_CLEAR_FACTOR = 1.0
 // Preserve the clear-radius value returned by the legacy layout API.
 const MAXICODE_LEGACY_CLEAR_RADIUS_FACTOR = 5.25 / 0.64 + MAXICODE_BULLSEYE_CLEAR_FACTOR
@@ -784,6 +790,7 @@ export {
   MAXICODE_BULLSEYE_RADIUS_FACTOR,
   MAXICODE_BULLSEYE_RADIUS_TO_HEX_RADIUS_FACTOR,
   MAXICODE_BULLSEYE_SHIFT_FACTOR,
+  MAXICODE_BULLSEYE_RING_RATIOS,
   MAXICODE_BULLSEYE_CLEAR_FACTOR,
   MAXICODE_HEX_RADIUS_FACTOR,
   MAXICODE_GO_GRID,
