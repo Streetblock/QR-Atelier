@@ -261,6 +261,7 @@ export const MAXICODE_BITNR: readonly (readonly number[])[];
 export const MAXICODE_BULLSEYE_RADIUS_FACTOR: number;
 export const MAXICODE_BULLSEYE_RADIUS_TO_HEX_RADIUS_FACTOR: number;
 export const MAXICODE_BULLSEYE_SHIFT_FACTOR: number;
+export const MAXICODE_BULLSEYE_RING_RATIOS: readonly [number, number, number, number, number, number];
 export const MAXICODE_BULLSEYE_CLEAR_FACTOR: number;
 export const MAXICODE_HEX_RADIUS_FACTOR: number;
 export const MAXICODE_GO_GRID: readonly (readonly number[])[];

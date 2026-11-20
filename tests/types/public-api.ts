@@ -7,7 +7,7 @@ import { generateLegacyDataMatrix, encodeLegacyData, getLegacyPlacement } from '
 import { AztecCore, buildAztecRuneMatrix } from 'qr-atelier/aztec';
 import { AztecRuneCore } from 'qr-atelier/aztec-rune';
 import { MaxiCodeCore, UpsMaxiCodeEncoder, parseMaxiCodeRawInput, encodeUpsFormat07Transport } from 'qr-atelier/maxicode';
-import { MAXICODE_FIXED_TEMPLATE, buildMaxiCodeLayout } from 'qr-atelier/libs/MaxiCodeCore.js';
+import { MAXICODE_FIXED_TEMPLATE, MAXICODE_BULLSEYE_RING_RATIOS, buildMaxiCodeLayout } from 'qr-atelier/libs/MaxiCodeCore.js';
 import { Pdf417Core, PDF417Core, MicroPdf417Core, MicroPDF417Core, MICRO_PDF417_VARIANTS, compactPdf417 } from 'qr-atelier/pdf417';
 import { QrCore as PureQr } from 'qr-atelier/cores';
 import { QrSvgRenderer, MicroQrSvgRenderer, DmSvgRenderer, AztecSvgRenderer, MaxiCodeSvgRenderer } from 'qr-atelier/renderers';
@@ -159,3 +159,8 @@ new Pdf417SvgRenderer(pdf, { background: 42 });
 // @ts-expect-error A path requires boolean matrix modules.
 buildPdf417Path([[1]]);
 void [pdfPath, barrelPdfPath, neutralPdfPath, matrixDimensions, defaultRowHeight];
+
+const maxiFinderBoundary: number = MAXICODE_BULLSEYE_RING_RATIOS[5];
+// @ts-expect-error Shared rendering ratios are immutable.
+MAXICODE_BULLSEYE_RING_RATIOS[0] = 2;
+void maxiFinderBoundary;

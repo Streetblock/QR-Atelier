@@ -44,6 +44,25 @@ The app exposes this as `UPS Format 07 transport`; visible `~ddd` and named cont
 
 The format adapter dynamically shows carrier fields for modes 2 and 3 and supplies valid mode-specific postal defaults when switching modes. QR-specific dot, finder, and logo styling is disabled for MaxiCode.
 
+## Shared rendering geometry
+
+The SVG finder is centred on column 14 and row 16 of the module lattice,
+measured from the first column/row centre. The shared layout removes the old
+0.01-column horizontal offset without moving any data module or changing the
+canvas envelope or outer finder radius.
+
+`MAXICODE_BULLSEYE_RING_RATIOS` is a frozen outer-to-inner array shared by the
+SVG renderer and downstream artwork adapters. Its six boundaries follow the
+nominal radii 3.87, 3.20, 2.53, 1.86, 1.18 and 0.51 from ISO/IEC 16023,
+section 4.11.4/Table 8, normalized to the outer radius. In particular the
+innermost white radius is 0.51/3.87, replacing the earlier 0.10 approximation.
+
+These are relative geometry corrections. SVG size/margin do not select a
+physical millimetre scale, reserve a norm-qualified quiet zone or establish
+physical scanner/UPS qualification. Device-specific measured geometry remains
+the responsibility of its explicit output profile. See the
+[dimensional reference](https://meganorm.ru/Data/284/28465.pdf#page=22).
+
 ## Tests
 
 `npm test` covers raw escape parsing, control preservation, modes 2 through 6, carrier-field validation, Primary Message packing, UPS Format 07 transport conversion, optimal high-level segmentation, numeric capacity, ECI, Structured Append, rendering, and the registry adapter. `npm run test:reference` verifies modes 2 through 5 through decoding, checks Mode 6 module extraction plus both Reed-Solomon regions, and reconstructs UPS Primary/Secondary messages with the shared ZXing dependency. ZXing does not expose semantic Mode 6 decoding.

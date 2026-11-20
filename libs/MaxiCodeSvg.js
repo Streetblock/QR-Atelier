@@ -2,7 +2,7 @@
 // MaxiCodeSvg.js - SVG Renderer for MaxiCode
 // ==========================================
 
-import { MAXICODE_HEIGHT, MAXICODE_WIDTH, MAXICODE_BITNR, buildMaxiCodeLayout } from './MaxiCodeCore.js'
+import { MAXICODE_HEIGHT, MAXICODE_WIDTH, MAXICODE_BITNR, MAXICODE_BULLSEYE_RING_RATIOS, buildMaxiCodeLayout } from './MaxiCodeCore.js'
 
 const FIXED_CELL_COLORS = {
   // MaxiCode uses negative bit markers for fixed template cells.
@@ -76,14 +76,10 @@ function hexPath(cx, cy, size, fill) {
 }
 
 function renderBullseye(cx, cy, outerRadius) {
-  const rings = [
-    { r: outerRadius, fill: '#111827' },
-    { r: outerRadius * 0.82, fill: '#ffffff' },
-    { r: outerRadius * 0.64, fill: '#111827' },
-    { r: outerRadius * 0.46, fill: '#ffffff' },
-    { r: outerRadius * 0.28, fill: '#111827' },
-    { r: outerRadius * 0.10, fill: '#ffffff' },
-  ]
+  const rings = MAXICODE_BULLSEYE_RING_RATIOS.map((ratio, index) => ({
+    r: outerRadius * ratio,
+    fill: index % 2 === 0 ? '#111827' : '#ffffff',
+  }))
 
   return `<g>${rings.map((ring) => `<circle cx="${cx}" cy="${cy}" r="${ring.r}" fill="${ring.fill}"/>`).join('')}</g>`
 }
