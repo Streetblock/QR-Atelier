@@ -116,3 +116,7 @@ partial match within a longer outer dark run.
 
 See [QR Atelier's scoring interpretation](qr-mask-scoring.md) for the production
 decision. Runtime scoring and the ZPL Toolkit are unchanged by this test suite.
+
+For hardware qualification, the [50 × 25 mm N3 printer study](../examples/qr-n3-printer-study/README.md)
+provides concrete differing payloads, all candidate scores, fixed bitmap references
+and native `^BQ` fields generated through the ZPL Toolkit.

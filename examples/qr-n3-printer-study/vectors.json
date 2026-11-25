@@ -1,0 +1,6060 @@
+{
+  "provenance": {
+    "toolkitCommit": "31bf73ef30b754134bc5b8348ffb411f3e3830df",
+    "atelierCoreSha256": "619bb05beb5975e619febf0deb633f04c8c466492bd44877326fdafa39aa75a0",
+    "atelierScorerSha256": "4f9b628cc7fe40c233932b9f164923f597ec724d3067211ac6205574e28499f0",
+    "nayuki": "1.8.0",
+    "zxing": "3.5.3",
+    "segno": "1.6.6"
+  },
+  "profiles": [
+    {
+      "dpi": 203,
+      "dpmm": 8,
+      "scale": 3
+    },
+    {
+      "dpi": 300,
+      "dpmm": 12,
+      "scale": 5
+    },
+    {
+      "dpi": 600,
+      "dpmm": 24,
+      "scale": 9
+    }
+  ],
+  "vectors": [
+    {
+      "id": "D01",
+      "kind": "double",
+      "text": "2nnnxj",
+      "level": "L",
+      "version": 1,
+      "byteHex": "326e6e6e786a",
+      "size": 21,
+      "selected": {
+        "iso": 1,
+        "zebra": 6,
+        "generic": 7,
+        "nayuki": 6,
+        "zxing": 1,
+        "segno": 7
+      },
+      "scores": [
+        {
+          "n1": 192,
+          "n2": 138,
+          "n3": 200,
+          "n4": 0,
+          "total": 530,
+          "iso": 530,
+          "zebra": 530,
+          "generic": 1090,
+          "events": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 5
+            },
+            {
+              "axis": "column",
+              "line": 1,
+              "start": 6,
+              "unit": 1,
+              "before": 5,
+              "after": 1
+            },
+            {
+              "axis": "column",
+              "line": 3,
+              "start": 14,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 16,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "column",
+              "line": 17,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 13
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 1,
+              "start": 6,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 3,
+              "start": 14,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 16,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 17,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 530,
+          "withoutScaled": 530,
+          "withPartial": 530,
+          "nayuki": 1250,
+          "nayukiN3": 920,
+          "zxing": 530,
+          "zxingN3": 200,
+          "segno": 1090,
+          "segnoN3": 760
+        },
+        {
+          "n1": 205,
+          "n2": 138,
+          "n3": 40,
+          "n4": 0,
+          "total": 383,
+          "iso": 383,
+          "zebra": 423,
+          "generic": 1103,
+          "events": [
+            {
+              "axis": "row",
+              "line": 19,
+              "start": 6,
+              "unit": 1,
+              "before": 5,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 19,
+              "start": 6,
+              "before": true,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 1,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 383,
+          "withoutScaled": 383,
+          "withPartial": 383,
+          "nayuki": 1143,
+          "nayukiN3": 800,
+          "zxing": 383,
+          "zxingN3": 40,
+          "segno": 1103,
+          "segnoN3": 760
+        },
+        {
+          "n1": 185,
+          "n2": 84,
+          "n3": 160,
+          "n4": 0,
+          "total": 429,
+          "iso": 429,
+          "zebra": 429,
+          "generic": 1109,
+          "events": [
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 14,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "row",
+              "line": 5,
+              "start": 6,
+              "unit": 1,
+              "before": 5,
+              "after": 1
+            },
+            {
+              "axis": "column",
+              "line": 1,
+              "start": 8,
+              "unit": 1,
+              "before": 1,
+              "after": 5
+            },
+            {
+              "axis": "column",
+              "line": 18,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 14,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 5,
+              "start": 6,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 1,
+              "start": 8,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 18,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 429,
+          "withoutScaled": 429,
+          "withPartial": 429,
+          "nayuki": 1189,
+          "nayukiN3": 920,
+          "zxing": 429,
+          "zxingN3": 160,
+          "segno": 1109,
+          "segnoN3": 840
+        },
+        {
+          "n1": 207,
+          "n2": 159,
+          "n3": 80,
+          "n4": 0,
+          "total": 446,
+          "iso": 446,
+          "zebra": 446,
+          "generic": 1126,
+          "events": [
+            {
+              "axis": "row",
+              "line": 16,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 5
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 16,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 446,
+          "withoutScaled": 446,
+          "withPartial": 446,
+          "nayuki": 1206,
+          "nayukiN3": 840,
+          "zxing": 446,
+          "zxingN3": 80,
+          "segno": 1126,
+          "segnoN3": 760
+        },
+        {
+          "n1": 183,
+          "n2": 126,
+          "n3": 120,
+          "n4": 0,
+          "total": 429,
+          "iso": 429,
+          "zebra": 469,
+          "generic": 1069,
+          "events": [
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "column",
+              "line": 16,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 5
+            },
+            {
+              "axis": "column",
+              "line": 19,
+              "start": 6,
+              "unit": 1,
+              "before": 5,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 16,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 19,
+              "start": 6,
+              "before": true,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 1,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 429,
+          "withoutScaled": 429,
+          "withPartial": 429,
+          "nayuki": 1189,
+          "nayukiN3": 880,
+          "zxing": 429,
+          "zxingN3": 120,
+          "segno": 1069,
+          "segnoN3": 760
+        },
+        {
+          "n1": 181,
+          "n2": 129,
+          "n3": 120,
+          "n4": 0,
+          "total": 430,
+          "iso": 430,
+          "zebra": 430,
+          "generic": 1070,
+          "events": [
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 14,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "column",
+              "line": 18,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 14,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 18,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 430,
+          "withoutScaled": 430,
+          "withPartial": 430,
+          "nayuki": 1190,
+          "nayukiN3": 880,
+          "zxing": 430,
+          "zxingN3": 120,
+          "segno": 1070,
+          "segnoN3": 760
+        },
+        {
+          "n1": 192,
+          "n2": 132,
+          "n3": 80,
+          "n4": 0,
+          "total": 404,
+          "iso": 404,
+          "zebra": 404,
+          "generic": 1084,
+          "events": [
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 14,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 18,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 14,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 18,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 404,
+          "withoutScaled": 404,
+          "withPartial": 404,
+          "nayuki": 1124,
+          "nayukiN3": 800,
+          "zxing": 404,
+          "zxingN3": 80,
+          "segno": 1084,
+          "segnoN3": 760
+        },
+        {
+          "n1": 188,
+          "n2": 132,
+          "n3": 240,
+          "n4": 0,
+          "total": 560,
+          "iso": 560,
+          "zebra": 560,
+          "generic": 1040,
+          "events": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 5
+            },
+            {
+              "axis": "row",
+              "line": 16,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 5
+            },
+            {
+              "axis": "row",
+              "line": 18,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "column",
+              "line": 3,
+              "start": 14,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "column",
+              "line": 17,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 16,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 18,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 3,
+              "start": 14,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 17,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 560,
+          "withoutScaled": 560,
+          "withPartial": 560,
+          "nayuki": 1280,
+          "nayukiN3": 960,
+          "zxing": 560,
+          "zxingN3": 240,
+          "segno": 1040,
+          "segnoN3": 720
+        }
+      ],
+      "matrices": [
+        [
+          "111111100010101111111",
+          "100000100000101000001",
+          "101110101010001011101",
+          "101110100000101011101",
+          "101110100101101011101",
+          "100000100111001000001",
+          "111111101010101111111",
+          "000000001010000000000",
+          "111011111010111000100",
+          "011100011011010100111",
+          "111010111111011100011",
+          "001010010011110110011",
+          "110000101011011100001",
+          "000000001100001100101",
+          "111111101100100010001",
+          "100000101000001110011",
+          "101110101010101000011",
+          "101110100011010110110",
+          "101110101001011110001",
+          "100000101011110100010",
+          "111111101111011001011"
+        ],
+        [
+          "111111101111101111111",
+          "100000101101101000001",
+          "101110100111001011101",
+          "101110100101101011101",
+          "101110101000101011101",
+          "100000101010001000001",
+          "111111101010101111111",
+          "000000001111000000000",
+          "111001101111111110011",
+          "001001001110000001101",
+          "101111101010001001001",
+          "011111000110100011001",
+          "100101111110001001011",
+          "000000001001011001111",
+          "111111100001110111011",
+          "100000101101011011001",
+          "101110100111111101001",
+          "101110100110000011100",
+          "101110101100001011011",
+          "100000101110100001000",
+          "111111101010001100001"
+        ],
+        [
+          "111111100100101111111",
+          "100000101001001000001",
+          "101110100100001011101",
+          "101110101001001011101",
+          "101110100011101011101",
+          "100000101110101000001",
+          "111111101010101111111",
+          "000000000011100000000",
+          "111110111100110101010",
+          "101101001010100101001",
+          "110100110001010010010",
+          "111011000010000111101",
+          "111110100101010010000",
+          "000000001101111101011",
+          "111111101010101100000",
+          "100000100001111111101",
+          "101110101100100110010",
+          "101110101010100111000",
+          "101110101111010000000",
+          "100000101010000101100",
+          "111111101001010111010"
+        ],
+        [
+          "111111101100101111111",
+          "100000100100101000001",
+          "101110101010101011101",
+          "101110101001001011101",
+          "101110101110001011101",
+          "100000100000001000001",
+          "111111101010101111111",
+          "000000000110000000000",
+          "111100101010010011101",
+          "101101001010100101001",
+          "011001111100111111111",
+          "001101010100110001011",
+          "111110100101010010000",
+          "000000001000010000110",
+          "111111100100011010110",
+          "100000100001111111101",
+          "101110100001001011111",
+          "101110101100010001110",
+          "101110101111010000000",
+          "100000101111101000001",
+          "111111101111100001100"
+        ],
+        [
+          "111111101000101111111",
+          "100000101101001000001",
+          "101110101111101011101",
+          "101110101010101011101",
+          "101110100111101011101",
+          "100000101010101000001",
+          "111111101010101111111",
+          "000000000000000000000",
+          "110011100000100101111",
+          "110001010110111001010",
+          "010111110010110001110",
+          "011000000001100100001",
+          "100010111001001110011",
+          "000000001001100001000",
+          "111111100001001111100",
+          "100000101010011100001",
+          "101110101000111010001",
+          "101110100110111011011",
+          "101110100100110011100",
+          "100000101001100110000",
+          "111111101101001011001"
+        ],
+        [
+          "111111100111101111111",
+          "100000100101001000001",
+          "101110100100001011101",
+          "101110101111001011101",
+          "101110101011101011101",
+          "100000100010101000001",
+          "111111101010101111111",
+          "000000000111100000000",
+          "110001110100100011000",
+          "100011000100101011000",
+          "110100110001010010010",
+          "111111000110000011101",
+          "100101111110001001011",
+          "000000001001111001011",
+          "111111101010101100000",
+          "100000101111110001100",
+          "101110100100100110010",
+          "101110100110100011000",
+          "101110100100001011011",
+          "100000101110000001100",
+          "111111101001010111010"
+        ],
+        [
+          "111111101111101111111",
+          "100000100101001000001",
+          "101110100110001011101",
+          "101110100111001011101",
+          "101110100010101011101",
+          "100000100001101000001",
+          "111111101010101111111",
+          "000000001111100000000",
+          "110110100110101000001",
+          "100011000100101011000",
+          "111101111000011011011",
+          "111100000101000000101",
+          "100101111110001001011",
+          "000000001001100001000",
+          "111111100000111110010",
+          "100000100111110001100",
+          "101110101101101111011",
+          "101110101101100000000",
+          "101110100100001011011",
+          "100000101110011001111",
+          "111111101011000101000"
+        ],
+        [
+          "111111100010101111111",
+          "100000101010101000001",
+          "101110101011001011101",
+          "101110100000101011101",
+          "101110101111101011101",
+          "100000101110001000001",
+          "111111101010101111111",
+          "000000001000000000000",
+          "110100110011101110110",
+          "011100011011010100111",
+          "101000101101001110001",
+          "000011011010111111010",
+          "110000101011011100001",
+          "000000001110011110111",
+          "111111101101101011000",
+          "100000100000001110011",
+          "101110100000111010001",
+          "101110101010011111111",
+          "101110100001011110001",
+          "100000101001100110000",
+          "111111101110010000010"
+        ]
+      ],
+      "hashes": [
+        "cd40f660dfa17912b5e6bf5541638aaa156f26014cf937f04517fae0d71953ee",
+        "3ac297cc9d44a4e1260c552a85fe949c3325dc9d758565c1b3d9d4afd753f5e0",
+        "79c506c5df1ee5c0983296d569e572a63e1357cb91a5fe50b3d2e455de0183c1",
+        "c42630bc0db8b9c324dc715c8d00db5f598763ca14aa6f856aecec60b89786b5",
+        "133e2c595ad1daba54bf02b308cb2abcdec49b578b2ac3256b0f2e5c9d886c3e",
+        "135970db145464b24439d7aebe1546edf023b21dc7648c842248c4acf9acdeaa",
+        "04db840f7ab25abfe40a6c79943f545faa114fc7c9c12bea2438f505a16e7584",
+        "fadf5e79d9aca258f5fa09fb8b02aa58aca3d19a98fb5f487c9ea1964eb5b4b7"
+      ]
+    },
+    {
+      "id": "S02",
+      "kind": "scaled",
+      "text": "uth36pnfozuqu8py",
+      "level": "Q",
+      "version": 2,
+      "byteHex": "7574683336706e666f7a757175387079",
+      "size": 25,
+      "selected": {
+        "iso": 0,
+        "zebra": 6,
+        "generic": 0,
+        "nayuki": 0,
+        "zxing": 6,
+        "segno": 0
+      },
+      "scores": [
+        {
+          "n1": 230,
+          "n2": 162,
+          "n3": 80,
+          "n4": 0,
+          "total": 472,
+          "iso": 472,
+          "zebra": 512,
+          "generic": 1152,
+          "events": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 18,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 18,
+              "unit": 1,
+              "before": 6,
+              "after": 0
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 18,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 5,
+              "start": 12,
+              "before": false,
+              "after": true,
+              "partial": true
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 18,
+              "before": true,
+              "after": false,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 1,
+          "scaledCount": 0,
+          "withoutDouble": 512,
+          "withoutScaled": 472,
+          "withPartial": 512,
+          "nayuki": 1192,
+          "nayukiN3": 800,
+          "zxing": 512,
+          "zxingN3": 120,
+          "segno": 1152,
+          "segnoN3": 760
+        },
+        {
+          "n1": 249,
+          "n2": 240,
+          "n3": 280,
+          "n4": 0,
+          "total": 769,
+          "iso": 769,
+          "zebra": 729,
+          "generic": 1209,
+          "events": [
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 18,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "row",
+              "line": 12,
+              "start": 6,
+              "unit": 2,
+              "before": 6,
+              "after": 4
+            },
+            {
+              "axis": "row",
+              "line": 21,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 18,
+              "unit": 1,
+              "before": 6,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 20,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 18,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 21,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 18,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 20,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 1,
+          "withoutDouble": 729,
+          "withoutScaled": 729,
+          "withPartial": 769,
+          "nayuki": 1489,
+          "nayukiN3": 1000,
+          "zxing": 729,
+          "zxingN3": 240,
+          "segno": 1209,
+          "segnoN3": 720
+        },
+        {
+          "n1": 229,
+          "n2": 183,
+          "n3": 120,
+          "n4": 0,
+          "total": 532,
+          "iso": 532,
+          "zebra": 532,
+          "generic": 1212,
+          "events": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 18,
+              "unit": 1,
+              "before": 5,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 18,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 18,
+              "start": 12,
+              "unit": 1,
+              "before": 5,
+              "after": 1
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 18,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 18,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 18,
+              "start": 12,
+              "before": true,
+              "after": false,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 532,
+          "withoutScaled": 532,
+          "withPartial": 532,
+          "nayuki": 1292,
+          "nayukiN3": 880,
+          "zxing": 532,
+          "zxingN3": 120,
+          "segno": 1212,
+          "segnoN3": 800
+        },
+        {
+          "n1": 228,
+          "n2": 216,
+          "n3": 200,
+          "n4": 0,
+          "total": 644,
+          "iso": 644,
+          "zebra": 644,
+          "generic": 1284,
+          "events": [
+            {
+              "axis": "row",
+              "line": 1,
+              "start": 6,
+              "unit": 1,
+              "before": 5,
+              "after": 1
+            },
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 18,
+              "unit": 1,
+              "before": 5,
+              "after": 0
+            },
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 6
+            },
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 18,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 20,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 1,
+              "start": 6,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 18,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 18,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 20,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 644,
+          "withoutScaled": 644,
+          "withPartial": 644,
+          "nayuki": 1404,
+          "nayukiN3": 960,
+          "zxing": 644,
+          "zxingN3": 200,
+          "segno": 1284,
+          "segnoN3": 840
+        },
+        {
+          "n1": 267,
+          "n2": 228,
+          "n3": 160,
+          "n4": 0,
+          "total": 655,
+          "iso": 655,
+          "zebra": 655,
+          "generic": 1375,
+          "events": [
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 18,
+              "unit": 1,
+              "before": 5,
+              "after": 0
+            },
+            {
+              "axis": "row",
+              "line": 21,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 9
+            },
+            {
+              "axis": "column",
+              "line": 10,
+              "start": 11,
+              "unit": 1,
+              "before": 1,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 18,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 21,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 10,
+              "start": 11,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 655,
+          "withoutScaled": 655,
+          "withPartial": 655,
+          "nayuki": 1455,
+          "nayukiN3": 960,
+          "zxing": 655,
+          "zxingN3": 160,
+          "segno": 1375,
+          "segnoN3": 880
+        },
+        {
+          "n1": 237,
+          "n2": 246,
+          "n3": 240,
+          "n4": 0,
+          "total": 723,
+          "iso": 723,
+          "zebra": 723,
+          "generic": 1283,
+          "events": [
+            {
+              "axis": "row",
+              "line": 12,
+              "start": 6,
+              "unit": 2,
+              "before": 6,
+              "after": 4
+            },
+            {
+              "axis": "row",
+              "line": 20,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 5
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 6
+            },
+            {
+              "axis": "column",
+              "line": 11,
+              "start": 9,
+              "unit": 1,
+              "before": 4,
+              "after": 5
+            },
+            {
+              "axis": "column",
+              "line": 18,
+              "start": 12,
+              "unit": 1,
+              "before": 5,
+              "after": 1
+            },
+            {
+              "axis": "column",
+              "line": 22,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 7
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 20,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 11,
+              "start": 9,
+              "before": true,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 18,
+              "start": 12,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 22,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 1,
+          "partialCount": 0,
+          "scaledCount": 1,
+          "withoutDouble": 683,
+          "withoutScaled": 683,
+          "withPartial": 723,
+          "nayuki": 1483,
+          "nayukiN3": 1000,
+          "zxing": 683,
+          "zxingN3": 200,
+          "segno": 1283,
+          "segnoN3": 800
+        },
+        {
+          "n1": 218,
+          "n2": 168,
+          "n3": 120,
+          "n4": 0,
+          "total": 506,
+          "iso": 506,
+          "zebra": 466,
+          "generic": 1186,
+          "events": [
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 6
+            },
+            {
+              "axis": "row",
+              "line": 12,
+              "start": 6,
+              "unit": 2,
+              "before": 6,
+              "after": 4
+            },
+            {
+              "axis": "column",
+              "line": 22,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 22,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 1,
+          "withoutDouble": 466,
+          "withoutScaled": 466,
+          "withPartial": 506,
+          "nayuki": 1266,
+          "nayukiN3": 880,
+          "zxing": 466,
+          "zxingN3": 80,
+          "segno": 1186,
+          "segnoN3": 800
+        },
+        {
+          "n1": 217,
+          "n2": 150,
+          "n3": 240,
+          "n4": 0,
+          "total": 607,
+          "iso": 607,
+          "zebra": 647,
+          "generic": 1167,
+          "events": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 18,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 18,
+              "unit": 1,
+              "before": 5,
+              "after": 0
+            },
+            {
+              "axis": "row",
+              "line": 11,
+              "start": 9,
+              "unit": 1,
+              "before": 4,
+              "after": 2
+            },
+            {
+              "axis": "row",
+              "line": 22,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "column",
+              "line": 20,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 7
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 18,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 18,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 11,
+              "start": 9,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 22,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 1,
+              "start": 6,
+              "before": true,
+              "after": false,
+              "partial": true
+            },
+            {
+              "axis": "column",
+              "line": 20,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 1,
+          "scaledCount": 0,
+          "withoutDouble": 647,
+          "withoutScaled": 607,
+          "withPartial": 647,
+          "nayuki": 1327,
+          "nayukiN3": 960,
+          "zxing": 647,
+          "zxingN3": 280,
+          "segno": 1167,
+          "segnoN3": 800
+        }
+      ],
+      "matrices": [
+        [
+          "1111111010011010001111111",
+          "1000001010101100001000001",
+          "1011101011000001001011101",
+          "1011101011010100001011101",
+          "1011101010111100101011101",
+          "1000001000011011101000001",
+          "1111111010101010101111111",
+          "0000000010111001000000000",
+          "0110101101001001001011111",
+          "0111010001101100101001111",
+          "1010001000000010100100111",
+          "1001110011001111011011010",
+          "0101011001101010011001011",
+          "0010000010100010101001001",
+          "1010001001100000111001011",
+          "0101000111001011000001000",
+          "1010011100101111111111011",
+          "0000000010111100100010001",
+          "1111111011010011101010011",
+          "1000001001111011100010010",
+          "1011101011101010111111001",
+          "1011101001001110000111000",
+          "1011101010111011110110101",
+          "1000001011100000110110010",
+          "1111111001010101111100011"
+        ],
+        [
+          "1111111001001111001111111",
+          "1000001001111001001000001",
+          "1011101000010100001011101",
+          "1011101010000001001011101",
+          "1011101001101001101011101",
+          "1000001011001110101000001",
+          "1111111010101010101111111",
+          "0000000011101100000000000",
+          "0110001000011100001101000",
+          "0010000100111001111100101",
+          "1111011101010111110001101",
+          "1100100110011010001110000",
+          "0000001100111111001100001",
+          "0111010111110111111100011",
+          "1111011100110101101100001",
+          "0000010010011110010100010",
+          "1111001001111010111110001",
+          "0000000011101001100011011",
+          "1111111000000110101011001",
+          "1000001000101110100011000",
+          "1011101000111111111110011",
+          "1011101000011011010010010",
+          "1011101011101110100011111",
+          "1000001010110101100011000",
+          "1111111000000000101001001"
+        ],
+        [
+          "1111111011111001101111111",
+          "1000001000110000001000001",
+          "1011101000100010101011101",
+          "1011101001001000001011101",
+          "1011101011011111001011101",
+          "1000001010000111101000001",
+          "1111111010101010101111111",
+          "0000000000100101000000000",
+          "0111111100101010100110001",
+          "1011000101110000110101100",
+          "1001101011100001000111011",
+          "0101100111010011000111001",
+          "0110111010001001111010111",
+          "1110010110111110110101010",
+          "1001101010000011011010111",
+          "1001010011010111011101011",
+          "1001111111001100111110111",
+          "0000000010100000100010010",
+          "1111111010110000101011111",
+          "1000001011100111100010001",
+          "1011101010001001111110101",
+          "1011101011010010011011011",
+          "1011101011011000010101001",
+          "1000001011111100101010001",
+          "1111111000110110011111111"
+        ],
+        [
+          "1111111001111001101111111",
+          "1000001011101011001000001",
+          "1011101011001111001011101",
+          "1011101001001000001011101",
+          "1011101000000100001011101",
+          "1000001001101010001000001",
+          "1111111010101010101111111",
+          "0000000001111110000000000",
+          "0111011001000111000000110",
+          "1011000101110000110101100",
+          "0010111000111010011100000",
+          "1000000010111110101010100",
+          "0110111010001001111010111",
+          "0101000101100101101110001",
+          "0100001111101110110111010",
+          "1001010011010111011101011",
+          "0010101100010111111111100",
+          "0000000011001101100011111",
+          "1111111000110000101011111",
+          "1000001010111100100011010",
+          "1011101001100100111111000",
+          "1011101011010010011011011",
+          "1011101010000011001110010",
+          "1000001010010001000111100",
+          "1111111000110110011111111"
+        ],
+        [
+          "1111111000111110101111111",
+          "1000001001110111001000001",
+          "1011101010011010001011101",
+          "1011101001110000101011101",
+          "1011101010011000001011101",
+          "1000001011000000101000001",
+          "1111111010101010101111111",
+          "0000000000011101100000000",
+          "0100101011101101110110100",
+          "1100000010110111110010100",
+          "0001011011011001111111100",
+          "1101010111101011111111110",
+          "0001111101001110111101111",
+          "1001010001111001110010010",
+          "0001011010111011100010000",
+          "0001100011101111100101100",
+          "1110111000001011111111111",
+          "0000000011100111100011010",
+          "1111111000001000101011000",
+          "1000001001011111100010110",
+          "1011101011001110111111101",
+          "1011101000010101011100011",
+          "1011101001100000101101110",
+          "1000001011000100010010110",
+          "1111111001110001011000111"
+        ],
+        [
+          "1111111011001111001111111",
+          "1000001011110001001000001",
+          "1011101000100010101011101",
+          "1011101000101011101011101",
+          "1011101001011111001011101",
+          "1000001001000110101000001",
+          "1111111010101010101111111",
+          "0000000001100100000000000",
+          "0100001110101010110000011",
+          "1000100110010011010110000",
+          "1001101011100001000111011",
+          "0100100110010010000110001",
+          "0000001100111111001100001",
+          "1111010111111111110100010",
+          "1001101010000011011010111",
+          "1010110000110100111110111",
+          "1001111111001100111110111",
+          "0000000011100001100011010",
+          "1111111010000110101011001",
+          "1000001000100110100011001",
+          "1011101000001001111110101",
+          "1011101000110001111000111",
+          "1011101001011000010101001",
+          "1000001010111101101011001",
+          "1111111000000000101001001"
+        ],
+        [
+          "1111111001001111001111111",
+          "1000001011110111001000001",
+          "1011101000000110001011101",
+          "1011101010101011101011101",
+          "1011101011001101001011101",
+          "1000001001110110001000001",
+          "1111111010101010101111111",
+          "0000000011100010000000000",
+          "0101111010001110011011010",
+          "1000100110010011010110000",
+          "1011111001110011010101001",
+          "0100010110100010110110111",
+          "0000001100111111001100001",
+          "1001010001111001110010010",
+          "1101001110100111111110011",
+          "1010110000110100111110111",
+          "1011101101011110111110101",
+          "0000000011010001100011100",
+          "1111111000000110101011001",
+          "1000001010100000100011001",
+          "1011101010101101111110001",
+          "1011101010110001111000111",
+          "1011101001001010000111011",
+          "1000001010001101011011111",
+          "1111111000000000101001001"
+        ],
+        [
+          "1111111010011010001111111",
+          "1000001000001000101000001",
+          "1011101011010011001011101",
+          "1011101011010100001011101",
+          "1011101000011000001011101",
+          "1000001010001001101000001",
+          "1111111010101010101111111",
+          "0000000010011101100000000",
+          "0101011111011011011101101",
+          "0111010001101100101001111",
+          "1110101100100110000000011",
+          "1011100001011101001001000",
+          "0101011001101010011001011",
+          "0110100110000110001101101",
+          "1000011011110010101011001",
+          "0101000111001011000001000",
+          "1110111000001011111111111",
+          "0000000010101110100010011",
+          "1111111011010011101010011",
+          "1000001011011111100010110",
+          "1011101001111000111111011",
+          "1011101011001110000111000",
+          "1011101000011111010010001",
+          "1000001011110010100100000",
+          "1111111001010101111100011"
+        ]
+      ],
+      "hashes": [
+        "e1c67ef040ce28653a30b7814009ad7a547022ed44c5b2536e5816147ae27802",
+        "30ddf2e199c92e19790310bdeb05d33ff4e8dbc5a48162389b71572a39442307",
+        "82bfb8b38223e7f4be6717c35feb488725a97f21ab05d64f2c974e18ea4073d6",
+        "6d17f942b2f2fbbdcfad60561b53091618a299e0457ab690b4560132b9f31314",
+        "e9a574fa1274a320f3aa66ddeb7bd00f04cfab6df6a160695bd88b4bc1bf1c39",
+        "c9c692f636c85a0062abc92572c08d04e6081ff1660a166556208e7ed5b3fc5f",
+        "102259ac5fbd316d5ed199fd6a0d7a1981baec1e45b1188a0a0d4a73387fef91",
+        "408bff82e3f1e7165e3d37e4d8f612b741dae061c66d4db36e2e619869ac0a55"
+      ]
+    },
+    {
+      "id": "P03",
+      "kind": "partial",
+      "text": "caewsu3k1lhg9gqi585swmw2",
+      "level": "H",
+      "version": 3,
+      "byteHex": "636165777375336b316c68673967716935383573776d7732",
+      "size": 29,
+      "selected": {
+        "iso": 0,
+        "zebra": 4,
+        "generic": 4,
+        "nayuki": 5,
+        "zxing": 7,
+        "segno": 4
+      },
+      "scores": [
+        {
+          "n1": 279,
+          "n2": 252,
+          "n3": 40,
+          "n4": 0,
+          "total": 571,
+          "iso": 571,
+          "zebra": 611,
+          "generic": 1411,
+          "events": [
+            {
+              "axis": "column",
+              "line": 26,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 7
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "column",
+              "line": 5,
+              "start": 16,
+              "before": false,
+              "after": true,
+              "partial": true
+            },
+            {
+              "axis": "column",
+              "line": 26,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 1,
+          "scaledCount": 0,
+          "withoutDouble": 611,
+          "withoutScaled": 571,
+          "withPartial": 611,
+          "nayuki": 1371,
+          "nayukiN3": 840,
+          "zxing": 611,
+          "zxingN3": 80,
+          "segno": 1411,
+          "segnoN3": 880
+        },
+        {
+          "n1": 301,
+          "n2": 306,
+          "n3": 0,
+          "n4": 0,
+          "total": 607,
+          "iso": 607,
+          "zebra": 607,
+          "generic": 1367,
+          "events": [],
+          "legacyEvents": [],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 607,
+          "withoutScaled": 607,
+          "withPartial": 607,
+          "nayuki": 1367,
+          "nayukiN3": 760,
+          "zxing": 607,
+          "zxingN3": 0,
+          "segno": 1367,
+          "segnoN3": 760
+        },
+        {
+          "n1": 269,
+          "n2": 216,
+          "n3": 160,
+          "n4": 0,
+          "total": 645,
+          "iso": 645,
+          "zebra": 685,
+          "generic": 1285,
+          "events": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 22,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 22,
+              "unit": 1,
+              "before": 5,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 9,
+              "start": 7,
+              "unit": 1,
+              "before": 6,
+              "after": 1
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 22,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 22,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 9,
+              "start": 7,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 17,
+              "start": 10,
+              "before": true,
+              "after": false,
+              "partial": true
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 1,
+          "scaledCount": 0,
+          "withoutDouble": 685,
+          "withoutScaled": 645,
+          "withPartial": 685,
+          "nayuki": 1365,
+          "nayukiN3": 880,
+          "zxing": 685,
+          "zxingN3": 200,
+          "segno": 1285,
+          "segnoN3": 800
+        },
+        {
+          "n1": 280,
+          "n2": 300,
+          "n3": 200,
+          "n4": 0,
+          "total": 780,
+          "iso": 780,
+          "zebra": 820,
+          "generic": 1380,
+          "events": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 22,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "row",
+              "line": 24,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 5
+            },
+            {
+              "axis": "column",
+              "line": 3,
+              "start": 22,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 26,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 5
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 22,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 24,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 3,
+              "start": 22,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 17,
+              "start": 1,
+              "before": false,
+              "after": true,
+              "partial": true
+            },
+            {
+              "axis": "column",
+              "line": 26,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 1,
+          "scaledCount": 0,
+          "withoutDouble": 820,
+          "withoutScaled": 780,
+          "withPartial": 820,
+          "nayuki": 1540,
+          "nayukiN3": 960,
+          "zxing": 820,
+          "zxingN3": 240,
+          "segno": 1380,
+          "segnoN3": 800
+        },
+        {
+          "n1": 281,
+          "n2": 237,
+          "n3": 80,
+          "n4": 0,
+          "total": 598,
+          "iso": 598,
+          "zebra": 598,
+          "generic": 1278,
+          "events": [
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "row",
+              "line": 26,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 2,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 26,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 598,
+          "withoutScaled": 598,
+          "withPartial": 598,
+          "nayuki": 1318,
+          "nayukiN3": 800,
+          "zxing": 598,
+          "zxingN3": 80,
+          "segno": 1278,
+          "segnoN3": 760
+        },
+        {
+          "n1": 282,
+          "n2": 249,
+          "n3": 40,
+          "n4": 0,
+          "total": 571,
+          "iso": 571,
+          "zebra": 651,
+          "generic": 1371,
+          "events": [
+            {
+              "axis": "column",
+              "line": 21,
+              "start": 9,
+              "unit": 1,
+              "before": 9,
+              "after": 1
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 7,
+              "start": 8,
+              "before": true,
+              "after": false,
+              "partial": true
+            },
+            {
+              "axis": "column",
+              "line": 16,
+              "start": 7,
+              "before": false,
+              "after": true,
+              "partial": true
+            },
+            {
+              "axis": "column",
+              "line": 21,
+              "start": 9,
+              "before": true,
+              "after": false,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 2,
+          "scaledCount": 0,
+          "withoutDouble": 651,
+          "withoutScaled": 571,
+          "withPartial": 651,
+          "nayuki": 1291,
+          "nayukiN3": 760,
+          "zxing": 651,
+          "zxingN3": 120,
+          "segno": 1371,
+          "segnoN3": 840
+        },
+        {
+          "n1": 313,
+          "n2": 258,
+          "n3": 80,
+          "n4": 0,
+          "total": 651,
+          "iso": 651,
+          "zebra": 651,
+          "generic": 1331,
+          "events": [
+            {
+              "axis": "row",
+              "line": 26,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 5
+            },
+            {
+              "axis": "column",
+              "line": 21,
+              "start": 9,
+              "unit": 1,
+              "before": 9,
+              "after": 1
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 26,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 21,
+              "start": 9,
+              "before": true,
+              "after": false,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 651,
+          "withoutScaled": 651,
+          "withPartial": 651,
+          "nayuki": 1371,
+          "nayukiN3": 800,
+          "zxing": 651,
+          "zxingN3": 80,
+          "segno": 1331,
+          "segnoN3": 760
+        },
+        {
+          "n1": 286,
+          "n2": 231,
+          "n3": 80,
+          "n4": 0,
+          "total": 597,
+          "iso": 597,
+          "zebra": 637,
+          "generic": 1317,
+          "events": [
+            {
+              "axis": "column",
+              "line": 7,
+              "start": 11,
+              "unit": 1,
+              "before": 11,
+              "after": 11
+            },
+            {
+              "axis": "column",
+              "line": 26,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "column",
+              "line": 7,
+              "start": 11,
+              "before": true,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 26,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 1,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 597,
+          "withoutScaled": 597,
+          "withPartial": 597,
+          "nayuki": 1397,
+          "nayukiN3": 880,
+          "zxing": 597,
+          "zxingN3": 80,
+          "segno": 1317,
+          "segnoN3": 800
+        }
+      ],
+      "matrices": [
+        [
+          "11111110100110001101101111111",
+          "10000010000100110101101000001",
+          "10111010010010010011001011101",
+          "10111010100001111011001011101",
+          "10111010010111111011001011101",
+          "10000010000110011001001000001",
+          "11111110101010101010101111111",
+          "00000000011001101101100000000",
+          "00101110110011011011010001001",
+          "11011000010100110100101100011",
+          "01100011000110000110011011011",
+          "10011001110010111111100110001",
+          "10001010011101110101101101001",
+          "00000000011001011010101001011",
+          "00000011010001101100011101111",
+          "10100101110010001101000100000",
+          "01000111001000111100111100000",
+          "00100001011100000010101101011",
+          "10011110000000101010001111111",
+          "01110101011010101110101000010",
+          "10001110011101010010111110000",
+          "00000000110001110100100010001",
+          "11111110010011001001101011101",
+          "10000010111100001011100010001",
+          "10111010111011010010111111011",
+          "10111010001010011110100011100",
+          "10111010110010010100000111101",
+          "10000010010100110110110011010",
+          "11111110000111110001110111011"
+        ],
+        [
+          "11111110010011011000101111111",
+          "10000010110001100000101000001",
+          "10111010100111000110001011101",
+          "10111010110100101110001011101",
+          "10111010100010101110001011101",
+          "10000010110011001100001000001",
+          "11111110101010101010101111111",
+          "00000000001100111000100000000",
+          "00100111100110001110010111110",
+          "10001101000001100001111001001",
+          "00110110010011010011001110001",
+          "11001100100111101010110011011",
+          "11011111001000100000111000011",
+          "01010101001100001111111100001",
+          "01010110000100111001001000101",
+          "11110000100111011000010001010",
+          "00010010011101101001101001010",
+          "01110100001001010111111000001",
+          "11001011010101111111011010101",
+          "00100000001111111011111101000",
+          "11011011001000000111111111010",
+          "00000000100100100001100011011",
+          "11111110100110011100101010111",
+          "10000010101001011110100011011",
+          "10111010001110000111111110001",
+          "10111010011111001011110110110",
+          "10111010100111000001010010111",
+          "10000010000001100011100110000",
+          "11111110010010100100100010001"
+        ],
+        [
+          "11111110111110110101001111111",
+          "10000010100011110010101000001",
+          "10111010101010101011101011101",
+          "10111010000110111100001011101",
+          "10111010001111000011101011101",
+          "10000010100001011110001000001",
+          "11111110101010101010101111111",
+          "00000000111110101010100000000",
+          "00111010101011100011111100111",
+          "00011101010011110011101011011",
+          "01011011111110111110100011100",
+          "01011100110101111000100001001",
+          "10110010100101001101010101110",
+          "11000101011110011101101110011",
+          "00111011101001010100100101000",
+          "01100000110101001010000011000",
+          "01111111110000000100000100111",
+          "11100100011011000101101010011",
+          "10100110111000010010110111000",
+          "10110000011101101001101111010",
+          "10110110100101101010111110111",
+          "00000000110110110011100011001",
+          "11111110001011110001101011010",
+          "10000010011011001100100011001",
+          "10111010100011101010111111100",
+          "10111010101101011001100100100",
+          "10111010101010101100111111010",
+          "10000010010011110001110100010",
+          "11111110011111001001001111100"
+        ],
+        [
+          "11111110011110110101001111111",
+          "10000010010101000100001000001",
+          "10111010010001110000101011101",
+          "10111010000110111100001011101",
+          "10111010111001110101001011101",
+          "10000010011010000101001000001",
+          "11111110101010101010101111111",
+          "00000000101000011100000000000",
+          "00110011110000111000111010000",
+          "00011101010011110011101011011",
+          "11101111001000001000010101010",
+          "10000101101110100011111010010",
+          "10110010100101001101010101110",
+          "01110001101000101011011000101",
+          "11100010110010001111111110011",
+          "01100000110101001010000011000",
+          "11001011000110110010110010001",
+          "00111101000000011110110001000",
+          "10100110111000010010110111000",
+          "00000100101011011111011001100",
+          "01101111111110110001111111100",
+          "00000000110110110011100011001",
+          "11111110111101000111101011100",
+          "10000010000000010111100010010",
+          "10111010000011101010111111100",
+          "10111010111011101111010010010",
+          "10111010110001110111100100001",
+          "10000010010011110001110100010",
+          "11111110001001111111111001010"
+        ],
+        [
+          "11111110001111000100101111111",
+          "10000010110010000011001000001",
+          "10111010000100100101101011101",
+          "10111010001000110010001011101",
+          "10111010011110110010001011101",
+          "10000010110000101111101000001",
+          "11111110101010101010101111111",
+          "00000000110000100100100000000",
+          "00001111011010010010001100010",
+          "01101100100010000010011010101",
+          "11010111110000110000101101101",
+          "11010000111011110110101111000",
+          "11000011010100111100100100000",
+          "10110100101111101100011111101",
+          "10110111100111011010101011001",
+          "11101100111011000100001101001",
+          "00001110000001110101110101001",
+          "10010101101010110100011011101",
+          "00101010110110011100111001001",
+          "00111100010011100111100001011",
+          "11000111010100011011111111001",
+          "00000000100111000010100010111",
+          "11111110100101111111101011011",
+          "10000010110101000010100011000",
+          "10111010110010011011111110010",
+          "10111010011100101000010101010",
+          "10111010000100100010110001011",
+          "10000010011101111111111010011",
+          "11111110001110111000111110010"
+        ],
+        [
+          "11111110110011011000101111111",
+          "10000010010011100010101000001",
+          "10111010101010101011101011101",
+          "10111010011110000100101011101",
+          "10111010101111000011101011101",
+          "10000010010001001110001000001",
+          "11111110101010101010101111111",
+          "00000000101110111010100000000",
+          "00000110001011100011101010101",
+          "00100101101011001011010011100",
+          "01011011111110111110100011100",
+          "01001100100101101000110001011",
+          "11011111001000100000111000011",
+          "11010101001110001101111110001",
+          "00111011101001010100100101000",
+          "01011000001101110010111011111",
+          "01111111110000000100000100111",
+          "11110100001011010101111010001",
+          "11001011010101111111011010101",
+          "10100000001101111001111111000",
+          "10110110100101101010111110111",
+          "00000000101110001011100011110",
+          "11111110001011110001101011010",
+          "10000010101011011100100011011",
+          "10111010001110000111111110001",
+          "10111010011101001001110100110",
+          "10111010001010101100111111010",
+          "10000010001011001001001100101",
+          "11111110011111001001001111100"
+        ],
+        [
+          "11111110010011011000101111111",
+          "10000010010010000011001000001",
+          "10111010100011100010101011101",
+          "10111010111110000100101011101",
+          "10111010001011100111001011101",
+          "10000010011101000010001000001",
+          "11111110101010101010101111111",
+          "00000000001111011011000000000",
+          "00011011000010101010100001100",
+          "00100101101011001011010011100",
+          "01111111011010011010000111000",
+          "01000000101001100100111101010",
+          "11011111001000100000111000011",
+          "10110100101111101100011111101",
+          "01110010100000011101101100001",
+          "01011000001101110010111011111",
+          "01011011010100100000100000011",
+          "11111000000111011001110110000",
+          "11001011010101111111011010101",
+          "11000001101100011000011110100",
+          "11111111101100100011111111110",
+          "00000000101110001011100011110",
+          "11111110101111010101101011110",
+          "10000010000111010000100011010",
+          "10111010101110000111111110001",
+          "10111010111100101000010101010",
+          "10111010000011100101110110011",
+          "10000010001011001001001100101",
+          "11111110011011101101101011000"
+        ],
+        [
+          "11111110100110001101101111111",
+          "10000010101101111100101000001",
+          "10111010010110110111101011101",
+          "10111010100001111011001011101",
+          "10111010111110110010001011101",
+          "10000010100010111101101000001",
+          "11111110101010101010101111111",
+          "00000000010000100100100000000",
+          "00010010010111111111100111011",
+          "11011000010100110100101100011",
+          "00101010001111001111010010010",
+          "10111101010110011011000010101",
+          "10001010011101110101101101001",
+          "01001001010000010011100000010",
+          "00100111110101001000111001011",
+          "10100101110010001101000100000",
+          "00001110000001110101110101001",
+          "00000101111000100110001001111",
+          "10011110000000101010001111111",
+          "00111100010011100111100001011",
+          "10101010111001110110111110100",
+          "00000000110001110100100010001",
+          "11111110011010000000101010100",
+          "10000010011000101111100010101",
+          "10111010011011010010111111011",
+          "10111010100011010111101010101",
+          "10111010010110110000100011001",
+          "10000010010100110110110011010",
+          "11111110001110111000111110010"
+        ]
+      ],
+      "hashes": [
+        "d8294c92f0eab3ebfca82f3a71baefd02826579fc47c54192fa71b2377c5aa35",
+        "13631a2ee082f3b355f38b66e4adf289d2d33595792b190c92823f95f3d4e64f",
+        "d0fc5d31bef6ad73849a3fd9d06ef32945ec7c239479405a714580fbb47d9730",
+        "1f94b24b53e198be7404d48452c71a662adb97b47656d8385c0b257ec8c9548f",
+        "8219d47da782c891e5206e88e56b9650021aa37bd11138d39e93ae77bba767fe",
+        "4709bc244bb748e2b9fa0fb9284bce8efa8e63ecc29f749b6f4a9552193f5d60",
+        "eedf19a69b97b9d4478e068521e59b3b9f71512c7e58676347d0cb120251c66b",
+        "83a501030a8492052ee924575068a1613fc7496c79bc24e8c31c5382ecdaf42d"
+      ]
+    },
+    {
+      "id": "C04",
+      "kind": "control",
+      "text": "x01uc6lrun",
+      "level": "M",
+      "version": 1,
+      "byteHex": "7830317563366c72756e",
+      "size": 21,
+      "selected": {
+        "iso": 2,
+        "zebra": 2,
+        "generic": 2,
+        "nayuki": 2,
+        "zxing": 2,
+        "segno": 2
+      },
+      "scores": [
+        {
+          "n1": 197,
+          "n2": 141,
+          "n3": 80,
+          "n4": 0,
+          "total": 418,
+          "iso": 418,
+          "zebra": 418,
+          "generic": 1098,
+          "events": [
+            {
+              "axis": "row",
+              "line": 9,
+              "start": 7,
+              "unit": 1,
+              "before": 5,
+              "after": 2
+            },
+            {
+              "axis": "column",
+              "line": 3,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 9,
+              "start": 7,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 3,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 418,
+          "withoutScaled": 418,
+          "withPartial": 418,
+          "nayuki": 1138,
+          "nayukiN3": 800,
+          "zxing": 418,
+          "zxingN3": 80,
+          "segno": 1098,
+          "segnoN3": 760
+        },
+        {
+          "n1": 193,
+          "n2": 129,
+          "n3": 80,
+          "n4": 0,
+          "total": 402,
+          "iso": 402,
+          "zebra": 402,
+          "generic": 1082,
+          "events": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 5
+            },
+            {
+              "axis": "row",
+              "line": 12,
+              "start": 4,
+              "unit": 1,
+              "before": 3,
+              "after": 8
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 12,
+              "start": 4,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 402,
+          "withoutScaled": 402,
+          "withPartial": 402,
+          "nayuki": 1122,
+          "nayukiN3": 800,
+          "zxing": 402,
+          "zxingN3": 80,
+          "segno": 1082,
+          "segnoN3": 760
+        },
+        {
+          "n1": 184,
+          "n2": 117,
+          "n3": 40,
+          "n4": 0,
+          "total": 341,
+          "iso": 341,
+          "zebra": 341,
+          "generic": 1021,
+          "events": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 14,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 14,
+              "before": true,
+              "after": false,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 341,
+          "withoutScaled": 341,
+          "withPartial": 341,
+          "nayuki": 1061,
+          "nayukiN3": 760,
+          "zxing": 341,
+          "zxingN3": 40,
+          "segno": 1021,
+          "segnoN3": 720
+        },
+        {
+          "n1": 189,
+          "n2": 141,
+          "n3": 200,
+          "n4": 0,
+          "total": 530,
+          "iso": 530,
+          "zebra": 530,
+          "generic": 1050,
+          "events": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 14,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 14,
+              "unit": 1,
+              "before": 4,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 3,
+              "start": 14,
+              "unit": 1,
+              "before": 5,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 7
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 14,
+              "unit": 1,
+              "before": 7,
+              "after": 0
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 3,
+              "start": 14,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 14,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 3,
+              "start": 14,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 14,
+              "before": true,
+              "after": false,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 530,
+          "withoutScaled": 530,
+          "withPartial": 530,
+          "nayuki": 1250,
+          "nayukiN3": 920,
+          "zxing": 530,
+          "zxingN3": 200,
+          "segno": 1050,
+          "segnoN3": 720
+        },
+        {
+          "n1": 200,
+          "n2": 150,
+          "n3": 40,
+          "n4": 0,
+          "total": 390,
+          "iso": 390,
+          "zebra": 390,
+          "generic": 1110,
+          "events": [
+            {
+              "axis": "row",
+              "line": 13,
+              "start": 8,
+              "unit": 1,
+              "before": 8,
+              "after": 1
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 13,
+              "start": 8,
+              "before": true,
+              "after": false,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 390,
+          "withoutScaled": 390,
+          "withPartial": 390,
+          "nayuki": 1110,
+          "nayukiN3": 760,
+          "zxing": 390,
+          "zxingN3": 40,
+          "segno": 1110,
+          "segnoN3": 760
+        },
+        {
+          "n1": 194,
+          "n2": 171,
+          "n3": 160,
+          "n4": 0,
+          "total": 525,
+          "iso": 525,
+          "zebra": 565,
+          "generic": 1165,
+          "events": [
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            },
+            {
+              "axis": "row",
+              "line": 12,
+              "start": 4,
+              "unit": 1,
+              "before": 3,
+              "after": 8
+            },
+            {
+              "axis": "row",
+              "line": 16,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 5
+            },
+            {
+              "axis": "column",
+              "line": 16,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 6
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 4,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 8,
+              "start": 6,
+              "before": true,
+              "after": false,
+              "partial": true
+            },
+            {
+              "axis": "row",
+              "line": 12,
+              "start": 4,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 16,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 16,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 1,
+          "scaledCount": 0,
+          "withoutDouble": 565,
+          "withoutScaled": 525,
+          "withPartial": 565,
+          "nayuki": 1245,
+          "nayukiN3": 880,
+          "zxing": 565,
+          "zxingN3": 200,
+          "segno": 1165,
+          "segnoN3": 800
+        },
+        {
+          "n1": 205,
+          "n2": 135,
+          "n3": 80,
+          "n4": 0,
+          "total": 420,
+          "iso": 420,
+          "zebra": 420,
+          "generic": 1140,
+          "events": [
+            {
+              "axis": "row",
+              "line": 12,
+              "start": 4,
+              "unit": 1,
+              "before": 3,
+              "after": 8
+            },
+            {
+              "axis": "row",
+              "line": 13,
+              "start": 8,
+              "unit": 1,
+              "before": 8,
+              "after": 1
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 12,
+              "start": 4,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "row",
+              "line": 13,
+              "start": 8,
+              "before": true,
+              "after": false,
+              "partial": false
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 0,
+          "scaledCount": 0,
+          "withoutDouble": 420,
+          "withoutScaled": 420,
+          "withPartial": 420,
+          "nayuki": 1140,
+          "nayukiN3": 800,
+          "zxing": 420,
+          "zxingN3": 80,
+          "segno": 1140,
+          "segnoN3": 800
+        },
+        {
+          "n1": 191,
+          "n2": 141,
+          "n3": 160,
+          "n4": 0,
+          "total": 492,
+          "iso": 492,
+          "zebra": 532,
+          "generic": 1132,
+          "events": [
+            {
+              "axis": "row",
+              "line": 9,
+              "start": 7,
+              "unit": 1,
+              "before": 5,
+              "after": 2
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 7
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 14,
+              "unit": 1,
+              "before": 7,
+              "after": 0
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 0,
+              "unit": 1,
+              "before": 0,
+              "after": 4
+            }
+          ],
+          "legacyEvents": [
+            {
+              "axis": "row",
+              "line": 9,
+              "start": 7,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 2,
+              "start": 14,
+              "before": true,
+              "after": false,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 4,
+              "start": 0,
+              "before": false,
+              "after": true,
+              "partial": false
+            },
+            {
+              "axis": "column",
+              "line": 13,
+              "start": 10,
+              "before": false,
+              "after": true,
+              "partial": true
+            }
+          ],
+          "doubleCount": 0,
+          "partialCount": 1,
+          "scaledCount": 0,
+          "withoutDouble": 532,
+          "withoutScaled": 492,
+          "withPartial": 532,
+          "nayuki": 1212,
+          "nayukiN3": 880,
+          "zxing": 532,
+          "zxingN3": 200,
+          "segno": 1132,
+          "segnoN3": 800
+        }
+      ],
+      "matrices": [
+        [
+          "111111100011101111111",
+          "100000101100101000001",
+          "101110100010101011101",
+          "101110100101101011101",
+          "101110101111101011101",
+          "100000100101001000001",
+          "111111101010101111111",
+          "000000000000000000000",
+          "101010100000100010010",
+          "110000010111010011001",
+          "110010111111000110101",
+          "001110001011100101010",
+          "110111101111010101000",
+          "000000001110000111001",
+          "111111100000111111111",
+          "100000100000000110011",
+          "101110101110100111000",
+          "101110100011001010010",
+          "101110101111000011101",
+          "100000100101110010010",
+          "111111101011001010011"
+        ],
+        [
+          "111111101110101111111",
+          "100000100001101000001",
+          "101110101111101011101",
+          "101110100000101011101",
+          "101110100010101011101",
+          "100000101000001000001",
+          "111111101010101111111",
+          "000000000101000000000",
+          "101000110101100100101",
+          "100101000010000110011",
+          "100111101010010011111",
+          "011011011110110000000",
+          "100010111010000000010",
+          "000000001011010010011",
+          "111111101101101010101",
+          "100000100101010011001",
+          "101110100011110010010",
+          "101110100110011111000",
+          "101110101010010110111",
+          "100000100000100111000",
+          "111111101110011111001"
+        ],
+        [
+          "111111100101101111111",
+          "100000100101001000001",
+          "101110101100101011101",
+          "101110101100001011101",
+          "101110101001101011101",
+          "100000101100101000001",
+          "111111101010101111111",
+          "000000001001100000000",
+          "101111100110101111100",
+          "000001000110100010111",
+          "111100110001001000100",
+          "111111011010010100100",
+          "111001100001011011001",
+          "000000001111110110111",
+          "111111100110110001110",
+          "100000101001110111101",
+          "101110101000101001001",
+          "101110101010111011100",
+          "101110101001001101100",
+          "100000100100000011100",
+          "111111101101000100010"
+        ],
+        [
+          "111111101101101111111",
+          "100000101000101000001",
+          "101110100010001011101",
+          "101110101100001011101",
+          "101110100100001011101",
+          "100000100010001000001",
+          "111111101010101111111",
+          "000000001100000000000",
+          "101101110000001001011",
+          "000001000110100010111",
+          "010001111100100101001",
+          "001001001100100010010",
+          "111001100001011011001",
+          "000000001010011011010",
+          "111111101000000111000",
+          "100000101001110111101",
+          "101110100101000100100",
+          "101110101100001101010",
+          "101110101001001101100",
+          "100000100001101110001",
+          "111111101011110010100"
+        ],
+        [
+          "111111101001101111111",
+          "100000100001001000001",
+          "101110100111001011101",
+          "101110101111101011101",
+          "101110101101101011101",
+          "100000101000101000001",
+          "111111101010101111111",
+          "000000001010000000000",
+          "100010111010111111001",
+          "011101011010111110100",
+          "011111110010101011000",
+          "011100011001110111000",
+          "100101111101000111010",
+          "000000001011101010100",
+          "111111101101010010010",
+          "100000100010010100001",
+          "101110101100110101010",
+          "101110100110100111111",
+          "101110100010101110000",
+          "100000100111100000000",
+          "111111101001011000001"
+        ],
+        [
+          "111111100110101111111",
+          "100000101001001000001",
+          "101110101100101011101",
+          "101110101010001011101",
+          "101110100001101011101",
+          "100000100000101000001",
+          "111111101010101111111",
+          "000000001101100000000",
+          "100000101110111001110",
+          "001111001000101100110",
+          "111100110001001000100",
+          "111011011110010000100",
+          "100010111010000000010",
+          "000000001011110010111",
+          "111111100110110001110",
+          "100000100111111001100",
+          "101110100000101001001",
+          "101110100110111111100",
+          "101110100010010110111",
+          "100000100000000111100",
+          "111111101101000100010"
+        ],
+        [
+          "111111101110101111111",
+          "100000101001001000001",
+          "101110101110101011101",
+          "101110100010001011101",
+          "101110101000101011101",
+          "100000100011101000001",
+          "111111101010101111111",
+          "000000000101100000000",
+          "100111111100110010111",
+          "001111001000101100110",
+          "110101111000000001101",
+          "111000011101010011100",
+          "100010111010000000010",
+          "000000001011101010100",
+          "111111101100100011100",
+          "100000101111111001100",
+          "101110101001100000000",
+          "101110101101111100100",
+          "101110100010010110111",
+          "100000100000011111111",
+          "111111101111010110000"
+        ],
+        [
+          "111111100011101111111",
+          "100000100110101000001",
+          "101110100011101011101",
+          "101110100101101011101",
+          "101110100101101011101",
+          "100000101100001000001",
+          "111111101010101111111",
+          "000000000010000000000",
+          "100101101001110100000",
+          "110000010111010011001",
+          "100000101101010100111",
+          "000111000010101100011",
+          "110111101111010101000",
+          "000000001100010101011",
+          "111111100001110110110",
+          "100000101000000110011",
+          "101110100100110101010",
+          "101110101010000011011",
+          "101110100111000011101",
+          "100000100111100000000",
+          "111111101010000011010"
+        ]
+      ],
+      "hashes": [
+        "9a91ad07aaadf03bdd03075831872f52275802ecba2133f621177e14b8be6818",
+        "039c9ec976017417920366939b86077f34c307e75b2598545eca1af1cdfac670",
+        "b149502307c99569b01ea1b8eacd4cfa96c3dd37054f9e8332fffebc0ff323de",
+        "d30284db5d283e2f5e10ee1b9567cb7086995b228ff9afbda11344f6813205ef",
+        "7d88c95cd1d04764c57aa4ed5cbe121133fdbe57d5cf4b4bec80a0167a66142a",
+        "a237df0af0a989540b23a5658e0a4fa394d8cf6397eef73cc3f954abfa770111",
+        "776e8f7644b68174fc2d73dee992c50678963d02b0f6e4cf8b5bfecf75201c5c",
+        "f8412fc118f28c69ade26f99068a92dd0a607af6e09c1fac7371f6258455d8f2"
+      ]
+    }
+  ],
+  "layout": [
+    {
+      "file": "203/01-primary.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "ISO m1",
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "TK-Z m6",
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "D01",
+          "x": 284,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/02-other-scorers.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "NAY m6",
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "ZX m1",
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "SG/TG m7",
+          "mask": 7,
+          "vectorId": "D01",
+          "x": 284,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "D01",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "D01",
+          "x": 284,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 1,
+      "vectorId": "D01",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "D01",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "D01",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "D01",
+          "x": 284,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 2,
+      "vectorId": "D01",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "D01",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/01-primary.zpl",
+      "labelIndex": 1,
+      "vectorId": "S02",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "ISO m0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 22,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        },
+        {
+          "caption": "TK-Z m6",
+          "mask": 6,
+          "vectorId": "S02",
+          "x": 150,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "S02",
+          "x": 278,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "203/02-other-scorers.zpl",
+      "labelIndex": 1,
+      "vectorId": "S02",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "NAY m0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 22,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        },
+        {
+          "caption": "ZX m6",
+          "mask": 6,
+          "vectorId": "S02",
+          "x": 150,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        },
+        {
+          "caption": "SG/TG m0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 278,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 3,
+      "vectorId": "S02",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 22,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "S02",
+          "x": 150,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "S02",
+          "x": 278,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 4,
+      "vectorId": "S02",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "S02",
+          "x": 22,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "S02",
+          "x": 150,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "S02",
+          "x": 278,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 5,
+      "vectorId": "S02",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "S02",
+          "x": 22,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "S02",
+          "x": 150,
+          "y": 44,
+          "pixels": 99,
+          "scale": 3,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "203/01-primary.zpl",
+      "labelIndex": 2,
+      "vectorId": "P03",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "ISO m0",
+          "mask": 0,
+          "vectorId": "P03",
+          "x": 16,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        },
+        {
+          "caption": "TK-Z m4",
+          "mask": 4,
+          "vectorId": "P03",
+          "x": 144,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "P03",
+          "x": 272,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "203/02-other-scorers.zpl",
+      "labelIndex": 2,
+      "vectorId": "P03",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "NAY m5",
+          "mask": 5,
+          "vectorId": "P03",
+          "x": 16,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        },
+        {
+          "caption": "ZX m7",
+          "mask": 7,
+          "vectorId": "P03",
+          "x": 144,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        },
+        {
+          "caption": "SG/TG m4",
+          "mask": 4,
+          "vectorId": "P03",
+          "x": 272,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 6,
+      "vectorId": "P03",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "P03",
+          "x": 16,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "P03",
+          "x": 144,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "P03",
+          "x": 272,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 7,
+      "vectorId": "P03",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "P03",
+          "x": 16,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "P03",
+          "x": 144,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "P03",
+          "x": 272,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 8,
+      "vectorId": "P03",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "P03",
+          "x": 16,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "P03",
+          "x": 144,
+          "y": 44,
+          "pixels": 111,
+          "scale": 3,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "203/01-primary.zpl",
+      "labelIndex": 3,
+      "vectorId": "C04",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "ISO m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "TK-Z m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "C04",
+          "x": 284,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/02-other-scorers.zpl",
+      "labelIndex": 3,
+      "vectorId": "C04",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "NAY m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "ZX m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "SG/TG m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 284,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 9,
+      "vectorId": "C04",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "C04",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "C04",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 284,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 10,
+      "vectorId": "C04",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "C04",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "C04",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "C04",
+          "x": 284,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/03-all-masks.zpl",
+      "labelIndex": 11,
+      "vectorId": "C04",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "C04",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "C04",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/00-bq-mask-parameter.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "BQ e=0",
+          "native": true,
+          "mask": 0,
+          "vectorId": "D01",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=1",
+          "native": true,
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=2",
+          "native": true,
+          "mask": 2,
+          "vectorId": "D01",
+          "x": 284,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/00-bq-mask-parameter.zpl",
+      "labelIndex": 1,
+      "vectorId": "D01",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "BQ e=3",
+          "native": true,
+          "mask": 3,
+          "vectorId": "D01",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=4",
+          "native": true,
+          "mask": 4,
+          "vectorId": "D01",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=5",
+          "native": true,
+          "mask": 5,
+          "vectorId": "D01",
+          "x": 284,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "203/00-bq-mask-parameter.zpl",
+      "labelIndex": 2,
+      "vectorId": "D01",
+      "width": 400,
+      "height": 200,
+      "placements": [
+        {
+          "caption": "BQ e=6",
+          "native": true,
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 28,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=7",
+          "native": true,
+          "mask": 7,
+          "vectorId": "D01",
+          "x": 156,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "D01",
+          "x": 284,
+          "y": 44,
+          "pixels": 87,
+          "scale": 3,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/01-primary.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "ISO m1",
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "TK-Z m6",
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "D01",
+          "x": 419,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/02-other-scorers.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "NAY m6",
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "ZX m1",
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "SG/TG m7",
+          "mask": 7,
+          "vectorId": "D01",
+          "x": 419,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "D01",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "D01",
+          "x": 419,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 1,
+      "vectorId": "D01",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "D01",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "D01",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "D01",
+          "x": 419,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 2,
+      "vectorId": "D01",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "D01",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/01-primary.zpl",
+      "labelIndex": 1,
+      "vectorId": "S02",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "ISO m0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 25,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        },
+        {
+          "caption": "TK-Z m6",
+          "mask": 6,
+          "vectorId": "S02",
+          "x": 217,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "S02",
+          "x": 409,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "300/02-other-scorers.zpl",
+      "labelIndex": 1,
+      "vectorId": "S02",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "NAY m0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 25,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        },
+        {
+          "caption": "ZX m6",
+          "mask": 6,
+          "vectorId": "S02",
+          "x": 217,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        },
+        {
+          "caption": "SG/TG m0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 409,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 3,
+      "vectorId": "S02",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 25,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "S02",
+          "x": 217,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "S02",
+          "x": 409,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 4,
+      "vectorId": "S02",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "S02",
+          "x": 25,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "S02",
+          "x": 217,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "S02",
+          "x": 409,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 5,
+      "vectorId": "S02",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "S02",
+          "x": 25,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "S02",
+          "x": 217,
+          "y": 66,
+          "pixels": 165,
+          "scale": 5,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "300/01-primary.zpl",
+      "labelIndex": 2,
+      "vectorId": "P03",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "ISO m0",
+          "mask": 0,
+          "vectorId": "P03",
+          "x": 15,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        },
+        {
+          "caption": "TK-Z m4",
+          "mask": 4,
+          "vectorId": "P03",
+          "x": 207,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "P03",
+          "x": 399,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "300/02-other-scorers.zpl",
+      "labelIndex": 2,
+      "vectorId": "P03",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "NAY m5",
+          "mask": 5,
+          "vectorId": "P03",
+          "x": 15,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        },
+        {
+          "caption": "ZX m7",
+          "mask": 7,
+          "vectorId": "P03",
+          "x": 207,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        },
+        {
+          "caption": "SG/TG m4",
+          "mask": 4,
+          "vectorId": "P03",
+          "x": 399,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 6,
+      "vectorId": "P03",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "P03",
+          "x": 15,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "P03",
+          "x": 207,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "P03",
+          "x": 399,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 7,
+      "vectorId": "P03",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "P03",
+          "x": 15,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "P03",
+          "x": 207,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "P03",
+          "x": 399,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 8,
+      "vectorId": "P03",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "P03",
+          "x": 15,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "P03",
+          "x": 207,
+          "y": 66,
+          "pixels": 185,
+          "scale": 5,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "300/01-primary.zpl",
+      "labelIndex": 3,
+      "vectorId": "C04",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "ISO m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "TK-Z m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "C04",
+          "x": 419,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/02-other-scorers.zpl",
+      "labelIndex": 3,
+      "vectorId": "C04",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "NAY m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "ZX m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "SG/TG m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 419,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 9,
+      "vectorId": "C04",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "C04",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "C04",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 419,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 10,
+      "vectorId": "C04",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "C04",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "C04",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "C04",
+          "x": 419,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/03-all-masks.zpl",
+      "labelIndex": 11,
+      "vectorId": "C04",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "C04",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "C04",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/00-bq-mask-parameter.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "BQ e=0",
+          "native": true,
+          "mask": 0,
+          "vectorId": "D01",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=1",
+          "native": true,
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=2",
+          "native": true,
+          "mask": 2,
+          "vectorId": "D01",
+          "x": 419,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/00-bq-mask-parameter.zpl",
+      "labelIndex": 1,
+      "vectorId": "D01",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "BQ e=3",
+          "native": true,
+          "mask": 3,
+          "vectorId": "D01",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=4",
+          "native": true,
+          "mask": 4,
+          "vectorId": "D01",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=5",
+          "native": true,
+          "mask": 5,
+          "vectorId": "D01",
+          "x": 419,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "300/00-bq-mask-parameter.zpl",
+      "labelIndex": 2,
+      "vectorId": "D01",
+      "width": 600,
+      "height": 300,
+      "placements": [
+        {
+          "caption": "BQ e=6",
+          "native": true,
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 35,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=7",
+          "native": true,
+          "mask": 7,
+          "vectorId": "D01",
+          "x": 227,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "D01",
+          "x": 419,
+          "y": 66,
+          "pixels": 145,
+          "scale": 5,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/01-primary.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "ISO m1",
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "TK-Z m6",
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "D01",
+          "x": 853,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/02-other-scorers.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "NAY m6",
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "ZX m1",
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "SG/TG m7",
+          "mask": 7,
+          "vectorId": "D01",
+          "x": 853,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "D01",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "D01",
+          "x": 853,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 1,
+      "vectorId": "D01",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "D01",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "D01",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "D01",
+          "x": 853,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 2,
+      "vectorId": "D01",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "D01",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/01-primary.zpl",
+      "labelIndex": 1,
+      "vectorId": "S02",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "ISO m0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 67,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        },
+        {
+          "caption": "TK-Z m6",
+          "mask": 6,
+          "vectorId": "S02",
+          "x": 451,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "S02",
+          "x": 835,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "600/02-other-scorers.zpl",
+      "labelIndex": 1,
+      "vectorId": "S02",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "NAY m0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 67,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        },
+        {
+          "caption": "ZX m6",
+          "mask": 6,
+          "vectorId": "S02",
+          "x": 451,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        },
+        {
+          "caption": "SG/TG m0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 835,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 3,
+      "vectorId": "S02",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "S02",
+          "x": 67,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "S02",
+          "x": 451,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "S02",
+          "x": 835,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 4,
+      "vectorId": "S02",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "S02",
+          "x": 67,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "S02",
+          "x": 451,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "S02",
+          "x": 835,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 5,
+      "vectorId": "S02",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "S02",
+          "x": 67,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "S02",
+          "x": 451,
+          "y": 132,
+          "pixels": 297,
+          "scale": 9,
+          "size": 25
+        }
+      ]
+    },
+    {
+      "file": "600/01-primary.zpl",
+      "labelIndex": 2,
+      "vectorId": "P03",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "ISO m0",
+          "mask": 0,
+          "vectorId": "P03",
+          "x": 49,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        },
+        {
+          "caption": "TK-Z m4",
+          "mask": 4,
+          "vectorId": "P03",
+          "x": 433,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "P03",
+          "x": 817,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "600/02-other-scorers.zpl",
+      "labelIndex": 2,
+      "vectorId": "P03",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "NAY m5",
+          "mask": 5,
+          "vectorId": "P03",
+          "x": 49,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        },
+        {
+          "caption": "ZX m7",
+          "mask": 7,
+          "vectorId": "P03",
+          "x": 433,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        },
+        {
+          "caption": "SG/TG m4",
+          "mask": 4,
+          "vectorId": "P03",
+          "x": 817,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 6,
+      "vectorId": "P03",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "P03",
+          "x": 49,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "P03",
+          "x": 433,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "P03",
+          "x": 817,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 7,
+      "vectorId": "P03",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "P03",
+          "x": 49,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "P03",
+          "x": 433,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "P03",
+          "x": 817,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 8,
+      "vectorId": "P03",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "P03",
+          "x": 49,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "P03",
+          "x": 433,
+          "y": 132,
+          "pixels": 333,
+          "scale": 9,
+          "size": 29
+        }
+      ]
+    },
+    {
+      "file": "600/01-primary.zpl",
+      "labelIndex": 3,
+      "vectorId": "C04",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "ISO m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "TK-Z m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "C04",
+          "x": 853,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/02-other-scorers.zpl",
+      "labelIndex": 3,
+      "vectorId": "C04",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "NAY m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "ZX m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "SG/TG m2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 853,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 9,
+      "vectorId": "C04",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 0",
+          "mask": 0,
+          "vectorId": "C04",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "MASK 1",
+          "mask": 1,
+          "vectorId": "C04",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "MASK 2",
+          "mask": 2,
+          "vectorId": "C04",
+          "x": 853,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 10,
+      "vectorId": "C04",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 3",
+          "mask": 3,
+          "vectorId": "C04",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "MASK 4",
+          "mask": 4,
+          "vectorId": "C04",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "MASK 5",
+          "mask": 5,
+          "vectorId": "C04",
+          "x": 853,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/03-all-masks.zpl",
+      "labelIndex": 11,
+      "vectorId": "C04",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "MASK 6",
+          "mask": 6,
+          "vectorId": "C04",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "MASK 7",
+          "mask": 7,
+          "vectorId": "C04",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/00-bq-mask-parameter.zpl",
+      "labelIndex": 0,
+      "vectorId": "D01",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "BQ e=0",
+          "native": true,
+          "mask": 0,
+          "vectorId": "D01",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=1",
+          "native": true,
+          "mask": 1,
+          "vectorId": "D01",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=2",
+          "native": true,
+          "mask": 2,
+          "vectorId": "D01",
+          "x": 853,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/00-bq-mask-parameter.zpl",
+      "labelIndex": 1,
+      "vectorId": "D01",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "BQ e=3",
+          "native": true,
+          "mask": 3,
+          "vectorId": "D01",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=4",
+          "native": true,
+          "mask": 4,
+          "vectorId": "D01",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=5",
+          "native": true,
+          "mask": 5,
+          "vectorId": "D01",
+          "x": 853,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    },
+    {
+      "file": "600/00-bq-mask-parameter.zpl",
+      "labelIndex": 2,
+      "vectorId": "D01",
+      "width": 1200,
+      "height": 600,
+      "placements": [
+        {
+          "caption": "BQ e=6",
+          "native": true,
+          "mask": 6,
+          "vectorId": "D01",
+          "x": 85,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=7",
+          "native": true,
+          "mask": 7,
+          "vectorId": "D01",
+          "x": 469,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        },
+        {
+          "caption": "BQ e=omit",
+          "native": true,
+          "vectorId": "D01",
+          "x": 853,
+          "y": 132,
+          "pixels": 261,
+          "scale": 9,
+          "size": 21
+        }
+      ]
+    }
+  ]
+}
