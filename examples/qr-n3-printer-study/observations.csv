@@ -1,8 +1,5 @@
 printer,firmware,dpmm,media,speed,darkness,vector,native_parameter,observed_mask,decoded_payload,photo,notes
 ZD421,V93.21.17Z,12,,,,D01,omitted,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
-,,,,,,S02,omitted,,,,
-,,,,,,P03,omitted,,,,
-,,,,,,C04,omitted,,,,
 ZD421,V93.21.17Z,12,,,,D01,0,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
 ZD421,V93.21.17Z,12,,,,D01,1,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
 ZD421,V93.21.17Z,12,,,,D01,2,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
@@ -11,3 +8,30 @@ ZD421,V93.21.17Z,12,,,,D01,4,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
 ZD421,V93.21.17Z,12,,,,D01,5,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
 ZD421,V93.21.17Z,12,,,,D01,6,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
 ZD421,V93.21.17Z,12,,,,D01,7,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,S02,omitted,0,uth36pnfozuqu8py,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,S02,0,0,uth36pnfozuqu8py,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,S02,1,0,uth36pnfozuqu8py,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,S02,2,0,uth36pnfozuqu8py,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,S02,3,0,uth36pnfozuqu8py,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,S02,4,0,uth36pnfozuqu8py,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,S02,5,0,uth36pnfozuqu8py,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,S02,6,0,uth36pnfozuqu8py,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,S02,7,0,uth36pnfozuqu8py,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,P03,omitted,4,caewsu3k1lhg9gqi585swmw2,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,P03,0,4,caewsu3k1lhg9gqi585swmw2,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,P03,1,4,caewsu3k1lhg9gqi585swmw2,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,P03,2,4,caewsu3k1lhg9gqi585swmw2,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,P03,3,4,caewsu3k1lhg9gqi585swmw2,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,P03,4,4,caewsu3k1lhg9gqi585swmw2,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,P03,5,4,caewsu3k1lhg9gqi585swmw2,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,P03,6,4,caewsu3k1lhg9gqi585swmw2,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,P03,7,4,caewsu3k1lhg9gqi585swmw2,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,C04,omitted,2,x01uc6lrun,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,C04,0,2,x01uc6lrun,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,C04,1,2,x01uc6lrun,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,C04,2,2,x01uc6lrun,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,C04,3,2,x01uc6lrun,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,C04,4,2,x01uc6lrun,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,C04,5,2,x01uc6lrun,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,C04,6,2,x01uc6lrun,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,C04,7,2,x01uc6lrun,,Firmware bitmap via RAM. No paper output.

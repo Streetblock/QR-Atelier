@@ -2,9 +2,9 @@
 
 Vier reproduzierbare QR-Testvektoren vergleichen die dokumentierte ISO-Auslegung
 des QR Ateliers mit dem ZPL-Bewerter des Toolkits. **Drei Symbole passen pro
-Etikett**, einschließlich vier Modulen Ruhezone je Seite. Für D01 liegt eine
-[Firmware-Messung am ZD421](#d01-messung-am-zd421) vor. Der Papiervergleich und
-die Gerätemessungen für S02, P03 und C04 stehen aus.
+Etikett**, einschließlich vier Modulen Ruhezone je Seite. Für alle vier Fälle
+liegen [Firmware-Messungen am ZD421](#firmware-bitmap-ohne-ausdruck) vor.
+Der Papiervergleich steht aus.
 
 ## Druckdateien
 
@@ -141,7 +141,7 @@ Firmware-Bitmap zur Auswertung. Die Druckzähler und relevanten
 Druckereinstellungen werden davor und danach verglichen. Anschließend wird
 die eindeutig benannte temporäre Grafik entfernt.
 
-Bei D01 bleiben Payload, Byte-Modus, Fehlerkorrekturstufe und Modulgröße
+Je Vektor bleiben Payload, Byte-Modus, Fehlerkorrekturstufe und Modulgröße
 gleich. Zuerst wird der Maskenparameter weggelassen. Danach werden die Werte
 0–7 einzeln geprüft. Die Auswertung liest beide Kopien der QR-Formatbits,
 bestätigt den Payload und vergleicht die Matrix mit den festen Kandidaten.
@@ -174,6 +174,36 @@ Seite. Etikettenzähler und Drucklängenzähler blieben bei beiden Durchläufen
 unverändert. Alle temporären RAM-Grafiken wurden entfernt. Die Messdaten und
 die ausgelesene Matrix stehen in [zd421-d01-bitmap.json](zd421-d01-bitmap.json).
 
+### S02, P03 und C04 am ZD421
+
+Die 27 weiteren Bitmaps vom 25. November 2026 stammen vom selben ZD421 mit
+Firmware `V93.21.17Z`. Für jeden Vektor ergaben der weggelassene Maskenparameter
+und alle expliziten Werte 0–7 jeweils dieselbe Matrix. Beide Formatkopien
+bestätigten die erwartete Fehlerkorrekturstufe und ZXing las den exakten Inhalt.
+
+| Vektor | ZD421 bei allen neun Abrufen | QR-Atelier | Toolkit-Standard | Toolkit-Zebra-Profil (P0) |
+| --- | ---: | ---: | ---: | ---: |
+| S02 | **0** | 0 | 6 | 0 |
+| P03 | **4** | 0 | 4 | 4 |
+| C04 | **2** | 2 | 2 | 2 |
+
+Die Vergleichsspalten wurden mit QR-Atelier `8dcccb1` und Toolkit `73ce6e2`
+erneut berechnet. Beide Toolkit-Profile und QR-Atelier reproduzierten alle
+32 fest vorgegebenen Kandidaten der Studie modulgenau.
+
+Jeder Abruf stimmte modulgenau mit der gespeicherten Referenz seiner
+beobachteten Maske überein. Bei S02 unterschieden sich 252 der 625 Module von
+der Vorhersage des Toolkit-Standards. Bei P03 unterschieden sich 297 der 841
+Module von der QR-Atelier-Vorhersage. C04 bestätigte alle drei Vorhersagen.
+Das experimentelle Toolkit-Profil P0 traf hier alle drei Masken. Bei D01 lag
+es daneben. Die Auswahlregel der Firmware bleibt offen.
+
+Zwei Druckpunkte je Modul an `^FO20,0` ließen bei allen Vektoren mindestens
+vier freie Module auf jeder Seite. Etiketten- und Drucklängenzähler blieben
+unverändert. Alle temporären RAM-Grafiken wurden entfernt. Die Daten pro Abruf
+und die vollständigen Matrizen stehen in
+[zd421-s02-p03-c04-bitmaps.json](zd421-s02-p03-c04-bitmaps.json).
+
 ## Druckprotokoll
 
 1. Druckermodell, Firmware, Punkte/mm, Material, Geschwindigkeit und Heizleistung
@@ -187,7 +217,7 @@ die ausgelesene Matrix stehen in [zd421-d01-bitmap.json](zd421-d01-bitmap.json).
    vergleichen. Für eine spätere maschinelle Auswertung ein scharfes, gerades
    Foto des gesamten Etiketts oder die ausgelesenen Formatbits aufbewahren.
 5. Beobachtete native Maske und Parameterverhalten in [observations.csv](observations.csv)
-   eintragen. Die D01-Einträge von `ZD421` stammen aus der Bitmap-Messung.
+   eintragen. Die vorhandenen ZD421-Einträge stammen aus den Bitmap-Messungen.
 
 Ein Match zur Toolkit-ZPL-Maske ist ein Befund für genau diese Eingabe und
 Firmware, keine allgemeine Bestätigung aller N3-Fälle oder ISO-Konformität.
