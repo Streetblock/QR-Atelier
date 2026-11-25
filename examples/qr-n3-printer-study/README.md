@@ -2,8 +2,9 @@
 
 Vier reproduzierbare QR-Testvektoren vergleichen die dokumentierte ISO-Auslegung
 des QR Ateliers mit dem ZPL-Bewerter des Toolkits. **Drei Symbole passen pro
-Etikett**, einschließlich vier Modulen Ruhezone je Seite. Es wurde noch nichts
-an einen Drucker gesendet. Die Ergebnisse des realen Druckers sind offen.
+Etikett**, einschließlich vier Modulen Ruhezone je Seite. Für D01 liegt eine
+[Firmware-Messung am ZD421](#d01-messung-am-zd421) vor. Der Papiervergleich und
+die Gerätemessungen für S02, P03 und C04 stehen aus.
 
 ## Druckdateien
 
@@ -152,6 +153,27 @@ Papier- und Scanqualität werden mit realen Ausdrucken geprüft.
 [Zebra `^IS`](https://docs.zebra.com/us/en/printers/software/zpl-pg/c-zpl-zpl-commands/r-zpl-is.html) ·
 [Zebra `^HY`](https://docs.zebra.com/us/en/printers/software/zpl-pg/c-zpl-zpl-commands/r-zpl-hy.html)
 
+### D01-Messung am ZD421
+
+Am 25. November 2026 lieferte der ZD421 mit 300 dpi (12 Punkte/mm) und Firmware
+`V93.21.17Z` für D01 in **allen neun Abrufen Maske 4**. Das galt für den
+weggelassenen Parameter ebenso wie für jeden expliziten Wert von 0 bis 7.
+Beide Formatkopien enthielten `0x662f` (ECC L, Maske 4). ZXing dekodierte
+`2nnnxj`. Alle 441 Module stimmten mit der festen Referenz für Maske 4 überein.
+
+Die Messung bestätigt für diese Eingabe, dass der fünfte `^BQ`-Parameter
+die ausgegebene Maske auf diesem Gerät nicht veränderte. Der beobachtete
+Wert 4 weicht von der dokumentierten Vorgabe 7 und von den Vorhersagen für
+QR-Atelier (1), Toolkit-Standard (6) und Toolkit-P0 (7) ab. Die Auswahlregel
+der Firmware bleibt offen.
+
+Das 158 Punkte hohe Medium schnitt den ersten Abruf mit fünf Punkten je Modul
+unten ab. Die vollständigen Abrufe nutzten drei Punkte je Modul an `^FO20,0`.
+Das Symbol hatte 63 × 63 Punkte und mindestens vier freie Module auf jeder
+Seite. Etikettenzähler und Drucklängenzähler blieben bei beiden Durchläufen
+unverändert. Alle temporären RAM-Grafiken wurden entfernt. Die Messdaten und
+die ausgelesene Matrix stehen in [zd421-d01-bitmap.json](zd421-d01-bitmap.json).
+
 ## Druckprotokoll
 
 1. Druckermodell, Firmware, Punkte/mm, Material, Geschwindigkeit und Heizleistung
@@ -165,7 +187,7 @@ Papier- und Scanqualität werden mit realen Ausdrucken geprüft.
    vergleichen. Für eine spätere maschinelle Auswertung ein scharfes, gerades
    Foto des gesamten Etiketts oder die ausgelesenen Formatbits aufbewahren.
 5. Beobachtete native Maske und Parameterverhalten in [observations.csv](observations.csv)
-   eintragen. Die Datei enthält bewusst noch keine Messergebnisse.
+   eintragen. Die D01-Einträge von `ZD421` stammen aus der Bitmap-Messung.
 
 Ein Match zur Toolkit-ZPL-Maske ist ein Befund für genau diese Eingabe und
 Firmware, keine allgemeine Bestätigung aller N3-Fälle oder ISO-Konformität.

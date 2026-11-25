@@ -1,13 +1,13 @@
 printer,firmware,dpmm,media,speed,darkness,vector,native_parameter,observed_mask,decoded_payload,photo,notes
-,,,,,,D01,omitted,,,,
+ZD421,V93.21.17Z,12,,,,D01,omitted,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
 ,,,,,,S02,omitted,,,,
 ,,,,,,P03,omitted,,,,
 ,,,,,,C04,omitted,,,,
-,,,,,,D01,0,,,,
-,,,,,,D01,1,,,,
-,,,,,,D01,2,,,,
-,,,,,,D01,3,,,,
-,,,,,,D01,4,,,,
-,,,,,,D01,5,,,,
-,,,,,,D01,6,,,,
-,,,,,,D01,7,,,,
+ZD421,V93.21.17Z,12,,,,D01,0,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,D01,1,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,D01,2,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,D01,3,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,D01,4,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,D01,5,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,D01,6,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
+ZD421,V93.21.17Z,12,,,,D01,7,4,2nnnxj,,Firmware bitmap via RAM. No paper output.
