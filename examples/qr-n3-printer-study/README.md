@@ -223,6 +223,58 @@ unverändert. Alle temporären RAM-Grafiken wurden entfernt. Die Daten pro Abruf
 und die vollständigen Matrizen stehen in
 [zd421-s02-p03-c04-bitmaps.json](zd421-s02-p03-c04-bitmaps.json).
 
+### Weitere Testvektoren und P0-Gegenbeispiel
+
+Am 26. November 2026 wurden acht weitere QR-Codes auf demselben ZD421 mit
+Firmware `V93.21.17Z` als RAM-Bitmap abgerufen. Die Matrix und beide QR-
+Formatkopien bestätigten jeweils die beobachtete Maske. ZXing las alle
+Nutzdaten korrekt. Die Druckzähler blieben unverändert.
+
+| Nutzdaten | ECC / Version | ZD421 | Toolkit P0 |
+| --- | --- | ---: | ---: |
+| `2ndnxj` | L / 1 | 7 | 7 |
+| `2ngnxj` | L / 1 | 7 | 7 |
+| `2nnnxi` | L / 1 | 7 | 7 |
+| `namqgussfux61kpc` | Q / 2 | 7 | 7 |
+| `5i47vg` | L / 1 | **1** | **0** |
+| `8wiy0m` | L / 1 | 0 | 0 |
+| `2zy396` | L / 1 | 7 | 7 |
+| `2nnnxj` | H / 1 | 5 | 5 |
+
+Bei D01 kostet Maske 4 im P0-Bewerter 1069 Punkte und Maske 7 kostet 1040.
+Maske 4 spart bei N1 und N2 zusammen 11 Punkte. Ein zusätzlicher N3-Treffer
+in Spalte 19 ab Zeile 6 (nullbasiert) kostet 40 Punkte. Bei `5i47vg` haben
+beide Masken 18 N3-Treffer und keine N4-Punkte. P0 bewertet die beobachtete
+Maske 1 mit 1043 Punkten und seine eigene Maske 0 mit 1036. Die Differenz
+entsteht bei N1 (+10) und N2 (−3). Damit kann ein einziges globales
+N3-Gewicht beide Gegenbeispiele bei unveränderten P0-Ereignissen nicht
+erklären.
+
+`namqgussfux61kpc` widerlegt zwei Modelle, die zu den ursprünglichen vier
+Fällen passten. Mit weißen Formatbits und festem N3-Suchfenster ergab die
+Nachrechnung Maske 3, mit festen Formatbits für Maske 0 ergab sie Maske 4.
+Der ZD421 lieferte Maske 7.
+
+[Bitmaps als Modulmatrizen und P0-Werte](zd421-d01-mask-probes.json)
+
+#### Nachrechnung mit Vorauswahl nach 2×2-Blöcken
+
+Eine statische Untersuchung der GX430t-Firmware `V56.17.17Z` ergab eine
+Vorauswahl nach der Zahl einfarbiger, überlappender 2×2-Blöcke. Nur die drei
+Masken mit den wenigsten Blöcken werden vollständig bewertet. Bei gleicher
+Blockzahl erhält die kleinere Maskennummer Vorrang.
+
+Eine Nachrechnung mit dieser Vorauswahl und den vorhandenen P0-Punktwerten
+trifft alle zwölf am ZD421 gemessenen Kombinationen aus Inhalt und ECC.
+Für D01 bleiben die Masken 2, 4 und 5 mit 28, 42 und 43 Blöcken übrig.
+Maske 7 hat 44 Blöcke, und Maske 4 gewinnt unter den drei Finalisten.
+Für `5i47vg` bleiben die Masken 2, 3 und 1 mit 24, 40 und 41 Blöcken übrig.
+Maske 1 hat bei 41 Blöcken Vorrang vor Maske 4. Maske 0 hat 42 Blöcke.
+Von den drei Finalisten gewinnt Maske 1.
+
+Die Übereinstimmung stützt die Vorauswahl als Erklärung für die gemessenen
+ZD421-Fälle. Ob `V93.21.17Z` dieselbe Routine nutzt, bleibt zu prüfen.
+
 ## Druckprotokoll
 
 1. Druckermodell, Firmware, Punkte/mm, Material, Geschwindigkeit und Heizleistung

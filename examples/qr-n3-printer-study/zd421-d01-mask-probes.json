@@ -1,0 +1,607 @@
+{
+  "capturedOn": "2026-11-26",
+  "studyCommit": "7faad2845a71d0ad451571703982b1a0503a060b",
+  "printerModel": "ZD421",
+  "firmware": "V93.21.17Z",
+  "reportedHeadDpi": 300,
+  "dotsPerMm": 12,
+  "decoder": "ZXing",
+  "qrModel": 2,
+  "moduleSizeDots": 2,
+  "fieldOriginDots": [
+    20,
+    0
+  ],
+  "reportedMediaSizeDots": [
+    602,
+    158
+  ],
+  "labelCountUnchanged": true,
+  "printLengthUnchanged": true,
+  "temporaryRamGraphicsRemoved": true,
+  "toolkitP0Commit": "73ce6e2696d354ad24b51c0818b6e8dcd75bed34",
+  "toolkitP0Source": "src/barcodes/qr-zebra-p0-mask.js",
+  "counterexample": "FORMAT-L",
+  "cases": [
+    {
+      "id": "NEIGHBOR-D",
+      "payload": "2ndnxj",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "LM,B00062ndnxj",
+      "requestedMask": null,
+      "observedMask": 7,
+      "formatWordsHex": [
+        "6976",
+        "6976"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        81,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        559,
+        35
+      ],
+      "decodedPayload": "2ndnxj",
+      "byteSegmentsHex": [
+        "326e646e786a"
+      ],
+      "decodedDataCodewordsHex": "406326e646e786a0ec11ec11ec11ec11ec11ec",
+      "matrixSha256": "6662e1ce9a4ad5248e77359f145def14237aa93d1ccb99ca59d75040c00fd710",
+      "matrix": [
+        "111111100010101111111",
+        "100000101010101000001",
+        "101110101011001011101",
+        "101110100000101011101",
+        "101110101111101011101",
+        "100000101110001000001",
+        "111111101010101111111",
+        "000000001000000000000",
+        "110100110011101110110",
+        "010000000001010100111",
+        "000101111001001110001",
+        "000100010110111111010",
+        "100101111001011100001",
+        "000000001000011110011",
+        "111111101111101011100",
+        "100000100010001110011",
+        "101110100110111010001",
+        "101110101010011111111",
+        "101110100011011110001",
+        "100000101011100110000",
+        "111111101010010000010"
+      ],
+      "responseSha256": "352b7a29c9a03a6b93058fe048ac45ac9484ce2772a66acab417e180e34e248f",
+      "wireSha256": "276a1dfbb82216c786937f79fa7eb8553596de7cb2a45e42d1b6e9f22f2d3b5a",
+      "toolkitP0Mask": 7,
+      "toolkitP0ScoresByMask": [
+        1057,
+        1053,
+        1064,
+        1095,
+        1076,
+        1119,
+        1076,
+        1046
+      ]
+    },
+    {
+      "id": "NEIGHBOR-G",
+      "payload": "2ngnxj",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "LM,B00062ngnxj",
+      "requestedMask": null,
+      "observedMask": 7,
+      "formatWordsHex": [
+        "6976",
+        "6976"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        81,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        559,
+        35
+      ],
+      "decodedPayload": "2ngnxj",
+      "byteSegmentsHex": [
+        "326e676e786a"
+      ],
+      "decodedDataCodewordsHex": "406326e676e786a0ec11ec11ec11ec11ec11ec",
+      "matrixSha256": "6ba7acee7efa6002fbdc9839c7406743a2632e0b109cd93d46721f57ca4aedc6",
+      "matrix": [
+        "111111100010101111111",
+        "100000101010101000001",
+        "101110101011001011101",
+        "101110100000101011101",
+        "101110101111101011101",
+        "100000101110001000001",
+        "111111101010101111111",
+        "000000001000000000000",
+        "110100110011101110110",
+        "010000011001010100111",
+        "001001110111001110001",
+        "101011011100111111010",
+        "010011101101011100001",
+        "000000001010011110011",
+        "111111101101101010000",
+        "100000100010001110011",
+        "101110100100111010001",
+        "101110101110011111111",
+        "101110100101011110001",
+        "100000101111100110000",
+        "111111101000010000010"
+      ],
+      "responseSha256": "f11e08f1ffcdff8e07044ab71d549072bcb0e18ced766f602016b1a5b2b352fd",
+      "wireSha256": "52435d18de49fb24da6910e3712cde7c5b71be1640bd24ff98206eff4a1f6566",
+      "toolkitP0Mask": 7,
+      "toolkitP0ScoresByMask": [
+        1067,
+        1073,
+        1103,
+        1088,
+        1098,
+        1079,
+        1078,
+        1030
+      ]
+    },
+    {
+      "id": "NEIGHBOR-I",
+      "payload": "2nnnxi",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "LM,B00062nnnxi",
+      "requestedMask": null,
+      "observedMask": 7,
+      "formatWordsHex": [
+        "6976",
+        "6976"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        81,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        559,
+        35
+      ],
+      "decodedPayload": "2nnnxi",
+      "byteSegmentsHex": [
+        "326e6e6e7869"
+      ],
+      "decodedDataCodewordsHex": "406326e6e6e78690ec11ec11ec11ec11ec11ec",
+      "matrixSha256": "389fc71c1108afd787b891f1ddc06d89854b5fc714c7581d460046ddaf0cf8ff",
+      "matrix": [
+        "111111100010101111111",
+        "100000101010101000001",
+        "101110101011001011101",
+        "101110100000101011101",
+        "101110101111101011101",
+        "100000101110001000001",
+        "111111101010101111111",
+        "000000001000000000000",
+        "110100110011101110110",
+        "110110000101010100111",
+        "001100110101001110001",
+        "011001000100111111010",
+        "101100111001011100001",
+        "000000001110011110111",
+        "111111101101101011000",
+        "100000100010001000011",
+        "101110100010111010001",
+        "101110101110011111111",
+        "101110100001011110001",
+        "100000101111100110000",
+        "111111101110010000010"
+      ],
+      "responseSha256": "afd1a92055e863d6e2b54cd8e167dc3c5fc9703eb543fa89071b0b383e5f97da",
+      "wireSha256": "494c588ba78dfd17bc63f8b46f057a4cf8a6e04b124458954822e4b200c370be",
+      "toolkitP0Mask": 7,
+      "toolkitP0ScoresByMask": [
+        1023,
+        1029,
+        1082,
+        1081,
+        1124,
+        1073,
+        1032,
+        1004
+      ]
+    },
+    {
+      "id": "FORMAT-Q",
+      "payload": "namqgussfux61kpc",
+      "errorCorrection": "Q",
+      "version": 2,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "QM,B0016namqgussfux61kpc",
+      "requestedMask": null,
+      "observedMask": 7,
+      "formatWordsHex": [
+        "2bed",
+        "2bed"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        89,
+        131
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        551,
+        27
+      ],
+      "decodedPayload": "namqgussfux61kpc",
+      "byteSegmentsHex": [
+        "6e616d716775737366757836316b7063"
+      ],
+      "decodedDataCodewordsHex": "4106e616d716775737366757836316b70630ec11ec11",
+      "matrixSha256": "dfef746acc48311d324e28cf0bdcf8c9729ad12dcaa367255ddf3fe17a5a31da",
+      "matrix": [
+        "1111111010101010001111111",
+        "1000001000001000101000001",
+        "1011101010100011001011101",
+        "1011101010100100001011101",
+        "1011101001100000001011101",
+        "1000001011011001101000001",
+        "1111111010101010101111111",
+        "0000000010110100100000000",
+        "0101011111101010111101101",
+        "1110110011000100101000111",
+        "1111101111001110011101011",
+        "1010000011110101010010010",
+        "1001101011111010011001001",
+        "0011010010001010001101111",
+        "1010111111110010010111101",
+        "0110010100000110010100011",
+        "1111111110110111111110110",
+        "0000000010111011100010001",
+        "1111111011011001101011011",
+        "1000001010111100100010110",
+        "1011101001101010111111011",
+        "1011101010000010010010000",
+        "1011101001101010010011001",
+        "1000001010101010110000000",
+        "1111111001110110100011011"
+      ],
+      "responseSha256": "0dad38d52269ccb519a83c87ac37fb313a11a5ae2b74afbea3e9f8d2a0d9ee71",
+      "wireSha256": "178f95ffff5be59d5a0afb87bc01b0c2b1fae730799a942d56eef17ee05bdc0e",
+      "toolkitP0Mask": 7,
+      "toolkitP0ScoresByMask": [
+        1166,
+        1200,
+        1176,
+        1208,
+        1217,
+        1234,
+        1262,
+        1094
+      ]
+    },
+    {
+      "id": "FORMAT-L",
+      "payload": "5i47vg",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "LM,B00065i47vg",
+      "requestedMask": null,
+      "observedMask": 1,
+      "formatWordsHex": [
+        "72f3",
+        "72f3"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        81,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        559,
+        35
+      ],
+      "decodedPayload": "5i47vg",
+      "byteSegmentsHex": [
+        "356934377667"
+      ],
+      "decodedDataCodewordsHex": "4063569343776670ec11ec11ec11ec11ec11ec",
+      "matrixSha256": "09c9d189b8bfe9328ad9167be09056c5b5b4ceafdc4b6eed0f135363ba4434c3",
+      "matrix": [
+        "111111101111101111111",
+        "100000101101101000001",
+        "101110100111001011101",
+        "101110100101101011101",
+        "101110101000101011101",
+        "100000101010001000001",
+        "111111101010101111111",
+        "000000001111000000000",
+        "111001101111111110011",
+        "001011010010000000101",
+        "111010110000001000101",
+        "100011011110100010010",
+        "110101101100001000001",
+        "000000001111011001011",
+        "111111100001110111111",
+        "100000101101011110001",
+        "101110100101111010001",
+        "101110100100000011000",
+        "101110101110001010011",
+        "100000101100100011000",
+        "111111101110001010001"
+      ],
+      "responseSha256": "1f2f25e943e9aa3c42fa786b49c31aa7cf18d6f78f771efaaec8512985d8eaeb",
+      "wireSha256": "74048693af07d7d598f82f27671ceac14021d9f710bca67b0aa584a8694244cf",
+      "toolkitP0Mask": 0,
+      "toolkitP0ScoresByMask": [
+        1036,
+        1043,
+        1047,
+        1056,
+        1040,
+        1072,
+        1087,
+        1065
+      ]
+    },
+    {
+      "id": "DENSITY-A",
+      "payload": "8wiy0m",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "LM,B00068wiy0m",
+      "requestedMask": null,
+      "observedMask": 0,
+      "formatWordsHex": [
+        "77c4",
+        "77c4"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        81,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        559,
+        35
+      ],
+      "decodedPayload": "8wiy0m",
+      "byteSegmentsHex": [
+        "38776979306d"
+      ],
+      "decodedDataCodewordsHex": "40638776979306d0ec11ec11ec11ec11ec11ec",
+      "matrixSha256": "51ff2f1f515fe4b4931f38dfe5dd4c5813a52535d4087fbd61246c7e8b44e253",
+      "matrix": [
+        "111111100010101111111",
+        "100000100000101000001",
+        "101110101010001011101",
+        "101110100000101011101",
+        "101110100101101011101",
+        "100000100111001000001",
+        "111111101010101111111",
+        "000000001010000000000",
+        "111011111010111000100",
+        "100111011111010100001",
+        "101100101001011101011",
+        "100110010111110110010",
+        "011101100011011100000",
+        "000000001010001101101",
+        "111111101110100011101",
+        "100000101100001000011",
+        "101110101000101101011",
+        "101110100011010111110",
+        "101110101101011111101",
+        "100000101101110101010",
+        "111111101111011011011"
+      ],
+      "responseSha256": "6c749efc44b7adf3b2419b34fe09acc9d9b2b680702dbf90593ba1d095dca9b4",
+      "wireSha256": "06fbb94b33e15c9b9284dc0e909f8c23d23c1ba9fede165ded9ca26f44da38d5",
+      "toolkitP0Mask": 0,
+      "toolkitP0ScoresByMask": [
+        997,
+        1048,
+        1021,
+        1046,
+        1080,
+        1069,
+        1082,
+        1053
+      ]
+    },
+    {
+      "id": "DENSITY-B",
+      "payload": "2zy396",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "LM,B00062zy396",
+      "requestedMask": null,
+      "observedMask": 7,
+      "formatWordsHex": [
+        "6976",
+        "6976"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        81,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        559,
+        35
+      ],
+      "decodedPayload": "2zy396",
+      "byteSegmentsHex": [
+        "327a79333936"
+      ],
+      "decodedDataCodewordsHex": "406327a793339360ec11ec11ec11ec11ec11ec",
+      "matrixSha256": "07820a9174f183a994b081c2725045e610c7904b0c89521c4cf15df67b3ade81",
+      "matrix": [
+        "111111100010101111111",
+        "100000101010101000001",
+        "101110101011001011101",
+        "101110100000101011101",
+        "101110101111101011101",
+        "100000101110001000001",
+        "111111101010101111111",
+        "000000001000000000000",
+        "110100110011101110110",
+        "001011010111010101101",
+        "110110101101001110001",
+        "101010001110111111010",
+        "001011101111011101001",
+        "000000001010011111111",
+        "111111101111101010100",
+        "100000100110001111011",
+        "101110100100111101001",
+        "101110101010011010011",
+        "101110100011011011001",
+        "100000101111100011000",
+        "111111101110010000010"
+      ],
+      "responseSha256": "c2a5714566550275fdd5198045565a54bed4f87ef924b6dc28628e01537a50ac",
+      "wireSha256": "5eef41298a8279d1d76dd70eb067f419bd606397c0a662c7515abfce1449b080",
+      "toolkitP0Mask": 7,
+      "toolkitP0ScoresByMask": [
+        1057,
+        1069,
+        1063,
+        1086,
+        1095,
+        1073,
+        1043,
+        1017
+      ]
+    },
+    {
+      "id": "D01-H",
+      "payload": "2nnnxj",
+      "errorCorrection": "H",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "HM,B00062nnnxj",
+      "requestedMask": null,
+      "observedMask": 5,
+      "formatWordsHex": [
+        "0255",
+        "0255"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        81,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        559,
+        35
+      ],
+      "decodedPayload": "2nnnxj",
+      "byteSegmentsHex": [
+        "326e6e6e786a"
+      ],
+      "decodedDataCodewordsHex": "406326e6e6e786a0ec",
+      "matrixSha256": "6b63abd14396cb0c0378e28dfc7d835c092aae7e315c0b97469f4b01e84d950c",
+      "matrix": [
+        "111111101100101111111",
+        "100000100100001000001",
+        "101110101010001011101",
+        "101110100010001011101",
+        "101110101111101011101",
+        "100000100111101000001",
+        "111111101010101111111",
+        "000000001000000000000",
+        "000001100011001010101",
+        "011111011010001011000",
+        "110001101010101010010",
+        "011101000101010011101",
+        "010101110011110001011",
+        "000000001001000001011",
+        "111111100011111100000",
+        "100000101011100001100",
+        "101110100010000110010",
+        "101110100001110011000",
+        "101110100101111011011",
+        "100000100110011001100",
+        "111111100110101111010"
+      ],
+      "responseSha256": "50da55294b347d83a59d9cd8074dbc323861158d9848b39648eb1827bb77f4c2",
+      "wireSha256": "28820db62f7dc72fb2ba13c997214e8faccc3100ab75492ce9aa2764dff462bd",
+      "toolkitP0Mask": 5,
+      "toolkitP0ScoresByMask": [
+        1129,
+        1154,
+        1124,
+        1117,
+        1077,
+        1035,
+        1042,
+        1172
+      ]
+    }
+  ]
+}
