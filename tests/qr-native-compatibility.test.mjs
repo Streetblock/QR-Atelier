@@ -34,3 +34,51 @@ test('an explicit mask bypasses the scorer, and invalid scoring contracts fail c
     assert.throws(() => new QrCore('ABC', options).generate());
   }
 });
+
+test('optional mask selection evaluates eight complete candidates and only scores the ranked finalists', () => {
+  const options = { minVersion: 7, maxVersion: 7, errorCorrectionLevel: 'Q', includeMaskMetadata: true };
+  const matrices = Array.from({ length: 8 }, (_, mask) => new QrCore('T8', { ...options, mask }).generate().modules);
+  const preliminary = [4, 9, 4, 2, 8, 8, 1, 5];
+  const scored = [];
+  let calls = 0;
+  const result = new QrCore('T8', { ...options, maskSelection: {
+    finalistCount: 3,
+    preliminaryScore(candidate) {
+      assert.deepEqual(candidate, matrices[calls]);
+      return preliminary[calls++];
+    },
+    finalScore(candidate, score) {
+      const mask = [6, 3, 0][scored.length];
+      assert.deepEqual(candidate, matrices[mask]);
+      assert.equal(score, preliminary[mask]);
+      scored.push(mask);
+      return mask === 3 ? 10 : 0;
+    },
+  } }).generate();
+  assert.equal(calls, 8);
+  assert.deepEqual(scored, [6, 3, 0]);
+  assert.equal(result.mask, 6);
+  assert.deepEqual(result.modules, matrices[6]);
+});
+
+test('two-stage selection bypasses explicit masks and validates its contract', () => {
+  const fail = () => { throw new Error('Explicit masks must bypass both scorers.'); };
+  const selector = { finalistCount: 3, preliminaryScore: () => 0, finalScore: () => 0 };
+  for (let mask = 0; mask < 8; mask += 1) {
+    const baseline = new QrCore('ABC', { mask }).generate();
+    const result = new QrCore('ABC', { mask, maskSelection: {
+      finalistCount: 3, preliminaryScore: fail, finalScore: fail,
+    } }).generate();
+    assert.deepEqual(result, baseline);
+  }
+  for (const maskSelection of [null, { ...selector, finalistCount: 0 }, { ...selector, finalistCount: 9 },
+    { ...selector, preliminaryScore: 42 }, { ...selector, finalScore: 42 }]) {
+    assert.throws(() => new QrCore('ABC', { maskSelection }).generate(), TypeError);
+  }
+  for (const score of [NaN, Infinity, -1]) {
+    for (const stage of ['preliminaryScore', 'finalScore']) {
+      const maskSelection = { ...selector, [stage]: () => score };
+      assert.throws(() => new QrCore('ABC', { maskSelection }).generate(), RangeError);
+    }
+  }
+});

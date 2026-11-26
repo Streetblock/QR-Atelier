@@ -251,12 +251,21 @@ export class QrCore {
     )
     const scoringRemainder = this.options.maskScoringRemainder ?? 'light'
     const evaluator = this.options.maskPenaltyEvaluator ?? calculateQrMaskPenalty
+    const maskSelection = this.options.maskSelection
     if (!['light', 'legacy-null'].includes(scoringRemainder)) throw new TypeError('Unsupported QR scoring remainder policy.')
     if (typeof evaluator !== 'function') throw new TypeError('QR mask penalty evaluator must be callable.')
+    if (maskSelection !== undefined && (
+      !maskSelection || typeof maskSelection !== 'object' || !Number.isInteger(maskSelection.finalistCount) ||
+      maskSelection.finalistCount < 1 || maskSelection.finalistCount > 8 ||
+      typeof maskSelection.preliminaryScore !== 'function' || typeof maskSelection.finalScore !== 'function'
+    )) {
+      throw new TypeError('QR mask selection requires one to eight finalists and callable scorers.')
+    }
     if (this.options.includeMaskMetadata !== undefined && typeof this.options.includeMaskMetadata !== 'boolean') {
       throw new TypeError('QR mask metadata selection must be boolean.')
     }
-    const { modules, mask } = this.#buildMatrix(segments, version, errorCorrectionLevel, this.options.mask, model, evaluator, scoringRemainder)
+    const { modules, mask } = this.#buildMatrix(segments, version, errorCorrectionLevel, this.options.mask,
+      model, evaluator, scoringRemainder, maskSelection)
 
     return {
       data: this.data,
@@ -322,7 +331,7 @@ export class QrCore {
     throw new Error('Input is too large for the configured QR version range.')
   }
 
-  #buildMatrix(segments, version, ecl, maskPreference, model, evaluator, scoringRemainder) {
+  #buildMatrix(segments, version, ecl, maskPreference, model, evaluator, scoringRemainder, maskSelection) {
     const size = version * 4 + 17
     // Remainder modules are light before masking, including during penalty scoring.
     // Null remainder cells retain historical caller scoring when explicitly
@@ -341,6 +350,7 @@ export class QrCore {
     let selectedMask = maskPreference
     if (selectedMask < 0 || selectedMask > 7) {
       let bestPenalty = Infinity
+      const finalists = maskSelection ? [] : null
       for (let mask = 0; mask < 8; mask += 1) {
         const candidate = cloneMatrix(modules)
         applyMask(candidate, isFunction, mask)
@@ -348,11 +358,30 @@ export class QrCore {
         if (model === 2 && version >= 7) {
           drawVersionBits(candidate, isFunction, version)
         }
-        const penalty = evaluator(candidate)
-        if (!Number.isFinite(penalty) || penalty < 0) throw new RangeError('QR mask penalty must be a finite nonnegative number.')
-        if (penalty < bestPenalty) {
-          bestPenalty = penalty
-          selectedMask = mask
+        if (maskSelection) {
+          const preliminaryScore = checkedMaskPenalty(maskSelection.preliminaryScore(candidate))
+          // Equal scores retain ascending mask order because candidates arrive in that order.
+          const earlier = finalists.findIndex(finalist => preliminaryScore < finalist.preliminaryScore)
+          const position = earlier === -1 ? finalists.length : earlier
+          if (position < maskSelection.finalistCount) {
+            finalists.splice(position, 0, { candidate, mask, preliminaryScore })
+            if (finalists.length > maskSelection.finalistCount) finalists.pop()
+          }
+        } else {
+          const penalty = checkedMaskPenalty(evaluator(candidate))
+          if (penalty < bestPenalty) {
+            bestPenalty = penalty
+            selectedMask = mask
+          }
+        }
+      }
+      if (finalists) {
+        for (const { candidate, mask, preliminaryScore } of finalists) {
+          const penalty = checkedMaskPenalty(maskSelection.finalScore(candidate, preliminaryScore))
+          if (penalty < bestPenalty) {
+            bestPenalty = penalty
+            selectedMask = mask
+          }
         }
       }
     }
@@ -370,6 +399,11 @@ export class QrCore {
 // ==========================================
 // Modul-Scope Helfer-Funktionen (Reine Logik, gekapselt)
 // ==========================================
+
+function checkedMaskPenalty(penalty) {
+  if (!Number.isFinite(penalty) || penalty < 0) throw new RangeError('QR mask penalty must be a finite nonnegative number.')
+  return penalty
+}
 
 function getDataCapacityBits(version, ecl, model) {
   const codewordBits = getRsBlocks(version, ecl, model).reduce((sum, block) => sum + block.dataCount, 0) * 8

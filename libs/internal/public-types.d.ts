@@ -37,6 +37,12 @@ export interface QrOptions {
   readonly segments?: readonly QrDataSegment[];
   readonly structuredAppend?: QrStructuredAppend | null | false;
   readonly maskPenaltyEvaluator?: (candidate: readonly (readonly (boolean | null)[])[]) => number;
+  /** Ranks automatic masks by preliminary score and then by their mask index. The final scorer sees only finalists; equal final scores keep their preliminary order. */
+  readonly maskSelection?: {
+    readonly finalistCount: number;
+    readonly preliminaryScore: (candidate: readonly (readonly (boolean | null)[])[]) => number;
+    readonly finalScore: (candidate: readonly (readonly (boolean | null)[])[], preliminaryScore: number) => number;
+  };
   readonly maskScoringRemainder?: 'light' | 'legacy-null';
   readonly includeMaskMetadata?: boolean;
 }
