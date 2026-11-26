@@ -141,8 +141,9 @@ Firmware-Bitmap zur Auswertung. Die Druckzähler und relevanten
 Druckereinstellungen werden davor und danach verglichen. Anschließend wird
 die eindeutig benannte temporäre Grafik entfernt.
 
-Je Vektor bleiben Payload, Byte-Modus, Fehlerkorrekturstufe und Modulgröße
-gleich. Zuerst wird der Maskenparameter weggelassen. Danach werden die Werte
+In der ursprünglichen Messreihe bleiben Payload, Byte-Modus,
+Fehlerkorrekturstufe und Modulgröße je Vektor gleich. Zuerst wird der
+Maskenparameter weggelassen. Danach werden die Werte
 0–7 einzeln geprüft. Die Auswertung liest beide Kopien der QR-Formatbits,
 bestätigt den Payload und vergleicht die Matrix mit den festen Kandidaten.
 Modell, Firmware und Auflösung gehören zur Beobachtung.
@@ -173,6 +174,24 @@ Das Symbol hatte 63 × 63 Punkte und mindestens vier freie Module auf jeder
 Seite. Etikettenzähler und Drucklängenzähler blieben bei beiden Durchläufen
 unverändert. Alle temporären RAM-Grafiken wurden entfernt. Die Messdaten und
 die ausgelesene Matrix stehen in [zd421-d01-bitmap.json](zd421-d01-bitmap.json).
+
+#### D01-Kontrollen bei zwei Druckpunkten pro Modul
+
+Am 26. November 2026 wurde D01 mit derselben Firmware bei zwei Druckpunkten
+pro Modul in vier Varianten erneut abgerufen.
+
+| `^BQ` | `^FD` | Maske |
+| --- | --- | ---: |
+| `^BQN,2,2` | `^FDLM,B00062nnnxj` | 4 |
+| `^BQN,2,2,L` | `^FDLM,B00062nnnxj` | 4 |
+| `^BQN,2,2,L,7` | `^FDLM,B00062nnnxj` | 4 |
+| `^BQN,2,2` | `^FDLA,2nnnxj` | 4 |
+
+Die vollständige Matrix entspricht in allen vier Fällen der vorherigen
+Messung mit drei Druckpunkten je Modul. Die Formatkopien bestätigen ECC L
+und Maske 4. Die dekodierten Daten-Codewörter stimmen auch bei automatischer
+Segmentwahl überein. Die Druckzähler blieben unverändert.
+[Messdaten der vier Abrufe](zd421-d01-controls.json)
 
 ### S02, P03 und C04 am ZD421
 

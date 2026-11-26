@@ -1,0 +1,200 @@
+{
+  "capturedOn": "2026-11-26",
+  "studyCommit": "7faad2845a71d0ad451571703982b1a0503a060b",
+  "printerModel": "ZD421",
+  "firmware": "V93.21.17Z",
+  "reportedHeadDpi": 300,
+  "dotsPerMm": 12,
+  "decoder": "ZXing",
+  "qrModel": 2,
+  "moduleSizeDots": 2,
+  "fieldOriginDots": [
+    20,
+    0
+  ],
+  "reportedMediaSizeDots": [
+    602,
+    158
+  ],
+  "labelCountUnchanged": true,
+  "printLengthUnchanged": true,
+  "temporaryRamGraphicsRemoved": true,
+  "matrixSha256": "133e2c595ad1daba54bf02b308cb2abcdec49b578b2ac3256b0f2e5c9d886c3e",
+  "matrix": [
+    "111111101000101111111",
+    "100000101101001000001",
+    "101110101111101011101",
+    "101110101010101011101",
+    "101110100111101011101",
+    "100000101010101000001",
+    "111111101010101111111",
+    "000000000000000000000",
+    "110011100000100101111",
+    "110001010110111001010",
+    "010111110010110001110",
+    "011000000001100100001",
+    "100010111001001110011",
+    "000000001001100001000",
+    "111111100001001111100",
+    "100000101010011100001",
+    "101110101000111010001",
+    "101110100110111011011",
+    "101110100100110011100",
+    "100000101001100110000",
+    "111111101101001011001"
+  ],
+  "cases": [
+    {
+      "id": "D01-BASE",
+      "payload": "2nnnxj",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "LM,B00062nnnxj",
+      "requestedMask": null,
+      "observedMask": 4,
+      "formatWordsHex": [
+        "662f",
+        "662f"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        81,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        559,
+        35
+      ],
+      "decodedPayload": "2nnnxj",
+      "byteSegmentsHex": [
+        "326e6e6e786a"
+      ],
+      "decodedDataCodewordsHex": "406326e6e6e786a0ec11ec11ec11ec11ec11ec",
+      "matrixSha256": "133e2c595ad1daba54bf02b308cb2abcdec49b578b2ac3256b0f2e5c9d886c3e",
+      "responseSha256": "cd847adcefea6698ce79d42f08b36cde7b9216f26fd8de6d412094f3030b304d",
+      "wireSha256": "e7cbfd1a0052a840ebb6b4c9bdb5c4a9e96e27b7fa216ee9d5303c7def25b6fa"
+    },
+    {
+      "id": "D01-ECC",
+      "payload": "2nnnxj",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2,L",
+      "dataField": "LM,B00062nnnxj",
+      "requestedMask": null,
+      "observedMask": 4,
+      "formatWordsHex": [
+        "662f",
+        "662f"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        81,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        559,
+        35
+      ],
+      "decodedPayload": "2nnnxj",
+      "byteSegmentsHex": [
+        "326e6e6e786a"
+      ],
+      "decodedDataCodewordsHex": "406326e6e6e786a0ec11ec11ec11ec11ec11ec",
+      "matrixSha256": "133e2c595ad1daba54bf02b308cb2abcdec49b578b2ac3256b0f2e5c9d886c3e",
+      "responseSha256": "43f044e1afadb3849258411a43659c1facd1616dc34008a5b017e3b250627f83",
+      "wireSha256": "a7f46854b2fbcd50d4f428879fe69697bed5408db271a29ead7d4e9ca20f82da"
+    },
+    {
+      "id": "D01-EXPLICIT",
+      "payload": "2nnnxj",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2,L,7",
+      "dataField": "LM,B00062nnnxj",
+      "requestedMask": 7,
+      "observedMask": 4,
+      "formatWordsHex": [
+        "662f",
+        "662f"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        81,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        559,
+        35
+      ],
+      "decodedPayload": "2nnnxj",
+      "byteSegmentsHex": [
+        "326e6e6e786a"
+      ],
+      "decodedDataCodewordsHex": "406326e6e6e786a0ec11ec11ec11ec11ec11ec",
+      "matrixSha256": "133e2c595ad1daba54bf02b308cb2abcdec49b578b2ac3256b0f2e5c9d886c3e",
+      "responseSha256": "4f379ddeb97d91949823634f0b791fb9c29d910e294bfe6db62ccbb992f4afd1",
+      "wireSha256": "f8ab5b30f8e18528e8f0855386490304adc0e29d8046f326f8eaa336a27bf7a3"
+    },
+    {
+      "id": "D01-AUTO",
+      "payload": "2nnnxj",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "LA,2nnnxj",
+      "requestedMask": null,
+      "observedMask": 4,
+      "formatWordsHex": [
+        "662f",
+        "662f"
+      ],
+      "bitmapSizeDots": [
+        640,
+        158
+      ],
+      "inkBoundsDots": [
+        39,
+        81,
+        81,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        39,
+        81,
+        559,
+        35
+      ],
+      "decodedPayload": "2nnnxj",
+      "byteSegmentsHex": [
+        "326e6e6e786a"
+      ],
+      "decodedDataCodewordsHex": "406326e6e6e786a0ec11ec11ec11ec11ec11ec",
+      "matrixSha256": "133e2c595ad1daba54bf02b308cb2abcdec49b578b2ac3256b0f2e5c9d886c3e",
+      "responseSha256": "97dbd364fc60db4ef662222729cd65d66820f8d768c87d4df25e21961815a104",
+      "wireSha256": "f736248eccfea6b412bfb0088a78108e06368f98c3fb71b261ef3384ae99f965"
+    }
+  ]
+}
