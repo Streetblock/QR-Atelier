@@ -275,6 +275,56 @@ Von den drei Finalisten gewinnt Maske 1.
 Die Übereinstimmung stützt die Vorauswahl als Erklärung für die gemessenen
 ZD421-Fälle. Ob `V93.21.17Z` dieselbe Routine nutzt, bleibt zu prüfen.
 
+### Maskenvorauswahl in 14 gezielten Bitmap-Tests
+
+Am 26. November 2026 wurden am ZD421 mit Firmware `V93.21.17Z` 14 neue
+Testfälle bei zwei Druckpunkten pro Modul als RAM-Bitmap abgerufen. Beide
+Formatkopien und die vollständige Modulmatrix bestätigten jede gemessene
+Maske. ZXing las jeweils die erwarteten Nutzdaten. Während der vollständigen
+Messreihe blieben Etiketten- und Medienwegzähler unverändert.
+
+Für die Vorhersagen zählt die Vorauswahl überlappende einfarbige 2×2-Blöcke im
+fertigen Symbol. Die drei Masken mit der kleinsten Zahl kommen weiter. Bei
+gleicher Blockzahl hat die kleinere Maskennummer Vorrang. Die Gesamtbewertung
+entscheidet unter den drei Finalisten. Bei gleichem Endwert zählt ihre
+Reihenfolge aus der Vorauswahl.
+
+Für die Referenzbewertung kostet jeder einfarbige 2×2-Block drei Punkte.
+Ein gleichfarbiger Lauf der Länge `n ≥ 5` kostet `n − 2` Punkte. Ein Muster
+im Verhältnis `k:k:3k:k:k` zählt einmal mit 40 Punkten, wenn es auf mindestens
+einer Seite `4k` helle Module hat. Ein äußerer heller Lauf gilt als ausreichend
+lang. Für den Dichteanteil zählt `D` die dunklen Module in waagerechten Läufen,
+auf die ein heller Lauf folgt. Bei Symbolbreite `s` ist
+`p = trunc(D / trunc(s² / 100))`. Der Dichteanteil kostet
+`10 × abs(trunc((p − 50) / 5))` Punkte.
+
+| Vorab berechnete Variante | Übereinstimmungen |
+| --- | ---: |
+| Zwei Finalisten | 9/14 |
+| Drei Finalisten mit Referenzbewertung | **14/14** |
+| Vier Finalisten | 4/14 |
+| Vollbewertung aller acht Masken | 2/14 |
+| Drei Finalisten mit Toolkit-P0-Bewertung | 13/14 |
+| Drei Finalisten, größere Maskennummer zuerst bei gleicher Blockzahl | 8/14 |
+| Alle Gleichplatzierten am Schnitt kommen weiter | 8/14 |
+| Kleinere Maskennummer zuerst bei gleichem Endwert | 13/14 |
+
+Bei `p8ka7r7` gewann am ZD421 Maske 2. Mit vier Finalisten hätte Maske 7
+auf Platz 4 wegen ihrer geringeren Gesamtstrafe gewonnen. Bei `9un39h`
+hatten die Masken 1, 6 und 7 jeweils 44 einfarbige 2×2-Blöcke. Die kleinere
+Maske 1 erhielt den dritten Platz, und Maske 0 gewann unter den Finalisten.
+Ein Vorrang der größeren Maskennummer hätte Maske 7 ergeben. Alle
+Gleichplatzierten weiterzulassen hätte zu Maske 6 geführt.
+
+Bei `zoh8l0806p8rbtzsh1bnzgybwf` erzielten die Masken 6 und 0 beide
+1268 Punkte. Der ZD421 wählte die in der Vorauswahl besser platzierte Maske 6.
+Bei `5h60hd2tysreaejp` wählte er Maske 2. Mit denselben drei Finalisten
+hätte die P0-Bewertung Maske 0 gewählt.
+
+Der Befund gilt für diese Testeingaben auf dem ZD421 mit `V93.21.17Z`.
+
+[Messmatrizen und Vorhersagen je Fall](zd421-mask-shortlist-bitmaps.json)
+
 ## Druckprotokoll
 
 1. Druckermodell, Firmware, Punkte/mm, Material, Geschwindigkeit und Heizleistung

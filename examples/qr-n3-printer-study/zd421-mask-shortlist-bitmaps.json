@@ -1,0 +1,1774 @@
+{
+  "capturedOn": "2026-11-26",
+  "priorStudyCommit": "491545011295a3ef23285a7c7ece60a4eb70be22",
+  "printerModel": "ZD421",
+  "firmware": "V93.21.17Z",
+  "reportedHeadDpi": 300,
+  "dotsPerMm": 12,
+  "decoder": "ZXing",
+  "qrModel": 2,
+  "moduleSizeDots": 2,
+  "fieldOriginDots": [
+    20,
+    0
+  ],
+  "labelCountUnchanged": true,
+  "mediaTravelUnchanged": true,
+  "temporaryRamGraphicsRemoved": true,
+  "toolkitP0Commit": "73ce6e2696d354ad24b51c0818b6e8dcd75bed34",
+  "compared": 14,
+  "comparisons": {
+    "twoFinalists": {
+      "matches": 9,
+      "misses": [
+        "STRICT-1",
+        "WIDTH-1",
+        "WIDTH-2",
+        "WIDTH-3",
+        "TRIPLE-2"
+      ]
+    },
+    "threeFinalists": {
+      "matches": 14,
+      "misses": []
+    },
+    "fourFinalists": {
+      "matches": 4,
+      "misses": [
+        "STRICT-1",
+        "STRICT-2",
+        "STRICT-3",
+        "WIDTH-1",
+        "WIDTH-2",
+        "WIDTH-3",
+        "PAIR-1",
+        "PAIR-2",
+        "PAIR-3",
+        "TRIPLE-1"
+      ]
+    },
+    "allEightMasks": {
+      "matches": 2,
+      "misses": [
+        "STRICT-1",
+        "STRICT-2",
+        "STRICT-3",
+        "WIDTH-1",
+        "WIDTH-2",
+        "WIDTH-3",
+        "PAIR-1",
+        "PAIR-2",
+        "PAIR-3",
+        "TRIPLE-1",
+        "TRIPLE-2",
+        "TRIPLE-3"
+      ]
+    },
+    "threeFinalistsToolkitP0": {
+      "matches": 13,
+      "misses": [
+        "FINAL-SCORER-2"
+      ]
+    },
+    "threeFinalistsHigherMaskFirstAtCutoff": {
+      "matches": 8,
+      "misses": [
+        "PAIR-1",
+        "PAIR-2",
+        "PAIR-3",
+        "TRIPLE-1",
+        "TRIPLE-2",
+        "TRIPLE-3"
+      ]
+    },
+    "includeAllCutoffTies": {
+      "matches": 8,
+      "misses": [
+        "PAIR-1",
+        "PAIR-2",
+        "PAIR-3",
+        "TRIPLE-1",
+        "TRIPLE-2",
+        "TRIPLE-3"
+      ]
+    },
+    "threeFinalistsLowerMaskFirstOnFinalTie": {
+      "matches": 13,
+      "misses": [
+        "FINAL-TIE-3"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "STRICT-1",
+      "payload": "ufnwe4",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "LM,B0006ufnwe4",
+      "observedMask": 1,
+      "formatWordsHex": [
+        "72f3",
+        "72f3"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        64,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        576,
+        191
+      ],
+      "decodedPayload": "ufnwe4",
+      "matrixSha256": "1ad4b8524b45290b350456469b310ed9e82bc743e43fdb3ee489d04127501033",
+      "matrix": [
+        "111111101111101111111",
+        "100000101101101000001",
+        "101110100111001011101",
+        "101110100101101011101",
+        "101110101000101011101",
+        "100000101010001000001",
+        "111111101010101111111",
+        "000000001111000000000",
+        "111001101111111110011",
+        "001100011000000001001",
+        "100001101110001001001",
+        "111010011010100011010",
+        "101010110100001001001",
+        "000000001001011001111",
+        "111111100011110111001",
+        "100000101011011001001",
+        "101110100011111010001",
+        "101110100010000111000",
+        "101110101110001110011",
+        "100000101100100101000",
+        "111111101000001011001"
+      ],
+      "responseSha256": "4c64c4ca5c245b01673ae79ed987966c3e2396e9ade17562fea0d838f03d4191",
+      "predictions": {
+        "twoFinalists": 2,
+        "threeFinalists": 1,
+        "fourFinalists": 5,
+        "allEightMasks": 5,
+        "threeFinalistsToolkitP0": 1,
+        "threeFinalistsHigherMaskFirstAtCutoff": 1,
+        "includeAllCutoffTies": 1,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 1
+      },
+      "candidatesByRank": [
+        {
+          "mask": 2,
+          "monochromeBlocks": 32,
+          "referencePenalty": 1087,
+          "toolkitP0Penalty": 1087
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 38,
+          "referencePenalty": 1095,
+          "toolkitP0Penalty": 1095
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 39,
+          "referencePenalty": 1065,
+          "toolkitP0Penalty": 1065
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 41,
+          "referencePenalty": 1020,
+          "toolkitP0Penalty": 1020
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 42,
+          "referencePenalty": 1072,
+          "toolkitP0Penalty": 1072
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 44,
+          "referencePenalty": 1120,
+          "toolkitP0Penalty": 1120
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 46,
+          "referencePenalty": 1031,
+          "toolkitP0Penalty": 1031
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 51,
+          "referencePenalty": 1100,
+          "toolkitP0Penalty": 1100
+        }
+      ]
+    },
+    {
+      "id": "STRICT-2",
+      "payload": "he52820f62coa632",
+      "errorCorrection": "Q",
+      "version": 2,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "QM,B0016he52820f62coa632",
+      "observedMask": 2,
+      "formatWordsHex": [
+        "3f31",
+        "3f31"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        72,
+        131
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        568,
+        183
+      ],
+      "decodedPayload": "he52820f62coa632",
+      "matrixSha256": "12ffcb6dc8d941aae72791fe4c5843499d90fa9fdc0ca0f4657cfc7505f9dbfb",
+      "matrix": [
+        "1111111011010001101111111",
+        "1000001000010000001000001",
+        "1011101001000010101011101",
+        "1011101001011000001011101",
+        "1011101010101111001011101",
+        "1000001011101111001000001",
+        "1111111010101010101111111",
+        "0000000001111100000000000",
+        "0111111101110011100110001",
+        "1111000100101000010000010",
+        "0000001101001001101010001",
+        "1111010100001010000101011",
+        "1100011101111001111110111",
+        "1010100100010110000001000",
+        "1011001110001011001011111",
+        "1011010010000110110101001",
+        "1000101001101111111110100",
+        "0000000010100100100011100",
+        "1111111011100010101011011",
+        "1000001010101111100011001",
+        "1011101010011111111110101",
+        "1011101010101000011011011",
+        "1011101011111001000101101",
+        "1000001010110101110001001",
+        "1111111000100100010000111"
+      ],
+      "responseSha256": "37b73d67113f73eb1f2f069d9c22d93c6f7ca2730f499a8428e0ef500f60a2a5",
+      "predictions": {
+        "twoFinalists": 2,
+        "threeFinalists": 2,
+        "fourFinalists": 3,
+        "allEightMasks": 3,
+        "threeFinalistsToolkitP0": 2,
+        "threeFinalistsHigherMaskFirstAtCutoff": 2,
+        "includeAllCutoffTies": 2,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 2
+      },
+      "candidatesByRank": [
+        {
+          "mask": 2,
+          "monochromeBlocks": 58,
+          "referencePenalty": 1179,
+          "toolkitP0Penalty": 1179
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 58,
+          "referencePenalty": 1227,
+          "toolkitP0Penalty": 1227
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 63,
+          "referencePenalty": 1229,
+          "toolkitP0Penalty": 1239
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 64,
+          "referencePenalty": 1131,
+          "toolkitP0Penalty": 1131
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 65,
+          "referencePenalty": 1231,
+          "toolkitP0Penalty": 1231
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 72,
+          "referencePenalty": 1242,
+          "toolkitP0Penalty": 1232
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 81,
+          "referencePenalty": 1299,
+          "toolkitP0Penalty": 1299
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 84,
+          "referencePenalty": 1271,
+          "toolkitP0Penalty": 1271
+        }
+      ]
+    },
+    {
+      "id": "STRICT-3",
+      "payload": "c5w9q4wjw7td1b5n1vu032",
+      "errorCorrection": "H",
+      "version": 3,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "HM,B0022c5w9q4wjw7td1b5n1vu032",
+      "observedMask": 7,
+      "formatWordsHex": [
+        "083b",
+        "083b"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        80,
+        139
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        560,
+        175
+      ],
+      "decodedPayload": "c5w9q4wjw7td1b5n1vu032",
+      "matrixSha256": "0b8f79f8baa151e2730c5db74d4ff141764d3186d2180ad2f02bd1d10f731c3d",
+      "matrix": [
+        "11111110111000010010001111111",
+        "10000010110100100111001000001",
+        "10111010010011010111101011101",
+        "10111010111000110010101011101",
+        "10111010100111011010001011101",
+        "10000010101000000001001000001",
+        "11111110101010101010101111111",
+        "00000000000101110111100000000",
+        "00010010001111100110000111011",
+        "01100100001110001111001001001",
+        "10110010111010101001110001000",
+        "01111001100101000010110101101",
+        "10010011100010000010011101001",
+        "10001100100010110011000101010",
+        "01011010010111001100111011011",
+        "01101100110110101110100100000",
+        "01100111001101101101000100000",
+        "01111101010110111110101100111",
+        "10110111001111011110011111111",
+        "00101100111000100111000101010",
+        "10001110011111100010111110111",
+        "00000000110110111110100010001",
+        "11111110000001001010101010000",
+        "10000010011110001000100011110",
+        "10111010010011011010111111011",
+        "10111010111001100000101011101",
+        "10111010001101111110100010101",
+        "10000010010001001000110001010",
+        "11111110010101000101100000010"
+      ],
+      "responseSha256": "c6ab7f9b3a2b268254331e569013377f2c8378c7a9b138733ed0a4dd862b7171",
+      "predictions": {
+        "twoFinalists": 7,
+        "threeFinalists": 7,
+        "fourFinalists": 5,
+        "allEightMasks": 5,
+        "threeFinalistsToolkitP0": 7,
+        "threeFinalistsHigherMaskFirstAtCutoff": 7,
+        "includeAllCutoffTies": 7,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 7
+      },
+      "candidatesByRank": [
+        {
+          "mask": 2,
+          "monochromeBlocks": 85,
+          "referencePenalty": 1388,
+          "toolkitP0Penalty": 1388
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 86,
+          "referencePenalty": 1329,
+          "toolkitP0Penalty": 1329
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 88,
+          "referencePenalty": 1428,
+          "toolkitP0Penalty": 1428
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 90,
+          "referencePenalty": 1250,
+          "toolkitP0Penalty": 1250
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 93,
+          "referencePenalty": 1270,
+          "toolkitP0Penalty": 1270
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 93,
+          "referencePenalty": 1357,
+          "toolkitP0Penalty": 1357
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 94,
+          "referencePenalty": 1280,
+          "toolkitP0Penalty": 1280
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 102,
+          "referencePenalty": 1373,
+          "toolkitP0Penalty": 1373
+        }
+      ]
+    },
+    {
+      "id": "WIDTH-1",
+      "payload": "p8ka7r7",
+      "errorCorrection": "H",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "HM,B0007p8ka7r7",
+      "observedMask": 2,
+      "formatWordsHex": [
+        "1ce7",
+        "1ce7"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        64,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        576,
+        191
+      ],
+      "decodedPayload": "p8ka7r7",
+      "matrixSha256": "d35cdf13b2c4e1009a74b63545e91302fdd017d4171daddc2026ab3695846a7b",
+      "matrix": [
+        "111111101100101111111",
+        "100000101100101000001",
+        "101110101110101011101",
+        "101110100010101011101",
+        "101110100110001011101",
+        "100000101010101000001",
+        "111111101010101111111",
+        "000000001000000000000",
+        "001110101010111100111",
+        "001111010100000100011",
+        "000000110001111100100",
+        "010001010100000011100",
+        "011001111001100000000",
+        "000000001011011010011",
+        "111111100101111101010",
+        "100000100000100111111",
+        "101110101101111100010",
+        "101110101000100010100",
+        "101110101001101001100",
+        "100000100000100010100",
+        "111111100111110001010"
+      ],
+      "responseSha256": "88043672f59d588d10457fec64ff908eb8be593052c6f2af0f2ab1b530810eee",
+      "predictions": {
+        "twoFinalists": 0,
+        "threeFinalists": 2,
+        "fourFinalists": 7,
+        "allEightMasks": 6,
+        "threeFinalistsToolkitP0": 2,
+        "threeFinalistsHigherMaskFirstAtCutoff": 2,
+        "includeAllCutoffTies": 2,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 2
+      },
+      "candidatesByRank": [
+        {
+          "mask": 0,
+          "monochromeBlocks": 40,
+          "referencePenalty": 1132,
+          "toolkitP0Penalty": 1132
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 41,
+          "referencePenalty": 1135,
+          "toolkitP0Penalty": 1135
+        },
+        {
+          "mask": 2,
+          "monochromeBlocks": 42,
+          "referencePenalty": 1090,
+          "toolkitP0Penalty": 1090
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 45,
+          "referencePenalty": 1078,
+          "toolkitP0Penalty": 1078
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 46,
+          "referencePenalty": 1034,
+          "toolkitP0Penalty": 1034
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 50,
+          "referencePenalty": 1093,
+          "toolkitP0Penalty": 1083
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 51,
+          "referencePenalty": 1078,
+          "toolkitP0Penalty": 1078
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 59,
+          "referencePenalty": 1176,
+          "toolkitP0Penalty": 1166
+        }
+      ]
+    },
+    {
+      "id": "WIDTH-2",
+      "payload": "3yi2vgiyt2huaaot5f",
+      "errorCorrection": "M",
+      "version": 2,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "MM,B00183yi2vgiyt2huaaot5f",
+      "observedMask": 1,
+      "formatWordsHex": [
+        "5125",
+        "5125"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        72,
+        131
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        568,
+        183
+      ],
+      "decodedPayload": "3yi2vgiyt2huaaot5f",
+      "matrixSha256": "103d5820f1c1be1097dd6e4b13e2b8669004c8fa8c3d21889625589ed6f09aa5",
+      "matrix": [
+        "1111111010000110001111111",
+        "1000001000010110101000001",
+        "1011101010001111001011101",
+        "1011101000001000101011101",
+        "1011101000100010101011101",
+        "1000001011100110001000001",
+        "1111111010101010101111111",
+        "0000000001100100100000000",
+        "1010001101111101000100101",
+        "1100110010100001111000101",
+        "1101001000011111011110101",
+        "1000000110100011101100010",
+        "1110011000010110101000010",
+        "0011100010000111101100011",
+        "1110001101010001010011001",
+        "0010000111000100000011011",
+        "1111111101111101111110011",
+        "0000000010001000100011011",
+        "1111111010101110101011011",
+        "1000001001111011100011001",
+        "1011101001000111111111011",
+        "1011101000100111010111010",
+        "1011101010110001100010011",
+        "1000001000000100110101000",
+        "1111111010011100101101001"
+      ],
+      "responseSha256": "05b368dab69d4c9aacab57ac7339fa6c3e7adfe0529759162346b71adb4b841f",
+      "predictions": {
+        "twoFinalists": 2,
+        "threeFinalists": 1,
+        "fourFinalists": 0,
+        "allEightMasks": 6,
+        "threeFinalistsToolkitP0": 1,
+        "threeFinalistsHigherMaskFirstAtCutoff": 1,
+        "includeAllCutoffTies": 1,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 1
+      },
+      "candidatesByRank": [
+        {
+          "mask": 2,
+          "monochromeBlocks": 54,
+          "referencePenalty": 1200,
+          "toolkitP0Penalty": 1200
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 58,
+          "referencePenalty": 1201,
+          "toolkitP0Penalty": 1201
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 61,
+          "referencePenalty": 1183,
+          "toolkitP0Penalty": 1183
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 63,
+          "referencePenalty": 1152,
+          "toolkitP0Penalty": 1142
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 65,
+          "referencePenalty": 1312,
+          "toolkitP0Penalty": 1302
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 68,
+          "referencePenalty": 1151,
+          "toolkitP0Penalty": 1151
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 72,
+          "referencePenalty": 1184,
+          "toolkitP0Penalty": 1174
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 84,
+          "referencePenalty": 1240,
+          "toolkitP0Penalty": 1240
+        }
+      ]
+    },
+    {
+      "id": "WIDTH-3",
+      "payload": "t9vy0e1tu707lhpzcvwztt",
+      "errorCorrection": "H",
+      "version": 3,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "HM,B0022t9vy0e1tu707lhpzcvwztt",
+      "observedMask": 6,
+      "formatWordsHex": [
+        "0d0c",
+        "0d0c"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        80,
+        139
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        560,
+        175
+      ],
+      "decodedPayload": "t9vy0e1tu707lhpzcvwztt",
+      "matrixSha256": "8a9fad32fcce77e870729ff6094fa3b09a85804fdc375da58474661c303f9ad5",
+      "matrix": [
+        "11111110011010010111001111111",
+        "10000010001101101010101000001",
+        "10111010100000010010101011101",
+        "10111010110100100111001011101",
+        "10111010011010000101101011101",
+        "10000010001001010110101000001",
+        "11111110101010101010101111111",
+        "00000000010010011000000000000",
+        "00011011010011001011000001100",
+        "11001001101000101000110110010",
+        "11100011110110100000100100110",
+        "01111101000001001100111011001",
+        "11100010001100101111011100001",
+        "10000100101000110110111111001",
+        "00101110011000011011101010001",
+        "10000001100011001000010011101",
+        "10101011010101000110000001001",
+        "10111100011100110011110010010",
+        "11011110110001100111111001101",
+        "11110100011000001101010010101",
+        "11100110000100111101111110101",
+        "00000000110110010011100011100",
+        "11111110100001100001101010000",
+        "10000010001100001001100011010",
+        "10111010110110100011111110001",
+        "10111010100000111001110101010",
+        "10111010001000000100000011111",
+        "10000010011000010011000111101",
+        "11111110000011100011111100000"
+      ],
+      "responseSha256": "ec38e6baf9cd9c7a0ac114ceb0bbba40272bfa633ec0da5a416836843425e16e",
+      "predictions": {
+        "twoFinalists": 0,
+        "threeFinalists": 6,
+        "fourFinalists": 4,
+        "allEightMasks": 1,
+        "threeFinalistsToolkitP0": 6,
+        "threeFinalistsHigherMaskFirstAtCutoff": 6,
+        "includeAllCutoffTies": 6,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 6
+      },
+      "candidatesByRank": [
+        {
+          "mask": 2,
+          "monochromeBlocks": 78,
+          "referencePenalty": 1479,
+          "toolkitP0Penalty": 1479
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 80,
+          "referencePenalty": 1402,
+          "toolkitP0Penalty": 1402
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 83,
+          "referencePenalty": 1318,
+          "toolkitP0Penalty": 1318
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 86,
+          "referencePenalty": 1303,
+          "toolkitP0Penalty": 1303
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 88,
+          "referencePenalty": 1260,
+          "toolkitP0Penalty": 1260
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 96,
+          "referencePenalty": 1409,
+          "toolkitP0Penalty": 1409
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 97,
+          "referencePenalty": 1326,
+          "toolkitP0Penalty": 1326
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 105,
+          "referencePenalty": 1433,
+          "toolkitP0Penalty": 1433
+        }
+      ]
+    },
+    {
+      "id": "PAIR-1",
+      "payload": "8tzgy35",
+      "errorCorrection": "H",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "HM,B00078tzgy35",
+      "observedMask": 4,
+      "formatWordsHex": [
+        "0762",
+        "0762"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        64,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        576,
+        191
+      ],
+      "decodedPayload": "8tzgy35",
+      "matrixSha256": "0521391e5f76c50960564fb505430f4c5ddc46b52234c0eb4ca5fee428338b13",
+      "matrix": [
+        "111111100101001111111",
+        "100000101111101000001",
+        "101110100010101011101",
+        "101110100001001011101",
+        "101110100010101011101",
+        "100000101010101000001",
+        "111111101010101111111",
+        "000000001110000000000",
+        "000011110010101100010",
+        "101010001111110001100",
+        "100011100100111111010",
+        "001010001010001010000",
+        "111111101001011101010",
+        "000000001101100110000",
+        "111111101100011111100",
+        "100000101010100000011",
+        "101110101100000000001",
+        "101110100111100111111",
+        "101110100101100110100",
+        "100000100111101010000",
+        "111111100000001011001"
+      ],
+      "responseSha256": "6b5b68c4179d384baab7a4884802b2759bb327a96d6ae9d909f32bcca6e40cf0",
+      "predictions": {
+        "twoFinalists": 4,
+        "threeFinalists": 4,
+        "fourFinalists": 3,
+        "allEightMasks": 3,
+        "threeFinalistsToolkitP0": 4,
+        "threeFinalistsHigherMaskFirstAtCutoff": 3,
+        "includeAllCutoffTies": 3,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 4
+      },
+      "candidatesByRank": [
+        {
+          "mask": 4,
+          "monochromeBlocks": 40,
+          "referencePenalty": 1093,
+          "toolkitP0Penalty": 1093
+        },
+        {
+          "mask": 2,
+          "monochromeBlocks": 42,
+          "referencePenalty": 1137,
+          "toolkitP0Penalty": 1137
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 47,
+          "referencePenalty": 1127,
+          "toolkitP0Penalty": 1117
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 47,
+          "referencePenalty": 1042,
+          "toolkitP0Penalty": 1042
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 48,
+          "referencePenalty": 1151,
+          "toolkitP0Penalty": 1151
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 48,
+          "referencePenalty": 1072,
+          "toolkitP0Penalty": 1072
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 50,
+          "referencePenalty": 1063,
+          "toolkitP0Penalty": 1063
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 50,
+          "referencePenalty": 1074,
+          "toolkitP0Penalty": 1064
+        }
+      ]
+    },
+    {
+      "id": "PAIR-2",
+      "payload": "r10q8ju61qh2lh09",
+      "errorCorrection": "Q",
+      "version": 2,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "QM,B0016r10q8ju61qh2lh09",
+      "observedMask": 4,
+      "formatWordsHex": [
+        "24b4",
+        "24b4"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        72,
+        131
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        568,
+        183
+      ],
+      "decodedPayload": "r10q8ju61qh2lh09",
+      "matrixSha256": "536a764d4b6a02b99250034728cb998674a8b410b44f09414c2ad75632ecba75",
+      "matrix": [
+        "1111111001011110101111111",
+        "1000001000001111001000001",
+        "1011101010101010001011101",
+        "1011101000100000101011101",
+        "1011101011000000001011101",
+        "1000001011000000101000001",
+        "1111111010101010101111111",
+        "0000000000111101100000000",
+        "0100101010100101110110100",
+        "0010010100011111010010010",
+        "0000011010100001110101110",
+        "0011100010101011100000100",
+        "0010011100110110111001101",
+        "1001110100000101000110010",
+        "0001001100101001111010110",
+        "0001000001101011110101111",
+        "1100101010111011111111101",
+        "0000000011010110100010110",
+        "1111111000010010101011100",
+        "1000001001110010100010110",
+        "1011101010000110111110101",
+        "1011101001110010001000111",
+        "1011101000011000001001010",
+        "1000001011101111010100110",
+        "1111111001001111000011111"
+      ],
+      "responseSha256": "d98263e4068f6ef7efdcd7f65d3f79ffb9807920fc2f7b94b9c9d960bf182857",
+      "predictions": {
+        "twoFinalists": 4,
+        "threeFinalists": 4,
+        "fourFinalists": 7,
+        "allEightMasks": 7,
+        "threeFinalistsToolkitP0": 4,
+        "threeFinalistsHigherMaskFirstAtCutoff": 7,
+        "includeAllCutoffTies": 7,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 4
+      },
+      "candidatesByRank": [
+        {
+          "mask": 2,
+          "monochromeBlocks": 57,
+          "referencePenalty": 1221,
+          "toolkitP0Penalty": 1211
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 59,
+          "referencePenalty": 1185,
+          "toolkitP0Penalty": 1185
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 61,
+          "referencePenalty": 1194,
+          "toolkitP0Penalty": 1194
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 61,
+          "referencePenalty": 1121,
+          "toolkitP0Penalty": 1121
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 62,
+          "referencePenalty": 1167,
+          "toolkitP0Penalty": 1167
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 64,
+          "referencePenalty": 1219,
+          "toolkitP0Penalty": 1219
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 69,
+          "referencePenalty": 1254,
+          "toolkitP0Penalty": 1244
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 81,
+          "referencePenalty": 1289,
+          "toolkitP0Penalty": 1279
+        }
+      ]
+    },
+    {
+      "id": "PAIR-3",
+      "payload": "awzhzirr14n6xxhu79z1685hq2",
+      "errorCorrection": "Q",
+      "version": 3,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "QM,B0026awzhzirr14n6xxhu79z1685hq2",
+      "observedMask": 2,
+      "formatWordsHex": [
+        "3f31",
+        "3f31"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        80,
+        139
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        560,
+        175
+      ],
+      "decodedPayload": "awzhzirr14n6xxhu79z1685hq2",
+      "matrixSha256": "8b72ef8c562b01edc08c7a7a2dd73c4dd0529cda6aff9ad789db64ed831a4e80",
+      "matrix": [
+        "11111110100010011110101111111",
+        "10000010000111001101001000001",
+        "10111010000100011011101011101",
+        "10111010001011001111001011101",
+        "10111010110000010001101011101",
+        "10000010100001001010001000001",
+        "11111110101010101010101111111",
+        "00000000000111111000100000000",
+        "01111111001111011010000110001",
+        "00110101101001010000001010101",
+        "00001110001010101100011011000",
+        "00111001010000100011000001000",
+        "10010110111111001100100001110",
+        "10110001100011110101001111001",
+        "01100111101000111100100001110",
+        "11001101101100100110000001001",
+        "01100011111101111000100101100",
+        "10001001010000110111011010111",
+        "10111011001111111010110000100",
+        "10101100111010110010011110011",
+        "10011011011011111100111111111",
+        "00000000101111101001100010101",
+        "11111110100100110011101010110",
+        "10000010101100110000100011000",
+        "10111010101000100010111110100",
+        "10111010101001111100100100000",
+        "10111010111001000010001111010",
+        "10000010101101001011111010010",
+        "11111110001111100101010001100"
+      ],
+      "responseSha256": "088a3f574cd656671b24b48fea8e693c2ecca09857fd3df1aa1f8479390dbe8d",
+      "predictions": {
+        "twoFinalists": 2,
+        "threeFinalists": 2,
+        "fourFinalists": 7,
+        "allEightMasks": 7,
+        "threeFinalistsToolkitP0": 2,
+        "threeFinalistsHigherMaskFirstAtCutoff": 7,
+        "includeAllCutoffTies": 7,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 2
+      },
+      "candidatesByRank": [
+        {
+          "mask": 6,
+          "monochromeBlocks": 73,
+          "referencePenalty": 1304,
+          "toolkitP0Penalty": 1304
+        },
+        {
+          "mask": 2,
+          "monochromeBlocks": 76,
+          "referencePenalty": 1277,
+          "toolkitP0Penalty": 1277
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 81,
+          "referencePenalty": 1322,
+          "toolkitP0Penalty": 1322
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 81,
+          "referencePenalty": 1227,
+          "toolkitP0Penalty": 1227
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 86,
+          "referencePenalty": 1323,
+          "toolkitP0Penalty": 1323
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 88,
+          "referencePenalty": 1382,
+          "toolkitP0Penalty": 1382
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 89,
+          "referencePenalty": 1284,
+          "toolkitP0Penalty": 1284
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 90,
+          "referencePenalty": 1370,
+          "toolkitP0Penalty": 1370
+        }
+      ]
+    },
+    {
+      "id": "TRIPLE-1",
+      "payload": "9un39h",
+      "errorCorrection": "L",
+      "version": 1,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "LM,B00069un39h",
+      "observedMask": 0,
+      "formatWordsHex": [
+        "77c4",
+        "77c4"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        64,
+        123
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        576,
+        191
+      ],
+      "decodedPayload": "9un39h",
+      "matrixSha256": "606020b599dee459b759e1ca7745a2307c9018beeef2e49c1706449a01cdd88d",
+      "matrix": [
+        "111111100010101111111",
+        "100000100000101000001",
+        "101110101010001011101",
+        "101110100000101011101",
+        "101110100101101011101",
+        "100000100111001000001",
+        "111111101010101111111",
+        "000000001010000000000",
+        "111011111010111000100",
+        "111000001001010100001",
+        "100001111101011101111",
+        "000010001111110110000",
+        "000100100001011100000",
+        "000000001000001100101",
+        "111111101110100010001",
+        "100000101000001101011",
+        "101110101010101001011",
+        "101110100111010111010",
+        "101110101101011111001",
+        "100000101011110001010",
+        "111111101101011001011"
+      ],
+      "responseSha256": "53a0211db068329419e2b4f62102db5cf55739ce3a9972a9c084c6eddbbfab6a",
+      "predictions": {
+        "twoFinalists": 0,
+        "threeFinalists": 0,
+        "fourFinalists": 6,
+        "allEightMasks": 6,
+        "threeFinalistsToolkitP0": 0,
+        "threeFinalistsHigherMaskFirstAtCutoff": 7,
+        "includeAllCutoffTies": 6,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 0
+      },
+      "candidatesByRank": [
+        {
+          "mask": 2,
+          "monochromeBlocks": 37,
+          "referencePenalty": 1093,
+          "toolkitP0Penalty": 1093
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 41,
+          "referencePenalty": 1072,
+          "toolkitP0Penalty": 1072
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 44,
+          "referencePenalty": 1122,
+          "toolkitP0Penalty": 1122
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 44,
+          "referencePenalty": 1037,
+          "toolkitP0Penalty": 1037
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 44,
+          "referencePenalty": 1045,
+          "toolkitP0Penalty": 1045
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 46,
+          "referencePenalty": 1080,
+          "toolkitP0Penalty": 1080
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 46,
+          "referencePenalty": 1056,
+          "toolkitP0Penalty": 1056
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 47,
+          "referencePenalty": 1087,
+          "toolkitP0Penalty": 1087
+        }
+      ]
+    },
+    {
+      "id": "TRIPLE-2",
+      "payload": "aq49han8xa0xrjqx",
+      "errorCorrection": "Q",
+      "version": 2,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "QM,B0016aq49han8xa0xrjqx",
+      "observedMask": 0,
+      "formatWordsHex": [
+        "355f",
+        "355f"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        72,
+        131
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        568,
+        183
+      ],
+      "decodedPayload": "aq49han8xa0xrjqx",
+      "matrixSha256": "087cb84b7275b6a83afb77b88afdfb5e4a312f2af77dd6cbb67809cf58457ab6",
+      "matrix": [
+        "1111111011000010001111111",
+        "1000001010010100001000001",
+        "1011101010101001001011101",
+        "1011101010110100001011101",
+        "1011101011101100101011101",
+        "1000001001000011001000001",
+        "1111111010101010101111111",
+        "0000000011001001000000000",
+        "0110101100001001001011111",
+        "1011110000100100111000001",
+        "0100001000000010001010101",
+        "0100100111000111000111000",
+        "1111001111001010001101001",
+        "0111010011101110101001101",
+        "1010001000101100101011111",
+        "0111110001111110010110000",
+        "1010001110100011111110001",
+        "0000000010011111100011111",
+        "1111111010001101101010111",
+        "1000001000000010100010010",
+        "1011101011110100111110001",
+        "1011101001000001100011000",
+        "1011101011110100110011101",
+        "1000001010111110111110010",
+        "1111111001000011101100011"
+      ],
+      "responseSha256": "303364db28a5c20ef40ca47c509498aa521f77f88d5199a8a84b861105a6b00c",
+      "predictions": {
+        "twoFinalists": 6,
+        "threeFinalists": 0,
+        "fourFinalists": 0,
+        "allEightMasks": 7,
+        "threeFinalistsToolkitP0": 0,
+        "threeFinalistsHigherMaskFirstAtCutoff": 7,
+        "includeAllCutoffTies": 7,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 0
+      },
+      "candidatesByRank": [
+        {
+          "mask": 6,
+          "monochromeBlocks": 53,
+          "referencePenalty": 1159,
+          "toolkitP0Penalty": 1159
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 60,
+          "referencePenalty": 1191,
+          "toolkitP0Penalty": 1191
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 62,
+          "referencePenalty": 1136,
+          "toolkitP0Penalty": 1126
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 62,
+          "referencePenalty": 1227,
+          "toolkitP0Penalty": 1227
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 62,
+          "referencePenalty": 1107,
+          "toolkitP0Penalty": 1107
+        },
+        {
+          "mask": 2,
+          "monochromeBlocks": 65,
+          "referencePenalty": 1284,
+          "toolkitP0Penalty": 1284
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 76,
+          "referencePenalty": 1203,
+          "toolkitP0Penalty": 1203
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 84,
+          "referencePenalty": 1303,
+          "toolkitP0Penalty": 1303
+        }
+      ]
+    },
+    {
+      "id": "TRIPLE-3",
+      "payload": "amsralh5elxj2d5o0g3946",
+      "errorCorrection": "H",
+      "version": 3,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "HM,B0022amsralh5elxj2d5o0g3946",
+      "observedMask": 3,
+      "formatWordsHex": [
+        "19d0",
+        "19d0"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        80,
+        139
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        560,
+        175
+      ],
+      "decodedPayload": "amsralh5elxj2d5o0g3946",
+      "matrixSha256": "0b99d171986bf5dc45db67a97e357349a7c7333972dae61ab89758fde7d1a3e3",
+      "matrix": [
+        "11111110000010100110101111111",
+        "10000010001100001101101000001",
+        "10111010000111111000101011101",
+        "10111010010000101101101011101",
+        "10111010110010011101001011101",
+        "10000010010000010001001000001",
+        "11111110101010101010101111111",
+        "00000000111101000110000000000",
+        "00110011100000011000011010000",
+        "10111101111001110000001011011",
+        "10011011101000110110111010110",
+        "00100001100010001100101101011",
+        "00111011110011000010000001110",
+        "11101001111110101001001001001",
+        "01011010010000000101101100011",
+        "01110001101110101100101011011",
+        "10100010001110110100000111000",
+        "01110000100000110110010100000",
+        "10110010001101000110011011000",
+        "00110100110101000100000101101",
+        "01100010100000101001111111111",
+        "00000000111110000110100010001",
+        "11111110111011111011101011000",
+        "10000010000001001010100010000",
+        "10111010011010000100111111111",
+        "10111010101000100101100111010",
+        "10111010101000110100010100101",
+        "10000010011100100111111000010",
+        "11111110001101000000110101010"
+      ],
+      "responseSha256": "f60e0ae7e92e7dc3c302e3f441a661bfa1bb20a3e142e7b6336968c7c6c4c729",
+      "predictions": {
+        "twoFinalists": 3,
+        "threeFinalists": 3,
+        "fourFinalists": 3,
+        "allEightMasks": 6,
+        "threeFinalistsToolkitP0": 3,
+        "threeFinalistsHigherMaskFirstAtCutoff": 6,
+        "includeAllCutoffTies": 6,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 3
+      },
+      "candidatesByRank": [
+        {
+          "mask": 3,
+          "monochromeBlocks": 89,
+          "referencePenalty": 1294,
+          "toolkitP0Penalty": 1284
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 89,
+          "referencePenalty": 1322,
+          "toolkitP0Penalty": 1322
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 92,
+          "referencePenalty": 1307,
+          "toolkitP0Penalty": 1307
+        },
+        {
+          "mask": 2,
+          "monochromeBlocks": 92,
+          "referencePenalty": 1455,
+          "toolkitP0Penalty": 1455
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 92,
+          "referencePenalty": 1265,
+          "toolkitP0Penalty": 1265
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 98,
+          "referencePenalty": 1308,
+          "toolkitP0Penalty": 1308
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 100,
+          "referencePenalty": 1343,
+          "toolkitP0Penalty": 1343
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 102,
+          "referencePenalty": 1360,
+          "toolkitP0Penalty": 1360
+        }
+      ]
+    },
+    {
+      "id": "FINAL-TIE-3",
+      "payload": "zoh8l0806p8rbtzsh1bnzgybwf",
+      "errorCorrection": "Q",
+      "version": 3,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "QM,B0026zoh8l0806p8rbtzsh1bnzgybwf",
+      "observedMask": 6,
+      "formatWordsHex": [
+        "2eda",
+        "2eda"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        80,
+        139
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        560,
+        175
+      ],
+      "decodedPayload": "zoh8l0806p8rbtzsh1bnzgybwf",
+      "matrixSha256": "cbfed6317e75e9f1566f79c09cacdccc5d457a58b3f88bfc590a6ec0bf79bd88",
+      "matrix": [
+        "11111110011010110011001111111",
+        "10000010110100111010101000001",
+        "10111010011000010010101011101",
+        "10111010101000110101001011101",
+        "10111010100101010101101011101",
+        "10000010011100111110001000001",
+        "11111110101010101010101111111",
+        "00000000100100100001100000000",
+        "01011110101110100011011011010",
+        "10110001000100000000110110100",
+        "00100010000011111010110001100",
+        "00010000011011010111101011000",
+        "01100110110111100001011001010",
+        "01000101101000000110011010011",
+        "01110111101000111101010010111",
+        "00000101010010001111011101101",
+        "00110010010001111100100100011",
+        "10011000001000101111100010010",
+        "11101011000001010011010101001",
+        "11011001000001100010000000101",
+        "11011010111011110101111111110",
+        "00000000101000110001100010000",
+        "11111110001111010111101010100",
+        "10000010110000011100100010010",
+        "10111010110100001111111110011",
+        "10111010100101001001100000010",
+        "10111010000011101001000111111",
+        "10000010111101010011001011101",
+        "11111110010011001001111101000"
+      ],
+      "responseSha256": "dd868995b0df44e3b33a92f50c77779118b13f162883c2674f2d4bd80672f2ac",
+      "predictions": {
+        "twoFinalists": 6,
+        "threeFinalists": 6,
+        "fourFinalists": 6,
+        "allEightMasks": 6,
+        "threeFinalistsToolkitP0": 6,
+        "threeFinalistsHigherMaskFirstAtCutoff": 6,
+        "includeAllCutoffTies": 6,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 0
+      },
+      "candidatesByRank": [
+        {
+          "mask": 3,
+          "monochromeBlocks": 77,
+          "referencePenalty": 1316,
+          "toolkitP0Penalty": 1316
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 77,
+          "referencePenalty": 1268,
+          "toolkitP0Penalty": 1268
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 85,
+          "referencePenalty": 1268,
+          "toolkitP0Penalty": 1268
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 90,
+          "referencePenalty": 1347,
+          "toolkitP0Penalty": 1347
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 96,
+          "referencePenalty": 1478,
+          "toolkitP0Penalty": 1478
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 98,
+          "referencePenalty": 1373,
+          "toolkitP0Penalty": 1333
+        },
+        {
+          "mask": 2,
+          "monochromeBlocks": 99,
+          "referencePenalty": 1353,
+          "toolkitP0Penalty": 1353
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 109,
+          "referencePenalty": 1390,
+          "toolkitP0Penalty": 1380
+        }
+      ]
+    },
+    {
+      "id": "FINAL-SCORER-2",
+      "payload": "5h60hd2tysreaejp",
+      "errorCorrection": "Q",
+      "version": 2,
+      "barcodeCommand": "^BQN,2,2",
+      "dataField": "QM,B00165h60hd2tysreaejp",
+      "observedMask": 2,
+      "formatWordsHex": [
+        "3f31",
+        "3f31"
+      ],
+      "bitmapSizeDots": [
+        640,
+        314
+      ],
+      "inkBoundsDots": [
+        22,
+        81,
+        72,
+        131
+      ],
+      "blankMarginsDotsLeftTopRightBottom": [
+        22,
+        81,
+        568,
+        183
+      ],
+      "decodedPayload": "5h60hd2tysreaejp",
+      "matrixSha256": "a287cbdbd28d136b50933175acfa4f8525b74709a781e7367d779a93f39790aa",
+      "matrix": [
+        "1111111010100001101111111",
+        "1000001000011000001000001",
+        "1011101001000010101011101",
+        "1011101001000000001011101",
+        "1011101010111111001011101",
+        "1000001011111111001000001",
+        "1111111010101010101111111",
+        "0000000001111101000000000",
+        "0111111101110011100110001",
+        "1010010011011000110100010",
+        "0010011100110001001101101",
+        "1001010001000010010011001",
+        "0101011010001000011110100",
+        "1110010011111110110101000",
+        "1010111010110111101001011",
+        "1001110011100011100100011",
+        "1011001100101001111111111",
+        "0000000011000101100011110",
+        "1111111011101000101011001",
+        "1000001010000000100010001",
+        "1011101010011011111111101",
+        "1011101010101000011110011",
+        "1011101011110011000101001",
+        "1000001010000111111011001",
+        "1111111001111100011000111"
+      ],
+      "responseSha256": "116d975a4bfbd62063cb77fcc4fd6b77fbc3cce77b7baa3249c93e674c0f668b",
+      "predictions": {
+        "twoFinalists": 2,
+        "threeFinalists": 2,
+        "fourFinalists": 2,
+        "allEightMasks": 2,
+        "threeFinalistsToolkitP0": 0,
+        "threeFinalistsHigherMaskFirstAtCutoff": 2,
+        "includeAllCutoffTies": 2,
+        "threeFinalistsLowerMaskFirstOnFinalTie": 2
+      },
+      "candidatesByRank": [
+        {
+          "mask": 2,
+          "monochromeBlocks": 62,
+          "referencePenalty": 1184,
+          "toolkitP0Penalty": 1184
+        },
+        {
+          "mask": 0,
+          "monochromeBlocks": 64,
+          "referencePenalty": 1188,
+          "toolkitP0Penalty": 1148
+        },
+        {
+          "mask": 6,
+          "monochromeBlocks": 68,
+          "referencePenalty": 1254,
+          "toolkitP0Penalty": 1264
+        },
+        {
+          "mask": 3,
+          "monochromeBlocks": 71,
+          "referencePenalty": 1258,
+          "toolkitP0Penalty": 1258
+        },
+        {
+          "mask": 1,
+          "monochromeBlocks": 72,
+          "referencePenalty": 1271,
+          "toolkitP0Penalty": 1221
+        },
+        {
+          "mask": 4,
+          "monochromeBlocks": 76,
+          "referencePenalty": 1276,
+          "toolkitP0Penalty": 1276
+        },
+        {
+          "mask": 7,
+          "monochromeBlocks": 77,
+          "referencePenalty": 1247,
+          "toolkitP0Penalty": 1207
+        },
+        {
+          "mask": 5,
+          "monochromeBlocks": 83,
+          "referencePenalty": 1238,
+          "toolkitP0Penalty": 1228
+        }
+      ]
+    }
+  ]
+}
